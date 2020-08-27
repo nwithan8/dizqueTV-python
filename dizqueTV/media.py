@@ -83,7 +83,7 @@ class MediaItem:
         self.duration = data.get('duration')
         self.summary = data.get('summary')
         self.rating = data.get('rating')
-        self.data = data.get('date')
+        self.date = data.get('date')
         self.year = data.get('year')
         self.plexFile = data.get('plexFile')
         self.file = data.get('file')
