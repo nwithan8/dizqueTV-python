@@ -6,44 +6,16 @@ from typing import List, Union
 import m3u8
 import requests
 
-from dizqueTV.logging import info, error, warning
-from dizqueTV.exceptions import IncompleteSettingsError
+import dizqueTV.logging as logs
+from logging import info, error, warning
+from dizqueTV.exceptions import MissingSettingsError
 from dizqueTV.settings import XMLTVSettings, PlexSettings, FFMPEGSettings, HDHomeRunSettings
 from dizqueTV.media import Channel
 from dizqueTV.plex_server import PlexServer
-
-PLEX_SETTINGS_TEMPLATE = {
-    "name": str,
-    "uri": str,
-    "accessToken": str,
-    "index": int,
-    "arChannels": bool,
-    "arGuide": bool,
-    "_id": str
-}
-
-CHANNEL_SETTINGS_TEMPLATE = {
-    "programs": List,
-    "fillerContent": List,
-    "fillerRepeatCooldown": int,
-    "fallback": [],
-    "icon": str,
-    "disableFillerOverlay": bool,
-    "iconWidth": int,
-    "iconDuration": int,
-    "iconPosition": str,
-    "startTime": str,
-    "offlinePicture": str,
-    "offlineSoundtrack": str,
-    "offlineMode": str,
-    "number": int,
-    "name": str,
-    "duration": int,
-    "_id": str,
-    "overlayIcon": bool
-}
+from dizqueTV.templates import PLEX_SETTINGS_TEMPLATE, CHANNEL_SETTINGS_TEMPLATE
 
 
+# TODO To avoid kwarg -> JSON confusion, all attributes of objects should be the same name as the original JSON keys
 def _validate_settings(new_settings_dict: json, old_settings_dict: json) -> json:
     """
     Build a complete dictionary for new settings
@@ -66,7 +38,7 @@ def _settings_are_complete(new_settings_dict: json, template_settings_dict: json
     """
     for k in template_settings_dict.keys():
         if k not in new_settings_dict.keys() or not isinstance(new_settings_dict[k], type(template_settings_dict[k])):
-            raise IncompleteSettingsError
+            raise MissingSettingsError
     return True
 
 
@@ -75,7 +47,7 @@ class API:
         self.url = url.rstrip('/')
         self.verbose = verbose
 
-    def _log(self, message: str, level=Union[info, error, warning]) -> None:
+    def _log(self, message: str, level: Union[info, error, warning] = info) -> None:
         """
         Log a message if verbose is enabled.
         :param message: Message to log
