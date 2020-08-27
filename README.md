@@ -54,7 +54,7 @@ Enable verbose logging by passing ``verbose=True`` into the ``API`` object decla
 - Reset Plex settings: ``reset = dtv.reset_plex_settings()`` -> True/False
 - Get XMLTV settings: ``settings = dtv.xmltv_settings`` -> ``XMLTVSettings`` object
 - Update XMLTV settings: ``updated = dtv.update_xmltv_settings(**kwargs)`` or ``XMLTVSettings.update(**kwargs)`` -> True/False
-- Refresh XMLTV settings: ``XMLTVSettings.refresh()`` -> None (reloads ``XMLTVSettings`` object in-place)
+- Refresh XMLTV settings: ``XMLTVSettings.reload()`` -> None (reloads ``XMLTVSettings`` object in-place)
 - Reset XMLTV settings: ``reset = dtv.reset_xmltv_settings()`` -> True/False
 - Get HDHomeRun settings: ``settings = dtv.hdhr_settings`` -> ``HDHomeRunSettings`` object
 - Update HDHomeRun settings: ``updated = dtv.update_hdhr_settings(**kwargs)`` or ``HDHomeRunSettings.update(**kwargs)`` -> True/False
@@ -137,12 +137,12 @@ Enable verbose logging by passing ``verbose=True`` into the ``API`` object decla
 
 #### XMLTVSettings
 - ``cache``
-- ``refreshTime``
+- ``refresh``
 - ``file``
 
 #### PlexSettings
 - ``streamPath``
-- ``logging``
+- ``debugLogging``
 - ``transcodeBitrate``
 - ``mediaBufferSize``
 - ``transcodeMediaBufferSize``
@@ -152,7 +152,7 @@ Enable verbose logging by passing ``verbose=True`` into the ``API`` object decla
 - ``audioCodecs``
 - ``maxAudioChannels``
 - ``audioBoost``
-- ``subtitles``
+- ``enableSubtitles``
 - ``subtitleSize``
 - ``updatePlayStatus``
 - ``streamProtocol``
@@ -162,19 +162,19 @@ Enable verbose logging by passing ``verbose=True`` into the ``API`` object decla
 
 #### FFMPEGSettings
 - ``configVersion``
-- ``path``
+- ``ffmpegPath``
 - ``threads``
 - ``concatMuxDelay``
-- ``logging``
-- ``transcoding``
-- ``audioVolume``
+- ``logFfmpeg``
+- ``enableFFMPEGTranscoding``
+- ``audioVolumePercent``
 - ``videoEncoder``
 - ``audioEncoder``
-- ``resolution``
+- ``targetResolution``
 - ``videoBitrate``
-- ``videoBufferSize``
+- ``videoBufSize``
 - ``audioBitrate``
-- ``audioBufferSize``
+- ``audioBufSize``
 - ``audioSampleRate``
 - ``audioChannels``
 - ``errorScreen``

@@ -6,11 +6,11 @@ class XMLTVSettings:
         self._data = data
         self._dizque_instance = dizque_instance
         self.cache = data.get('cache')
-        self.refreshTime = data.get('refresh')
+        self.refresh = data.get('refresh')
         self.file = data.get('file')
         self._id = data.get('_id')
 
-    def refresh(self):
+    def reload(self):
         """
         Reload current XMLTVSettings object
         """
@@ -28,7 +28,7 @@ class XMLTVSettings:
         :return: True if successful, False if unsuccessful
         """
         if self._dizque_instance.update_xmltv_settings(**kwargs):
-            self.refresh()
+            self.reload()
             return True
         return False
 
@@ -69,19 +69,19 @@ class FFMPEGSettings:
         self._data = data
         self._dizque_instance = dizque_instance
         self.configVersion = data.get('configVersion')
-        self.path = data.get('ffmpegPath')
+        self.ffmpegPath = data.get('ffmpegPath')
         self.threads = data.get('threads')
         self.concatMuxDelay = data.get('concatMuxDelay')
-        self.logging = data.get('logFfmpeg')
-        self.transcoding = data.get('enableFFMPEGTranscoding')
-        self.audioVolume = data.get('audioVolumePercent')
+        self.logFfmpeg = data.get('logFfmpeg')
+        self.enableFFMPEGTranscoding = data.get('enableFFMPEGTranscoding')
+        self.audioVolumePercent = data.get('audioVolumePercent')
         self.videoEncoder = data.get('videoEncoder')
         self.audioEncoder = data.get('audioEncoder')
-        self.resolution = data.get('targetResolution')
+        self.targetResolution = data.get('targetResolution')
         self.videoBitrate = data.get('videoBitrate')
-        self.videoBufferSize = data.get('videoBufSize')
+        self.videoBufSize = data.get('videoBufSize')
         self.audioBitrate = data.get('audioBitrate')
-        self.audioBufferSize = data.get('audiBufSize')
+        self.audioBufSize = data.get('audioBufSize')
         self.audioSampleRate = data.get('audioSampleRate')
         self.audioChannels = data.get('audioChannels')
         self.errorScreen = data.get('errorScreen')
@@ -120,7 +120,7 @@ class PlexSettings:
         self._data = data
         self._dizque_instance = dizque_instance
         self.streamPath = data.get('streamPath')
-        self.logging = data.get('debugLogging')
+        self.debugLogging = data.get('debugLogging')
         self.transcodeBitrate = data.get('transcodeBitrate')
         self.mediaBufferSize = data.get('mediaBufferSize')
         self.transcodeMediaBufferSize = data.get('transcodeMediaBufferSize')
@@ -130,7 +130,7 @@ class PlexSettings:
         self.audioCodecs = data.get('audioCodecs')
         self.maxAudioChannels = data.get('maxAudioChannels')
         self.audioBoost = data.get('audioBoost')
-        self.subtitles = data.get('enableSubtitles')
+        self.enableSubtitles = data.get('enableSubtitles')
         self.subtitleSize = data.get('subtitleSize')
         self.updatePlayStatus = data.get('updatePlayStatus')
         self.streamProtocol = data.get('streamProtocol')
