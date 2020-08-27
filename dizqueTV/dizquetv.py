@@ -1,0 +1,470 @@
+import json
+from urllib.parse import urlencode
+from xml.etree import ElementTree
+from typing import List, Union
+
+import m3u8
+import requests
+
+from dizqueTV.logging import info, error, warning
+from dizqueTV.exceptions import IncompleteSettingsError
+from dizqueTV.settings import XMLTVSettings, PlexSettings, FFMPEGSettings, HDHomeRunSettings
+from dizqueTV.media import Channel
+from dizqueTV.plex_server import PlexServer
+
+PLEX_SETTINGS_TEMPLATE = {
+    "name": str,
+    "uri": str,
+    "accessToken": str,
+    "index": int,
+    "arChannels": bool,
+    "arGuide": bool,
+    "_id": str
+}
+
+CHANNEL_SETTINGS_TEMPLATE = {
+    "programs": List,
+    "fillerContent": List,
+    "fillerRepeatCooldown": int,
+    "fallback": [],
+    "icon": str,
+    "disableFillerOverlay": bool,
+    "iconWidth": int,
+    "iconDuration": int,
+    "iconPosition": str,
+    "startTime": str,
+    "offlinePicture": str,
+    "offlineSoundtrack": str,
+    "offlineMode": str,
+    "number": int,
+    "name": str,
+    "duration": int,
+    "_id": str,
+    "overlayIcon": bool
+}
+
+
+def _validate_settings(new_settings_dict: json, old_settings_dict: json) -> json:
+    """
+    Build a complete dictionary for new settings
+    :param new_settings_dict: Dictionary of new settings kwargs
+    :param old_settings_dict: Current settings
+    :return: Dictionary of new settings
+    """
+    for k, v in new_settings_dict.items():
+        if k in old_settings_dict.keys():
+            old_settings_dict[k] = v
+    return old_settings_dict
+
+
+def _settings_are_complete(new_settings_dict: json, template_settings_dict: json) -> bool:
+    """
+    Check that all elements from the settings template are present in the new settings
+    :param new_settings_dict: Dictionary of new settings kwargs
+    :param template_settings_dict: Template of settings
+    :return: True if valid, raise dizqueTV.exceptions.IncompleteSettingsError if not valid
+    """
+    for k in template_settings_dict.keys():
+        if k not in new_settings_dict.keys() or not isinstance(new_settings_dict[k], type(template_settings_dict[k])):
+            raise IncompleteSettingsError
+    return True
+
+
+class API:
+    def __init__(self, url: str, verbose: bool = False):
+        self.url = url.rstrip('/')
+        self.verbose = verbose
+
+    def _log(self, message: str, level=Union[info, error, warning]) -> None:
+        """
+        Log a message if verbose is enabled.
+        :param message: Message to log
+        :param level: info, error or warning
+        """
+        if self.verbose:
+            level(message)
+
+    def _get(self, endpoint, params=None, timeout: int = 2) -> Union[requests.Response, None]:
+        if not endpoint.startswith('/'):
+            endpoint = f"/{endpoint}"
+        url = f"{self.url}/api{endpoint}"
+        if params:
+            url += f"?{urlencode(params)}"
+        self._log(message=f"GET {url}", level=info)
+        try:
+            return requests.get(url=url, timeout=timeout)
+        except requests.exceptions.Timeout:
+            return None
+
+    def _post(self, endpoint, params=None, data=None, timeout: int = 2) -> Union[requests.Response, None]:
+        if not endpoint.startswith('/'):
+            endpoint = f"/{endpoint}"
+        url = f"{self.url}/api{endpoint}"
+        if params:
+            url += f"?{urlencode(params)}"
+        self._log(message=f"POST {url}, Body: {data}", level=info)
+        try:
+            return requests.post(url=url, data=data, timeout=timeout)
+        except requests.exceptions.Timeout:
+            return None
+
+    def _put(self, endpoint, params=None, data=None, timeout: int = 2) -> Union[requests.Response, None]:
+        if not endpoint.startswith('/'):
+            endpoint = f"/{endpoint}"
+        url = f"{self.url}/api{endpoint}"
+        if params:
+            url += f"?{urlencode(params)}"
+        self._log(message=f"PUT {url}, Body: {data}", level=info)
+        try:
+            return requests.put(url=url, data=data, timeout=timeout)
+        except requests.exceptions.Timeout:
+            return None
+
+    def _delete(self, endpoint, params=None, data=None, timeout: int = 2) -> Union[requests.Response, None]:
+        if not endpoint.startswith('/'):
+            endpoint = f"/{endpoint}"
+        url = f"{self.url}/api{endpoint}"
+        if params:
+            url += f"?{urlencode(params)}"
+        self._log(message=f"DELETE {url}", level=info)
+        try:
+            return requests.delete(url=url, data=data, timeout=timeout)
+        except requests.exceptions.Timeout:
+            return None
+
+    def _get_json(self, endpoint, params=None, timeout: int = 2) -> json:
+        response = self._get(endpoint=endpoint, params=params, timeout=timeout)
+        if response:
+            return response.json()
+        return {}
+
+    # Versions
+    @property
+    def dizquetv_version(self) -> str:
+        """
+        Get dizqueTV version number
+        :return: dizqueTV version number
+        """
+        return self._get_json(endpoint='/version').get('dizquetv')
+
+    @property
+    def ffmpeg_version(self) -> str:
+        """
+        Get FFMPEG version number
+        :return: ffmpeg version number
+        """
+        return self._get_json(endpoint='/version').get('ffmpeg')
+
+    # Plex Servers
+    @property
+    def plex_servers(self) -> List[PlexServer]:
+        """
+        Get the Plex Media Servers connected to dizqueTV
+        :return: List of PlexServer objects
+        """
+        json_data = self._get_json(endpoint='/plex-servers')
+        return [PlexServer(data=server, dizque_instance=self) for server in json_data]
+
+    def plex_server_status(self, server_name: str) -> bool:
+        """
+        Check if a Plex Media Server is accessible
+        :param server_name: Name of Plex Server
+        :return: True if active, False if not active
+        """
+        if self._post(endpoint='/plex-servers/status', data={'name': server_name}):
+            return True
+        return False
+
+    def plex_server_foreign_status(self, server_name: str) -> bool:
+        """
+
+        :param server_name: Name of Plex Server
+        :return: True if active, False if not active
+        """
+        if self._post(endpoint='/plex-servers/foreignstatus', data={'name': server_name}):
+            return True
+        return False
+
+    def get_plex_server(self, server_name: str) -> Union[PlexServer, None]:
+        """
+        Get a specific Plex Media Server
+        :param server_name: Name of Plex Server
+        :return: PlexServer object or None
+        """
+        for server in self.plex_servers:
+            if server.name == server_name:
+                return server
+        return None
+
+    def add_plex_server(self, **kwargs) -> Union[PlexServer, None]:
+        """
+        Add a Plex Media Server to dizqueTV
+        :param kwargs: keyword arguments of setting names and values
+        :return: True if successful, False if unsuccessful
+        """
+        if _settings_are_complete(new_settings_dict=kwargs, template_settings_dict=PLEX_SETTINGS_TEMPLATE) and \
+                self._put(endpoint='/plex-servers', data=kwargs):
+            return self.get_plex_server(server_name=kwargs['name'])
+        return None
+
+    def update_plex_server(self, server_name: str, **kwargs) -> bool:
+        """
+        Edit a Plex Media Server on dizqueTV
+        :param server_name: name of Plex Media Server to update
+        :param kwargs: keyword arguments of setting names and values
+        :return: True if successful, False if unsuccessful
+        """
+        server = self.get_plex_server(server_name=server_name)
+        if server:
+            old_settings = server._data
+            new_settings = _validate_settings(new_settings_dict=kwargs, old_settings_dict=old_settings)
+            if self._post(endpoint='/plex-servers', data=new_settings):
+                return True
+        return False
+
+    def delete_plex_server(self, server_name: str) -> bool:
+        """
+        Remove a Plex Media Server from dizqueTV
+        :param server_name: Name of Plex Server
+        :return: True if successful, False if unsuccessful
+        """
+        if self._delete(endpoint='/plex-servers', data={'name': server_name}):
+            return True
+        return False
+
+    # Channels
+    @property
+    def channels(self) -> List[Channel]:
+        """
+        Get all dizqueTV channels
+        :return: List of Channel objects
+        """
+        json_data = self._get_json(endpoint='/channels', timeout=5)  # large JSON may take longer, so bigger timeout
+        return [Channel(data=channel, dizque_instance=self) for channel in json_data]
+
+    def get_channel(self, channel_number: int) -> Union[Channel, None]:
+        """
+        Get a specific dizqueTV channel
+        :param channel_number: Number of channel
+        :return: Channel object or None
+        """
+        channel_data = self._get_json(endpoint=f'/channel/{channel_number}')
+        if channel_data:
+            return Channel(data=channel_data, dizque_instance=self)
+        return None
+
+    def get_channel_info(self, channel_number: int) -> json:
+        """
+        Get the name, number and icon for a dizqueTV channel
+        :param channel_number: Number of channel
+        :return: JSON data with channel name, number and icon path
+        """
+        return self._get_json(endpoint=f'/channel/description/{channel_number}')
+
+    @property
+    def channel_numbers(self) -> List[int]:
+        """
+        Get all dizqueTV channel numbers
+        :return: List of channel numbers
+        """
+        data = self._get_json(endpoint='/channelNumbers')
+        if data:
+            return data
+        return []
+
+    def add_channel(self, **kwargs) -> Union[Channel, None]:
+        """
+        Add a channel to dizqueTV
+        :param kwargs: keyword arguments of setting names and values
+        :return: new Channel object or None
+        """
+        if _settings_are_complete(new_settings_dict=kwargs, template_settings_dict=CHANNEL_SETTINGS_TEMPLATE) and \
+                self._put(endpoint="/channel", data=kwargs):
+            return self.get_channel(channel_number=kwargs['number'])
+        return None
+
+    def update_channel(self, channel_number: int, **kwargs) -> bool:
+        """
+        Edit a dizqueTV channel
+        :param channel_number: Number of channel to update
+        :param kwargs: keyword arguments of setting names and values
+        :return: True if successful, False if unsuccessful
+        """
+        channel = self.get_channel(channel_number=channel_number)
+        if channel:
+            old_settings = channel._data
+            new_settings = _validate_settings(new_settings_dict=kwargs, old_settings_dict=old_settings)
+            if self._post(endpoint="/channel", data=new_settings):
+                return True
+        return False
+
+    def delete_channel(self, channel_number: int) -> bool:
+        """
+        Delete a dizqueTV channel
+        :return: True if successful, False if unsuccessful
+        """
+        if self._delete(endpoint="/channel", data={'number': channel_number}):
+            return True
+        return False
+
+    # FFMPEG Settings
+    @property
+    def ffmpeg_settings(self) -> Union[FFMPEGSettings, None]:
+        """
+        Get dizqueTV's FFMPEG settings
+        :return: FFMPEGSettings object or None
+        """
+        json_data = self._get_json(endpoint='/ffmpeg-settings')
+        if json_data:
+            return FFMPEGSettings(data=json_data, dizque_instance=self)
+        return None
+
+    def update_ffmpeg_settings(self, **kwargs) -> bool:
+        """
+        Edit dizqueTV's FFMPEG settings
+        :param kwargs: keyword arguments of setting names and values
+        :return: True if successful, False if unsuccessful
+        """
+        old_settings = self.ffmpeg_settings._data
+        new_settings = _validate_settings(new_settings_dict=kwargs, old_settings_dict=old_settings)
+        if self._put(endpoint='/ffmpeg-settings', data=new_settings):
+            return True
+        return False
+
+    def reset_ffmpeg_settings(self) -> bool:
+        """
+        Reset dizqueTV's FFMPEG settings to default
+        :return: True if successful, False if unsuccessful
+        """
+        if self._post(endpoint='/ffmpeg-settings'):
+            return True
+        return False
+
+    # Plex settings
+    @property
+    def plex_settings(self) -> Union[PlexSettings, None]:
+        """
+        Get dizqueTV's Plex settings
+        :return: PlexSettings object or None
+        """
+        json_data = self._get_json(endpoint='/plex-settings')
+        if json_data:
+            return PlexSettings(data=json_data, dizque_instance=self)
+        return None
+
+    def update_plex_settings(self, **kwargs) -> bool:
+        """
+        Edit dizqueTV's Plex settings
+        :param kwargs: keyword arguments of setting names and values
+        :return: True if successful, False if unsuccessful
+        """
+        old_settings = self.plex_settings._data
+        new_settings = _validate_settings(new_settings_dict=kwargs, old_settings_dict=old_settings)
+        if self._put(endpoint='/plex-settings', data=new_settings):
+            return True
+        return False
+
+    def reset_plex_settings(self) -> bool:
+        """
+        Reset dizqueTV's Plex settings to default
+        :return: True if successful, False if unsuccessful
+        """
+        if self._post(endpoint='/plex-settings'):
+            return True
+        return False
+
+    # XML Refresh Time
+    @property
+    def last_xmltv_refresh(self) -> str:
+        """
+        Get the last time the XMLTV file was refreshed
+        :return: Timestamp of last refresh
+        """
+        return self._get_json(endpoint='/xmltv-last-refresh')
+
+    # XMLTV Settings
+    @property
+    def xmltv_settings(self) -> Union[XMLTVSettings, None]:
+        """
+        Get dizqueTV's XMLTV settings
+        :return: XMLTVSettings object or None
+        """
+        json_data = self._get_json(endpoint='/xmltv-settings')
+        if json_data:
+            return XMLTVSettings(data=json_data, dizque_instance=self)
+        return None
+
+    def update_xmltv_settings(self, **kwargs) -> bool:
+        """
+        Edit dizqueTV's XMLTV settings
+        :param kwargs: keyword arguments of setting names and values
+        :return: True if successful, False if unsuccessful
+        """
+        old_settings = self.xmltv_settings._data
+        new_settings = _validate_settings(new_settings_dict=kwargs, old_settings_dict=old_settings)
+        if self._put(endpoint='/xmltv-settings', data=new_settings):
+            return True
+        return False
+
+    def reset_xmltv_settings(self) -> bool:
+        """
+        Reset dizqueTV's XMLTV settings to default
+        :return: True if successful, False if unsuccessful
+        """
+        if self._post(endpoint='/xmltv-settings'):
+            return True
+        return False
+
+    # HDHomeRun Settings
+    @property
+    def hdhr_settings(self) -> Union[HDHomeRunSettings, None]:
+        """
+        Get dizqueTV's HDHomeRun settings
+        :return: HDHomeRunSettings object or None
+        """
+        json_data = self._get_json(endpoint='/hdhr-settings')
+        if json_data:
+            return HDHomeRunSettings(data=json_data, dizque_instance=self)
+        return None
+
+    def update_hdhr_settings(self, **kwargs) -> bool:
+        """
+        Edit dizqueTV's HDHomeRun settings
+        :param kwargs: keyword arguments of setting names and values
+        :return: True if successful, False if unsuccessful
+        """
+        old_settings = self.hdhr_settings._data
+        new_settings = _validate_settings(new_settings_dict=kwargs, old_settings_dict=old_settings)
+        if self._put(endpoint='/hdhr-settings', data=new_settings):
+            return True
+        return False
+
+    def reset_hdhr_settings(self) -> bool:
+        """
+        Reset dizqueTV's HDHomeRun settings to default
+        :return: True if successful, False if unsuccessful
+        """
+        if self._post(endpoint='/hdhr-settings'):
+            return True
+        return False
+
+    # XMLTV.XML
+    @property
+    def xmltv_xml(self) -> Union[ElementTree.Element, None]:
+        """
+        Get dizqueTV's XMLTV data
+        :return: xml.etree.ElementTree.Element object or None
+        """
+        response = self._get(endpoint='/xmltv.xml')
+        if response:
+            return ElementTree.fromstring(response.content)
+        return None
+
+    @property
+    def m3u(self) -> m3u8:
+        """
+        Get dizqueTV's m3u playlist
+        Without m3u8, this method currently produces an error.
+        :return: m3u8 object
+        """
+        return m3u8.load(f"{self.url}/api/channels.m3u")
