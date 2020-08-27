@@ -14,7 +14,7 @@ class XMLTVSettings:
         """
         Reload current XMLTVSettings object
         """
-        temp_settings = self._dizque_instance.xmltv_settings()
+        temp_settings = self._dizque_instance.xmltv_settings
         if temp_settings:
             json_data = temp_settings._data
             self.__init__(data=json_data, dizque_instance=self._dizque_instance)
@@ -45,7 +45,7 @@ class HDHomeRunSettings:
         """
         Reload current HDHomeRunSettings object
         """
-        temp_settings = self._dizque_instance.hdhr_settings()
+        temp_settings = self._dizque_instance.hdhr_settings
         if temp_settings:
             json_data = temp_settings._data
             self.__init__(data=json_data, dizque_instance=self._dizque_instance)
@@ -96,7 +96,7 @@ class FFMPEGSettings:
         """
         Reload current FFMPEGSettings object
         """
-        temp_settings = self._dizque_instance.ffmpeg_settings()
+        temp_settings = self._dizque_instance.ffmpeg_settings
         if temp_settings:
             json_data = temp_settings._data
             self.__init__(data=json_data, dizque_instance=self._dizque_instance)
@@ -143,7 +143,7 @@ class PlexSettings:
         """
         Reload current PlexSettings object
         """
-        temp_settings = self._dizque_instance.plex_settings()
+        temp_settings = self._dizque_instance.plex_settings
         if temp_settings:
             json_data = temp_settings._data
             self.__init__(data=json_data, dizque_instance=self._dizque_instance)
