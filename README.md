@@ -20,8 +20,8 @@ Enable verbose logging by passing ``verbose=True`` into the ``API`` object decla
  
 ## Usage
 
-#### Methods
-##### Channels
+### Methods
+#### Channels
 - Get all channels: ``channels = dtv.channels`` -> list of ``Channel`` objects
 - Get all channel numbers: ``channel_numbers = dtv.channel_numbers`` -> list of ints
 - Get a specific channel: ``channel = dtv.get_channel(channel_number: int)`` -> ``Channel`` object
@@ -33,7 +33,7 @@ Enable verbose logging by passing ``verbose=True`` into the ``API`` object decla
 - Get a channel's programs: ``programs = Channel.programs`` -> list of ``MediaItem`` object
 - Get a channel's filler (Flex) items: ``filler = Channel.filler`` -> list of ``MediaItem`` object
 
-##### Plex
+#### Plex
 - Get all Plex Media Servers: ``servers = dtv.plex_servers`` -> list of ``PlexServer`` objects
 - Get a specific Plex Media Server: ``server = dtv.get_plex_server(server_name: str)`` -> ``PlexServer`` object
 - Get a specific Plex Media Server status: ``status = dtv.plex_server_status(server_name: str)`` or ``PlexServer.status`` -> True/False
@@ -43,7 +43,7 @@ Enable verbose logging by passing ``verbose=True`` into the ``API`` object decla
 - Delete a Plex Media Server: ``deleted = dtv.delete_plex_server(server_name: str)`` or ``PlexServer.delete()`` -> True/False
 - Refresh a Plex Media Server: ``PlexServer.refresh()`` -> None (reloads ``PlexServer`` object in-place)
 
-##### Settings
+#### Settings
 - Get FFMPEG settings: ``settings = dtv.ffmpeg_settings`` -> ``FFMPEGSettings`` object
 - Update FFMPEG settings: ``updated = dtv.update_ffmpeg_settings(**kwargs)`` or ``FFMPEGSettings.update(**kwargs)`` -> True/False
 - Refresh FFMPEG settings: ``FFMPEGSettings.refresh()`` -> None (reloads ``FFMPEGSettings`` object in-place)
@@ -61,7 +61,7 @@ Enable verbose logging by passing ``verbose=True`` into the ``API`` object decla
 - Refresh HDHomeRun settings: ``HDHomeRunSettings.refresh()`` -> None (reloads ``HDHomeRunSettings`` object in-place)
 - Reset HDHomeRun settings: ``reset = dtv.reset_hdhr_settings()`` -> True/False
 
-##### Information
+#### Information
 - Get dizqueTV version: ``version = dtv.dizquetv_version`` -> str
 - Get FFMPEG version: ``version = dtv.ffmpeg_version`` -> str
 - Get XMLTV XML file: ``xml = dtv.xmltv_xml`` -> ``xml.etree.ElementTree.Element`` object
@@ -72,8 +72,8 @@ Enable verbose logging by passing ``verbose=True`` into the ``API`` object decla
 
 
 
-#### Classes
-##### API
+### Classes
+#### API
 - ``url``: dizqueTV API base url
 - ``verbose``: use verbose logging (default: False)
 - ``dizquetv_version``: str
@@ -89,7 +89,7 @@ Enable verbose logging by passing ``verbose=True`` into the ``API`` object decla
 - ``xmltv_xml``: ``xml.etree.ElementTree.Element`` object
 - ``m3u``: ``m3u8`` object
 
-##### Channel
+#### Channel
 - ``programs``: list of ``MediaItem`` objects
 - ``filler``: list of ``MediaItem`` objects
 - ``fillerRepeatCooldown``
@@ -108,7 +108,7 @@ Enable verbose logging by passing ``verbose=True`` into the ``API`` object decla
 - ``name``
 - ``duration``
 
-##### MediaItem
+#### MediaItem
 - ``title``
 - ``key``
 - ``ratingKey``
@@ -127,7 +127,7 @@ Enable verbose logging by passing ``verbose=True`` into the ``API`` object decla
 - ``serverKey``
 - ``isOffline``
 
-##### PlexServer
+#### PlexServer
 - ``name``
 - ``uri``
 - ``accessToken``
@@ -135,12 +135,12 @@ Enable verbose logging by passing ``verbose=True`` into the ``API`` object decla
 - ``arChannels``
 - ``arGuide``
 
-##### XMLTVSettings
+#### XMLTVSettings
 - ``cache``
 - ``refreshTime``
 - ``file``
 
-##### PlexSettings
+#### PlexSettings
 - ``streamPath``
 - ``logging``
 - ``transcodeBitrate``
@@ -160,7 +160,7 @@ Enable verbose logging by passing ``verbose=True`` into the ``API`` object decla
 - ``pathReplace``
 - ``pathReplaceWith``
 
-##### FFMPEGSettings
+#### FFMPEGSettings
 - ``configVersion``
 - ``path``
 - ``threads``
@@ -184,7 +184,7 @@ Enable verbose logging by passing ``verbose=True`` into the ``API`` object decla
 - ``normalizeResolution``
 - ``normalizeAudio``
 
-##### HDHomeRunSettings
+#### HDHomeRunSettings
 - ``tunerCount``
 - ``autoDiscovery``
 
