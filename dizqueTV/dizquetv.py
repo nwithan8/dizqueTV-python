@@ -9,7 +9,7 @@ import requests
 import dizqueTV.logging as logs
 from logging import info, error, warning
 from dizqueTV.settings import XMLTVSettings, PlexSettings, FFMPEGSettings, HDHomeRunSettings
-from dizqueTV.media import Channel
+from dizqueTV.channels import Channel
 from dizqueTV.plex_server import PlexServer
 from dizqueTV.templates import PLEX_SETTINGS_TEMPLATE, CHANNEL_SETTINGS_TEMPLATE
 import dizqueTV.helpers as helpers
