@@ -8,38 +8,11 @@ import requests
 
 import dizqueTV.logging as logs
 from logging import info, error, warning
-from dizqueTV.exceptions import MissingSettingsError
 from dizqueTV.settings import XMLTVSettings, PlexSettings, FFMPEGSettings, HDHomeRunSettings
 from dizqueTV.media import Channel
 from dizqueTV.plex_server import PlexServer
 from dizqueTV.templates import PLEX_SETTINGS_TEMPLATE, CHANNEL_SETTINGS_TEMPLATE
-
-
-# TODO To avoid kwarg -> JSON confusion, all attributes of objects should be the same name as the original JSON keys
-def _validate_settings(new_settings_dict: json, old_settings_dict: json) -> json:
-    """
-    Build a complete dictionary for new settings
-    :param new_settings_dict: Dictionary of new settings kwargs
-    :param old_settings_dict: Current settings
-    :return: Dictionary of new settings
-    """
-    for k, v in new_settings_dict.items():
-        if k in old_settings_dict.keys():
-            old_settings_dict[k] = v
-    return old_settings_dict
-
-
-def _settings_are_complete(new_settings_dict: json, template_settings_dict: json) -> bool:
-    """
-    Check that all elements from the settings template are present in the new settings
-    :param new_settings_dict: Dictionary of new settings kwargs
-    :param template_settings_dict: Template of settings
-    :return: True if valid, raise dizqueTV.exceptions.IncompleteSettingsError if not valid
-    """
-    for k in template_settings_dict.keys():
-        if k not in new_settings_dict.keys() or not isinstance(new_settings_dict[k], type(template_settings_dict[k])):
-            raise MissingSettingsError
-    return True
+import dizqueTV.helpers as helpers
 
 
 class API:
@@ -174,8 +147,8 @@ class API:
         :param kwargs: keyword arguments of setting names and values
         :return: True if successful, False if unsuccessful
         """
-        if _settings_are_complete(new_settings_dict=kwargs, template_settings_dict=PLEX_SETTINGS_TEMPLATE) and \
-                self._put(endpoint='/plex-servers', data=kwargs):
+        if helpers.settings_are_complete(new_settings_dict=kwargs, template_settings_dict=PLEX_SETTINGS_TEMPLATE) \
+                and self._put(endpoint='/plex-servers', data=kwargs):
             return self.get_plex_server(server_name=kwargs['name'])
         return None
 
@@ -189,7 +162,7 @@ class API:
         server = self.get_plex_server(server_name=server_name)
         if server:
             old_settings = server._data
-            new_settings = _validate_settings(new_settings_dict=kwargs, old_settings_dict=old_settings)
+            new_settings = helpers.combine_settings(new_settings_dict=kwargs, old_settings_dict=old_settings)
             if self._post(endpoint='/plex-servers', data=new_settings):
                 return True
         return False
@@ -250,8 +223,8 @@ class API:
         :param kwargs: keyword arguments of setting names and values
         :return: new Channel object or None
         """
-        if _settings_are_complete(new_settings_dict=kwargs, template_settings_dict=CHANNEL_SETTINGS_TEMPLATE) and \
-                self._put(endpoint="/channel", data=kwargs):
+        if helpers.settings_are_complete(new_settings_dict=kwargs, template_settings_dict=CHANNEL_SETTINGS_TEMPLATE) \
+                and self._put(endpoint="/channel", data=kwargs):
             return self.get_channel(channel_number=kwargs['number'])
         return None
 
@@ -265,7 +238,7 @@ class API:
         channel = self.get_channel(channel_number=channel_number)
         if channel:
             old_settings = channel._data
-            new_settings = _validate_settings(new_settings_dict=kwargs, old_settings_dict=old_settings)
+            new_settings = helpers.combine_settings(new_settings_dict=kwargs, old_settings_dict=old_settings)
             if self._post(endpoint="/channel", data=new_settings):
                 return True
         return False
@@ -298,7 +271,7 @@ class API:
         :return: True if successful, False if unsuccessful
         """
         old_settings = self.ffmpeg_settings._data
-        new_settings = _validate_settings(new_settings_dict=kwargs, old_settings_dict=old_settings)
+        new_settings = helpers.combine_settings(new_settings_dict=kwargs, old_settings_dict=old_settings)
         if self._put(endpoint='/ffmpeg-settings', data=new_settings):
             return True
         return False
@@ -331,7 +304,7 @@ class API:
         :return: True if successful, False if unsuccessful
         """
         old_settings = self.plex_settings._data
-        new_settings = _validate_settings(new_settings_dict=kwargs, old_settings_dict=old_settings)
+        new_settings = helpers.combine_settings(new_settings_dict=kwargs, old_settings_dict=old_settings)
         if self._put(endpoint='/plex-settings', data=new_settings):
             return True
         return False
@@ -373,7 +346,7 @@ class API:
         :return: True if successful, False if unsuccessful
         """
         old_settings = self.xmltv_settings._data
-        new_settings = _validate_settings(new_settings_dict=kwargs, old_settings_dict=old_settings)
+        new_settings = helpers.combine_settings(new_settings_dict=kwargs, old_settings_dict=old_settings)
         if self._put(endpoint='/xmltv-settings', data=new_settings):
             return True
         return False
@@ -406,7 +379,7 @@ class API:
         :return: True if successful, False if unsuccessful
         """
         old_settings = self.hdhr_settings._data
-        new_settings = _validate_settings(new_settings_dict=kwargs, old_settings_dict=old_settings)
+        new_settings = helpers.combine_settings(new_settings_dict=kwargs, old_settings_dict=old_settings)
         if self._put(endpoint='/hdhr-settings', data=new_settings):
             return True
         return False
