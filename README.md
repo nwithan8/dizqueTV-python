@@ -7,7 +7,7 @@ A Python library to interact with a [dizqueTV](https://github.com/vexorian/dizqu
 3. Install requirements with ``pip install -r requirements``
 
 ## Setup
-Import the module into your script with ``from dizqueTV.dizqueTV import API``
+Import the ``API`` class from the ``dizqueTV.dizqueTV`` module
 
 Ex.
 ```
@@ -30,8 +30,8 @@ Enable verbose logging by passing ``verbose=True`` into the ``API`` object decla
 - Update a channel: ``updated = dtv.update_channel(channel_number: int, **kwargs)`` or ``Channel.update(**kwargs)`` -> True/False
 - Delete a channel: ``deleted = dtv.delete_channel(channel_number: int)`` or ``Channel.delete()`` -> True/False
 - Refresh a channel: ``Channel.refresh()`` -> None (reloads ``Channel`` object in-place)
-- Get a channel's programs: ``programs = Channel.programs`` -> list of ``MediaItem`` object
-- Get a channel's filler (Flex) items: ``filler = Channel.filler`` -> list of ``MediaItem`` object
+- Get a channel's programs: ``programs = Channel.programs`` -> list of ``MediaItem`` objects
+- Get a channel's filler (Flex) items: ``filler = Channel.filler`` -> list of ``MediaItem`` objects
 
 #### Plex
 - Get all Plex Media Servers: ``servers = dtv.plex_servers`` -> list of ``PlexServer`` objects
