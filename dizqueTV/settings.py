@@ -32,6 +32,17 @@ class XMLTVSettings:
             return True
         return False
 
+    def reset(self) -> bool:
+        """
+        Reset these XMLTV settings
+        Automatically refreshes current XMLTVSettings object
+        :return: True if successful, False if unsuccessful
+        """
+        if self._dizque_instance.reset_xmltv_settings():
+            self.reload()
+            return True
+        return False
+
 
 class HDHomeRunSettings:
     def __init__(self, data: json, dizque_instance):
@@ -59,6 +70,17 @@ class HDHomeRunSettings:
         :return: True if successful, False if unsuccessful
         """
         if self._dizque_instance.update_hdhr_settings(**kwargs):
+            self.refresh()
+            return True
+        return False
+
+    def reset(self) -> bool:
+        """
+        Reset these HDHomeRun settings
+        Automatically refreshes current HDHomeRunSettings object
+        :return: True if successful, False if unsuccessful
+        """
+        if self._dizque_instance.reset_hdhr_settings():
             self.refresh()
             return True
         return False
@@ -114,6 +136,17 @@ class FFMPEGSettings:
             return True
         return False
 
+    def reset(self) -> bool:
+        """
+        Reset these FFMPEG settings
+        Automatically refreshes current FFMPEGSettings object
+        :return: True if successful, False if unsuccessful
+        """
+        if self._dizque_instance.reset_ffmpeg_settings():
+            self.refresh()
+            return True
+        return False
+
 
 class PlexSettings:
     def __init__(self, data: json, dizque_instance):
@@ -157,6 +190,17 @@ class PlexSettings:
         :return: True if successful, False if unsuccessful
         """
         if self._dizque_instance.update_plex_settings(**kwargs):
+            self.refresh()
+            return True
+        return False
+
+    def reset(self) -> bool:
+        """
+        Reset these Plex settings
+        Automatically refreshes current PlexSettings object
+        :return: True if successful, False if unsuccessful
+        """
+        if self._dizque_instance.reset_plex_settings():
             self.refresh()
             return True
         return False

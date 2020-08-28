@@ -49,7 +49,8 @@ class API:
             url += f"?{urlencode(params)}"
         self._log(message=f"POST {url}, Body: {data}", level=info)
         try:
-            return requests.post(url=url, data=data, timeout=timeout)
+            return requests.post(url=url, json=data, timeout=timeout)
+            # use json= rather than data= to convert single-quoted dict to double-quoted JSON
         except requests.exceptions.Timeout:
             return None
 
@@ -61,7 +62,8 @@ class API:
             url += f"?{urlencode(params)}"
         self._log(message=f"PUT {url}, Body: {data}", level=info)
         try:
-            return requests.put(url=url, data=data, timeout=timeout)
+            return requests.put(url=url, json=data, timeout=timeout)
+            # use json= rather than data= to convert single-quoted dict to double-quoted JSON
         except requests.exceptions.Timeout:
             return None
 
@@ -73,7 +75,8 @@ class API:
             url += f"?{urlencode(params)}"
         self._log(message=f"DELETE {url}", level=info)
         try:
-            return requests.delete(url=url, data=data, timeout=timeout)
+            return requests.delete(url=url, json=data, timeout=timeout)
+            # use json= rather than data= to convert single-quoted dict to double-quoted JSON
         except requests.exceptions.Timeout:
             return None
 
@@ -281,7 +284,8 @@ class API:
         Reset dizqueTV's FFMPEG settings to default
         :return: True if successful, False if unsuccessful
         """
-        if self._post(endpoint='/ffmpeg-settings'):
+        old_settings = self.ffmpeg_settings._data
+        if self._post(endpoint='/ffmpeg-settings', data={'_id': old_settings['_id']}):
             return True
         return False
 
@@ -314,7 +318,8 @@ class API:
         Reset dizqueTV's Plex settings to default
         :return: True if successful, False if unsuccessful
         """
-        if self._post(endpoint='/plex-settings'):
+        old_settings = self.plex_settings._data
+        if self._post(endpoint='/plex-settings', data={'_id': old_settings['_id']}):
             return True
         return False
 
@@ -356,7 +361,8 @@ class API:
         Reset dizqueTV's XMLTV settings to default
         :return: True if successful, False if unsuccessful
         """
-        if self._post(endpoint='/xmltv-settings'):
+        old_settings = self.xmltv_settings._data
+        if self._post(endpoint='/xmltv-settings', data={'_id': old_settings['_id']}):
             return True
         return False
 
@@ -389,7 +395,8 @@ class API:
         Reset dizqueTV's HDHomeRun settings to default
         :return: True if successful, False if unsuccessful
         """
-        if self._post(endpoint='/hdhr-settings'):
+        old_settings = self.hdhr_settings._data
+        if self._post(endpoint='/hdhr-settings', data={'_id': old_settings['_id']}):
             return True
         return False
 
