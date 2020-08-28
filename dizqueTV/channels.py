@@ -1,4 +1,6 @@
 import json
+from typing import List, Union
+
 import dizqueTV.helpers as helpers
 from dizqueTV.templates import CHANNEL_SETTINGS_TEMPLATE, PROGRAM_ITEM_TEMPLATE, FILLER_ITEM_TEMPLATE
 
@@ -80,7 +82,19 @@ class Channel:
         Get all programs on this channel
         :return: List of MediaItem objects
         """
-        return [MediaItem(data=program, dizque_instance=self._dizque_instance) for program in self._program_data]
+        return [Program(data=program, dizque_instance=self._dizque_instance, channel_instance=self)
+                for program in self._program_data]
+
+    def get_program(self, program_title: str) -> Union[Program, None]:
+        """
+        Get a specific program on this channel
+        :param program_title: Title of program
+        :return: Program object or None
+        """
+        for program in self.programs:
+            if program.title == program_title:
+                return program
+        return None
 
     @property
     def filler(self):
@@ -88,7 +102,19 @@ class Channel:
         Get all filler (Flex) items on this channel
         :return: List of MediaItem objects
         """
-        return [MediaItem(data=filler, dizque_instance=self._dizque_instance) for filler in self._fillerContent_data]
+        return [Filler(data=filler, dizque_instance=self._dizque_instance, channel_instance=self)
+                for filler in self._fillerContent_data]
+
+    def get_filler(self, filler_title: str) -> Union[Filler, None]:
+        """
+        Get a specific filler item on this channel
+        :param filler_title: Title of filler item
+        :return: Filler object or None
+        """
+        for filler in self.filler:
+            if filler.title == filler_title:
+                return filler
+        return None
 
     def refresh(self):
         """
@@ -129,7 +155,9 @@ class Channel:
         """
         if program:
             kwargs = program._data
-        if helpers.settings_are_complete(new_settings_dict=kwargs, template_settings_dict=PROGRAM_ITEM_TEMPLATE):
+        if helpers.settings_are_complete(new_settings_dict=kwargs,
+                                         template_settings_dict=PROGRAM_ITEM_TEMPLATE,
+                                         ignore_id=True):
             channel_data = self._data
             channel_data['programs'].append(kwargs)
             channel_data['duration'] += kwargs['duration']
@@ -159,7 +187,9 @@ class Channel:
         """
         if filler:
             kwargs = filler._data
-        if helpers.settings_are_complete(new_settings_dict=kwargs, template_settings_dict=FILLER_ITEM_TEMPLATE):
+        if helpers.settings_are_complete(new_settings_dict=kwargs,
+                                         template_settings_dict=FILLER_ITEM_TEMPLATE,
+                                         ignore_id=True):
             channel_data = self._data
             channel_data['programs'].append(kwargs)
             channel_data['duration'] += kwargs['duration']

@@ -150,7 +150,9 @@ class API:
         :param kwargs: keyword arguments of setting names and values
         :return: True if successful, False if unsuccessful
         """
-        if helpers.settings_are_complete(new_settings_dict=kwargs, template_settings_dict=PLEX_SETTINGS_TEMPLATE) \
+        if helpers.settings_are_complete(new_settings_dict=kwargs,
+                                         template_settings_dict=PLEX_SETTINGS_TEMPLATE,
+                                         ignore_id=True) \
                 and self._put(endpoint='/plex-servers', data=kwargs):
             return self.get_plex_server(server_name=kwargs['name'])
         return None
@@ -226,7 +228,9 @@ class API:
         :param kwargs: keyword arguments of setting names and values
         :return: new Channel object or None
         """
-        if helpers.settings_are_complete(new_settings_dict=kwargs, template_settings_dict=CHANNEL_SETTINGS_TEMPLATE) \
+        if helpers.settings_are_complete(new_settings_dict=kwargs,
+                                         template_settings_dict=CHANNEL_SETTINGS_TEMPLATE,
+                                         ignore_id=True) \
                 and self._put(endpoint="/channel", data=kwargs):
             return self.get_channel(channel_number=kwargs['number'])
         return None
