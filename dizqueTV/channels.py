@@ -5,26 +5,30 @@ from plexapi.video import Video, Movie, Episode
 from plexapi.server import PlexServer as PServer
 
 import dizqueTV.helpers as helpers
-from dizqueTV.templates import PROGRAM_ITEM_TEMPLATE, FILLER_ITEM_TEMPLATE
+from dizqueTV.templates import MOVIE_PROGRAM_TEMPLATE, EPISODE_PROGRAM_TEMPLATE, \
+    REDIRECT_PROGRAM_TEMPLATE, FILLER_ITEM_TEMPLATE
 from dizqueTV.exceptions import MissingParametersError
 
 
-class Redirect:
+class BaseMediaItem:
     def __init__(self, data: json, dizque_instance, channel_instance):
         self._data = data
         self._dizque_instance = dizque_instance
         self._channel_instance = channel_instance
         self.isOffline = data.get('isOffline')
-        self.type = data.get('type')
         self.duration = data.get('duration')
+
+
+class Redirect(BaseMediaItem):
+    def __init__(self, data: json, dizque_instance, channel_instance):
+        super().__init__(data=data, dizque_instance=dizque_instance, channel_instance=channel_instance)
+        self.type = data.get('type')
         self.channel = data.get('channel')
 
 
-class MediaItem:
+class MediaItem(BaseMediaItem):
     def __init__(self, data: json, dizque_instance, channel_instance):
-        self._data = data
-        self._dizque_instance = dizque_instance
-        self._channel_instance = channel_instance
+        super().__init__(data=data, dizque_instance=dizque_instance, channel_instance=channel_instance)
         self.title = data.get('title')
         self.key = data.get('key')
         self.ratingKey = data.get('ratingKey')
@@ -59,7 +63,7 @@ class Filler(MediaItem):
         return self._channel_instance.delete_filler(filler=self)
 
 
-class Program(MediaItem):
+class Program(MediaItem, Redirect):
     def __init__(self, data: json, dizque_instance, channel_instance):
         super().__init__(data=data, dizque_instance=dizque_instance, channel_instance=channel_instance)
         self.rating = data.get('rating')
@@ -106,14 +110,17 @@ class Channel:
                 for program in self._program_data]
 
     @helpers.check_for_dizque_instance
-    def get_program(self, program_title: str) -> Union[Program, None]:
+    def get_program(self, program_title: str = None, redirect_channel_number: int = None) -> Union[Program, None]:
         """
         Get a specific program on this channel
         :param program_title: Title of program
         :return: Program object or None
         """
+        if not program_title and not redirect_channel_number:
+            raise MissingParametersError("Please include either a program_title or a redirect_channel_number.")
         for program in self.programs:
-            if program.title == program_title:
+            if (program_title and program.title == program_title) \
+                    or (redirect_channel_number and redirect_channel_number == program.channel):
                 return program
         return None
 
@@ -193,8 +200,13 @@ class Channel:
             kwargs = temp_program._data
         elif program:
             kwargs = program._data
+        template = MOVIE_PROGRAM_TEMPLATE
+        if kwargs['type'] == 'episode':
+            template = EPISODE_PROGRAM_TEMPLATE
+        elif kwargs['type'] == 'redirect':
+            template = REDIRECT_PROGRAM_TEMPLATE
         if helpers.settings_are_complete(new_settings_dict=kwargs,
-                                         template_settings_dict=PROGRAM_ITEM_TEMPLATE,
+                                         template_settings_dict=template,
                                          ignore_id=True):
             channel_data = self._data
             channel_data['programs'].append(kwargs)
@@ -211,7 +223,8 @@ class Channel:
         """
         channel_data = self._data
         for a_program in channel_data['programs']:
-            if a_program['title'] == program.title:
+            if (program.type == 'redirect' and a_program['type'] == 'redirect') \
+                    or (a_program['title'] == program.title):
                 channel_data['duration'] -= a_program['duration']
                 channel_data['programs'].remove(a_program)
                 return self.update(**channel_data)

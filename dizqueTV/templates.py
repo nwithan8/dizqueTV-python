@@ -31,7 +31,14 @@ CHANNEL_SETTINGS_TEMPLATE = {
     "overlayIcon": bool
 }
 
-PROGRAM_ITEM_TEMPLATE = {
+REDIRECT_PROGRAM_TEMPLATE = {
+    "isOffline": bool,
+    "type": str,
+    "duration": int,
+    "channel": int
+}
+
+MOVIE_PROGRAM_TEMPLATE = {
     "title": str,
     "key": str,
     "ratingKey": str,
@@ -48,6 +55,28 @@ PROGRAM_ITEM_TEMPLATE = {
     "episode": int,
     "season": int,
     "serverKey": str
+}
+
+EPISODE_PROGRAM_TEMPLATE = {
+    "title": str,
+    "key": str,
+    "ratingKey": str,
+    "icon": str,
+    "type": str,
+    "duration": int,
+    "summary": str,
+    "rating": str,
+    "date": str,
+    "year": int,
+    "plexFile": str,
+    "file": str,
+    "showTitle": str,
+    "episode": int,
+    "season": int,
+    "serverKey": str,
+    "showIcon": str,
+    "episodeIcon": str,
+    "seasonIcon": str
 }
 
 FILLER_ITEM_TEMPLATE = {
