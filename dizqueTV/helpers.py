@@ -85,7 +85,7 @@ def _make_program_dict_from_plex_item(plex_item: Union[Video, Movie, Episode], p
     return data
 
 
-def __make_filler_dict_from_plex_item(plex_item: Union[Video, Movie, Episode], plex_server: PServer) -> dict:
+def _make_filler_dict_from_plex_item(plex_item: Union[Video, Movie, Episode], plex_server: PServer) -> dict:
     """
     Build a dictionary for a Filler using a PlexAPI Video, Movie or Episode object
     :param plex_item: plexapi.video.Video, plexapi.video.Movie or plexapi.video.Episode object

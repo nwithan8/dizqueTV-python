@@ -14,6 +14,7 @@ from dizqueTV.channels import Channel, Program, Filler
 from dizqueTV.plex_server import PlexServer
 from dizqueTV.templates import PLEX_SETTINGS_TEMPLATE, CHANNEL_SETTINGS_TEMPLATE
 import dizqueTV.helpers as helpers
+from dizqueTV.exceptions import MissingParametersError
 
 
 def convert_plex_item_to_program(plex_item: Union[Video, Movie, Episode], plex_server: PServer) -> Program:
@@ -34,7 +35,7 @@ def convert_plex_item_to_filler(plex_item: Union[Video, Movie, Episode], plex_se
     :param plex_server: plexapi.server.PlexServer object
     :return: Program object
     """
-    data = helpers.make_filler_dict_from_plex_item(plex_item=plex_item, plex_server=plex_server)
+    data = helpers._make_filler_dict_from_plex_item(plex_item=plex_item, plex_server=plex_server)
     return Filler(data=data, dizque_instance=None, channel_instance=None)
 
 
@@ -164,8 +165,8 @@ class API:
         :return: True if successful, False if unsuccessful
         """
         if helpers._settings_are_complete(new_settings_dict=kwargs,
-                                         template_settings_dict=PLEX_SETTINGS_TEMPLATE,
-                                         ignore_id=True) \
+                                          template_settings_dict=PLEX_SETTINGS_TEMPLATE,
+                                          ignore_id=True) \
                 and self._put(endpoint='/plex-servers', data=kwargs):
             return self.get_plex_server(server_name=kwargs['name'])
         return None
@@ -242,8 +243,8 @@ class API:
         :return: new Channel object or None
         """
         if helpers._settings_are_complete(new_settings_dict=kwargs,
-                                         template_settings_dict=CHANNEL_SETTINGS_TEMPLATE,
-                                         ignore_id=True) \
+                                          template_settings_dict=CHANNEL_SETTINGS_TEMPLATE,
+                                          ignore_id=True) \
                 and self._put(endpoint="/channel", data=kwargs):
             return self.get_channel(channel_number=kwargs['number'])
         return None
@@ -456,3 +457,47 @@ class API:
         :return: Program object
         """
         return convert_plex_item_to_filler(plex_item=plex_item, plex_server=plex_server)
+
+    def add_programs_to_channels(self, programs: List[Program],
+                                 channels: List[Channel] = None,
+                                 channel_numbers: List[int] = None) -> bool:
+        """
+        Add multiple programs to multiple channels
+        :param programs: List of Program objects
+        :param channels: List of Channel objects (optional)
+        :param channel_numbers: List of channel numbers
+        :return: True if successful, False if unsuccessful (Channel objects reload in place)
+        """
+        if not channels and not channel_numbers:
+            raise MissingParametersError(
+                "Please include either a list of Channel objects or a list of channel numbers.")
+        if channel_numbers:
+            channels = []
+            for number in channel_numbers:
+                channels.append(self.get_channel(channel_number=number))
+        for channel in channels:
+            if not channel.add_programs(programs=programs):
+                return False
+        return True
+
+    def add_fillers_to_channels(self, fillers: List[Filler],
+                                channels: List[Channel] = None,
+                                channel_numbers: List[int] = None) -> bool:
+        """
+        Add multiple filler items to multiple channels
+        :param fillers: List of Filler objects
+        :param channels: List of Channel objects (optional)
+        :param channel_numbers: List of channel numbers
+        :return: True if successful, False if unsuccessful (Channel objects reload in place)
+        """
+        if not channels and not channel_numbers:
+            raise MissingParametersError(
+                "Please include either a list of Channel objects or a list of channel numbers.")
+        if channel_numbers:
+            channels = []
+            for number in channel_numbers:
+                channels.append(self.get_channel(channel_number=number))
+        for channel in channels:
+            if not channel.add_fillers(fillers=fillers):
+                return False
+        return True

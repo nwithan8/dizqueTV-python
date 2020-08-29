@@ -188,7 +188,7 @@ class Channel:
         Add a program to this channel
         :param plex_item: plexapi.video.Video, plexapi.video.Movie or plexapi.video.Episode object (optional)
         :param plex_server: plexapi.server.PlexServer object (optional)
-        :param program: Program item (optional)
+        :param program: Program object (optional)
         :param kwargs: keyword arguments of Program settings names and values
         :return: True if successful, False if unsuccessful (Channel reloads in place)
         """
@@ -206,13 +206,26 @@ class Channel:
         elif kwargs['type'] == 'redirect':
             template = REDIRECT_PROGRAM_TEMPLATE
         if helpers._settings_are_complete(new_settings_dict=kwargs,
-                                         template_settings_dict=template,
-                                         ignore_id=True):
+                                          template_settings_dict=template,
+                                          ignore_id=True):
             channel_data = self._data
             channel_data['programs'].append(kwargs)
             channel_data['duration'] += kwargs['duration']
             return self.update(**channel_data)
         return False
+
+    @helpers._check_for_dizque_instance
+    def add_programs(self, programs: List[Program]) -> bool:
+        """
+        Add multiple programs to this channel
+        :param programs: List of Program objects
+        :return: True if successful, False if unsuccessful (Channel reloads in place)
+        """
+        channel_data = self._data
+        for program in programs:
+            channel_data['programs'].append(program._data)
+            channel_data['duration'] += program.duration
+        return self.update(**channel_data)
 
     @helpers._check_for_dizque_instance
     def delete_program(self, program: Program) -> bool:
@@ -229,6 +242,18 @@ class Channel:
                 channel_data['programs'].remove(a_program)
                 return self.update(**channel_data)
         return False
+
+    @helpers._check_for_dizque_instance
+    def delete_all_programs(self) -> bool:
+        """
+        Delete all programs from this channel
+        :return: True if successful, False if unsuccessful (Channel reloads in-place)
+        """
+        channel_data = self._data
+        channel_data['duration'] -= sum(program.duration for program in self.programs)
+        channel_data['programs'] = []
+        return self.update(**channel_data)
+
 
     @helpers._check_for_dizque_instance
     def add_filler(self,
@@ -252,13 +277,26 @@ class Channel:
         if filler:
             kwargs = filler._data
         if helpers._settings_are_complete(new_settings_dict=kwargs,
-                                         template_settings_dict=FILLER_ITEM_TEMPLATE,
-                                         ignore_id=True):
+                                          template_settings_dict=FILLER_ITEM_TEMPLATE,
+                                          ignore_id=True):
             channel_data = self._data
             channel_data['fillerContent'].append(kwargs)
             channel_data['duration'] += kwargs['duration']
             return self.update(**channel_data)
         return False
+
+    @helpers._check_for_dizque_instance
+    def add_fillers(self, fillers: List[Filler]) -> bool:
+        """
+        Add multiple filler items to this channel
+        :param fillers: List of Filler objects
+        :return: True if successful, False if unsuccessful (Channel reloads in place)
+        """
+        channel_data = self._data
+        for filler in fillers:
+            channel_data['fillerContent'].append(filler._data)
+            channel_data['duration'] += filler.duration
+        return self.update(**channel_data)
 
     @helpers._check_for_dizque_instance
     def delete_filler(self, filler: Filler) -> bool:
@@ -274,3 +312,14 @@ class Channel:
                 channel_data['fillerContent'].remove(a_filler)
                 return self.update(**channel_data)
         return False
+
+    @helpers._check_for_dizque_instance
+    def delete_all_fillers(self) -> bool:
+        """
+        Delete all filler items from this channel
+        :return: True if successful, False if unsuccessful (Channel reloads in-place)
+        """
+        channel_data = self._data
+        channel_data['duration'] -= sum(filler.duration for filler in self.filler)
+        channel_data['fillerContent'] = []
+        return self.update(**channel_data)
