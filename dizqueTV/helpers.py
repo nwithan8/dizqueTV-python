@@ -1,4 +1,6 @@
 import json
+from datetime import datetime
+
 from dizqueTV.exceptions import MissingSettingsError
 
 
@@ -29,5 +31,14 @@ def settings_are_complete(new_settings_dict: json, template_settings_dict: json,
             if k == '_id' and ignore_id:
                 pass
             else:
+                print(k)
                 raise MissingSettingsError
     return True
+
+
+def remove_time_from_date(date_string: datetime) -> str:
+    return date_string.strftime("%Y-%m-%d")
+
+
+def get_year_from_date(date_string: datetime) -> int:
+    return int(date_string.strftime("%Y"))

@@ -2,7 +2,7 @@ import json
 from typing import List, Union
 
 import dizqueTV.helpers as helpers
-from dizqueTV.templates import CHANNEL_SETTINGS_TEMPLATE, PROGRAM_ITEM_TEMPLATE, FILLER_ITEM_TEMPLATE
+from dizqueTV.templates import PROGRAM_ITEM_TEMPLATE, FILLER_ITEM_TEMPLATE
 
 
 class MediaItem:
@@ -27,6 +27,10 @@ class MediaItem:
         self.serverKey = data.get('serverKey')
         self.isOffline = data.get('isOffline')
 
+        self.showIcon = data.get('showIcon')
+        self.episodeIcon = data.get('episodeIcon')
+        self.seasonIcon = data.get('seasonIcon')
+
 
 class Filler(MediaItem):
     def __init__(self, data: json, dizque_instance, channel_instance):
@@ -37,7 +41,9 @@ class Filler(MediaItem):
         Delete this filler
         :return: True if successful, False if unsuccessful
         """
-        return self._channel_instance.delete_filler(filler=self)
+        if self._channel_instance:
+            return self._channel_instance.delete_filler(filler=self)
+        return False
 
 
 class Program(MediaItem):
@@ -50,7 +56,9 @@ class Program(MediaItem):
         Delete this program
         :return: True if successful, False if unsuccessful
         """
-        return self._channel_instance.delete_program(program=self)
+        if self._channel_instance:
+            return self._channel_instance.delete_program(program=self)
+        return False
 
 
 class Channel:

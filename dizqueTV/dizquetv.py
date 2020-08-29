@@ -5,14 +5,44 @@ from typing import List, Union
 
 import m3u8
 import requests
+from plexapi.video import Video, Movie, Episode
+from plexapi.server import PlexServer as PServer
 
-import dizqueTV.logging as logs
+import dizqueTV.logging
 from logging import info, error, warning
 from dizqueTV.settings import XMLTVSettings, PlexSettings, FFMPEGSettings, HDHomeRunSettings
-from dizqueTV.channels import Channel
+from dizqueTV.channels import Channel, Program
 from dizqueTV.plex_server import PlexServer
 from dizqueTV.templates import PLEX_SETTINGS_TEMPLATE, CHANNEL_SETTINGS_TEMPLATE
 import dizqueTV.helpers as helpers
+
+
+def convert_to_program(plex_item: Union[Video, Movie, Episode], plex_server: PServer) -> Program:
+    item_type = plex_item.type
+    plex_media_item_part = plex_item.media[0].parts[0]
+    data = {
+        'title': plex_item.title,
+        'key': plex_item.key,
+        'ratingKey': plex_item.ratingKey,
+        'icon': plex_item.thumb,
+        'type': item_type,
+        'duration': plex_item.duration,
+        'summary': plex_item.summary,
+        'rating': plex_item.contentRating,
+        'date': helpers.remove_time_from_date(plex_item.originallyAvailableAt),
+        'year': helpers.get_year_from_date(plex_item.originallyAvailableAt),
+        'plexFile': plex_media_item_part.key,
+        'file': plex_media_item_part.file,
+        'showTitle': (plex_item.grandparentTitle if item_type == 'episode' else plex_item.title),
+        'episode': (plex_item.index if item_type == 'episode' else 1),
+        'season': (plex_item.parentIndex if item_type == 'episode' else 1),
+        'serverKey': plex_server.friendlyName
+    }
+    if plex_item.type == 'episode':
+        data['episodeIcon'] = plex_item.thumb
+        data['seasonIcon'] = plex_item.parentThumb
+        data['showIcon'] = plex_item.grandparentThumb
+    return Program(data=data, dizque_instance=None, channel_instance=None)
 
 
 class API:
