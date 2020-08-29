@@ -9,6 +9,17 @@ from dizqueTV.templates import PROGRAM_ITEM_TEMPLATE, FILLER_ITEM_TEMPLATE
 from dizqueTV.exceptions import MissingParametersError
 
 
+class Redirect:
+    def __init__(self, data: json, dizque_instance, channel_instance):
+        self._data = data
+        self._dizque_instance = dizque_instance
+        self._channel_instance = channel_instance
+        self.isOffline = data.get('isOffline')
+        self.type = data.get('type')
+        self.duration = data.get('duration')
+        self.channel = data.get('channel')
+
+
 class MediaItem:
     def __init__(self, data: json, dizque_instance, channel_instance):
         self._data = data
@@ -17,9 +28,9 @@ class MediaItem:
         self.title = data.get('title')
         self.key = data.get('key')
         self.ratingKey = data.get('ratingKey')
-        self.icon = data.get('icon')
         self.type = data.get('type')
         self.duration = data.get('duration')
+        self.icon = data.get('icon')
         self.summary = data.get('summary')
         self.date = data.get('date')
         self.year = data.get('year')
@@ -29,7 +40,6 @@ class MediaItem:
         self.episode = data.get('episode')
         self.season = data.get('season')
         self.serverKey = data.get('serverKey')
-        self.isOffline = data.get('isOffline')
 
         self.showIcon = data.get('showIcon')
         self.episodeIcon = data.get('episodeIcon')
@@ -208,20 +218,31 @@ class Channel:
         return False
 
     @helpers.check_for_dizque_instance
-    def add_filler(self, filler: Filler = None, **kwargs) -> bool:
+    def add_filler(self,
+                   plex_item: Union[Video, Movie, Episode] = None,
+                   plex_server: PServer = None,
+                   filler: Filler = None, **kwargs) -> bool:
         """
         Add a filler item to this channel
+        :param plex_item: plexapi.video.Video, plexapi.video.Movie or plexapi.video.Episode object (optional)
+        :param plex_server: plexapi.server.PlexServer object (optional)
         :param filler: Filler item (optional)
         :param kwargs: keyword arguments of Filler settings names and values
         :return: True if successful, False if unsuccessful (Channel reloads in place)
         """
+        if not plex_item and not filler and not kwargs:
+            raise MissingParametersError("Please include either a program, a plex_item/plex_server combo, or kwargs")
+        if plex_item and plex_server:
+            temp_filler = self._dizque_instance.convert_plex_item_to_filler(plex_item=plex_item,
+                                                                            plex_server=plex_server)
+            kwargs = temp_filler._data
         if filler:
             kwargs = filler._data
         if helpers.settings_are_complete(new_settings_dict=kwargs,
                                          template_settings_dict=FILLER_ITEM_TEMPLATE,
                                          ignore_id=True):
             channel_data = self._data
-            channel_data['programs'].append(kwargs)
+            channel_data['fillerContent'].append(kwargs)
             channel_data['duration'] += kwargs['duration']
             return self.update(**channel_data)
         return False

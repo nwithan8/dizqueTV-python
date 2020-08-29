@@ -10,7 +10,7 @@ from plexapi.server import PlexServer as PServer
 
 import dizqueTV.requests as requests
 from dizqueTV.settings import XMLTVSettings, PlexSettings, FFMPEGSettings, HDHomeRunSettings
-from dizqueTV.channels import Channel, Program
+from dizqueTV.channels import Channel, Program, Filler
 from dizqueTV.plex_server import PlexServer
 from dizqueTV.templates import PLEX_SETTINGS_TEMPLATE, CHANNEL_SETTINGS_TEMPLATE
 import dizqueTV.helpers as helpers
@@ -25,6 +25,17 @@ def convert_plex_item_to_program(plex_item: Union[Video, Movie, Episode], plex_s
     """
     data = helpers.make_program_dict_from_plex_item(plex_item=plex_item, plex_server=plex_server)
     return Program(data=data, dizque_instance=None, channel_instance=None)
+
+
+def convert_plex_item_to_filler(plex_item: Union[Video, Movie, Episode], plex_server: PServer) -> Filler:
+    """
+    Convert a PlexAPI Video, Movie or Episode object into a Filler
+    :param plex_item: plexapi.video.Video, plexapi.video.Movie or plexapi.video.Episode object
+    :param plex_server: plexapi.server.PlexServer object
+    :return: Program object
+    """
+    data = helpers.make_filler_dict_from_plex_item(plex_item=plex_item, plex_server=plex_server)
+    return Filler(data=data, dizque_instance=None, channel_instance=None)
 
 
 def convert_plex_server_to_dizque_plex_server(plex_server: PServer) -> PlexServer:
@@ -49,7 +60,7 @@ class API:
                             log=self.log_level)
 
     def _post(self, endpoint: str, params: dict = None, headers: dict = None, data: dict = None, timeout: int = 2) -> \
-    Union[Response, None]:
+            Union[Response, None]:
         if not endpoint.startswith('/'):
             endpoint = f"/{endpoint}"
         url = f"{self.url}/api{endpoint}"
@@ -61,7 +72,7 @@ class API:
                              log=self.log_level)
 
     def _put(self, endpoint: str, params: dict = None, headers: dict = None, data: dict = None, timeout: int = 2) -> \
-    Union[Response, None]:
+            Union[Response, None]:
         if not endpoint.startswith('/'):
             endpoint = f"/{endpoint}"
         url = f"{self.url}/api{endpoint}"
@@ -436,3 +447,12 @@ class API:
         :return: Program object
         """
         return convert_plex_item_to_program(plex_item=plex_item, plex_server=plex_server)
+
+    def convert_plex_item_to_filler(self, plex_item: Union[Video, Movie, Episode], plex_server: PServer) -> Filler:
+        """
+        Convert a PlexAPI Video, Movie or Episode object into a Filler
+        :param plex_item: plexapi.video.Video, plexapi.video.Movie or plexapi.video.Episode object
+        :param plex_server: plexapi.server.PlexServer object
+        :return: Program object
+        """
+        return convert_plex_item_to_filler(plex_item=plex_item, plex_server=plex_server)

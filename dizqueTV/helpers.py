@@ -75,6 +75,39 @@ def make_program_dict_from_plex_item(plex_item: Union[Video, Movie, Episode], pl
     return data
 
 
+def make_filler_dict_from_plex_item(plex_item: Union[Video, Movie, Episode], plex_server: PServer) -> dict:
+    """
+    Build a dictionary for a Filler using a PlexAPI Video, Movie or Episode object
+    :param plex_item: plexapi.video.Video, plexapi.video.Movie or plexapi.video.Episode object
+    :param plex_server: plexapi.server.PlexServer object
+    :return: dict of Plex item information
+    """
+    item_type = plex_item.type
+    plex_media_item_part = plex_item.media[0].parts[0]
+    data = {
+        'title': plex_item.title,
+        'key': plex_item.key,
+        'ratingKey': plex_item.ratingKey,
+        'icon': plex_item.thumb,
+        'type': item_type,
+        'duration': plex_item.duration,
+        'summary': plex_item.summary,
+        'date': remove_time_from_date(plex_item.originallyAvailableAt),
+        'year': get_year_from_date(plex_item.originallyAvailableAt),
+        'plexFile': plex_media_item_part.key,
+        'file': plex_media_item_part.file,
+        'showTitle': (plex_item.grandparentTitle if item_type == 'episode' else plex_item.title),
+        'episode': (plex_item.index if item_type == 'episode' else 1),
+        'season': (plex_item.parentIndex if item_type == 'episode' else 1),
+        'serverKey': plex_server.friendlyName
+    }
+    if plex_item.type == 'episode':
+        data['episodeIcon'] = plex_item.thumb
+        data['seasonIcon'] = plex_item.parentThumb
+        data['showIcon'] = plex_item.grandparentThumb
+    return data
+
+
 def make_server_dict_from_plex_server(plex_server: PServer,
                                       auto_reload_channels: bool = False,
                                       auto_reload_guide: bool = True) -> dict:
@@ -150,8 +183,8 @@ def get_plex_access_token(plex_server: PServer) -> Union[str, None]:
 
 
 def check_for_dizque_instance(func):
-    def inner(obj):
+    def inner(obj, **kwargs):
         if obj._dizque_instance:
-            return func()
+            return func(obj, **kwargs)
         raise NotRemoteObjectError(object_type=type(obj).__name__)
     return inner
