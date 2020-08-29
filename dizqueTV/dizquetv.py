@@ -23,7 +23,7 @@ def convert_plex_item_to_program(plex_item: Union[Video, Movie, Episode], plex_s
     :param plex_server: plexapi.server.PlexServer object
     :return: Program object
     """
-    data = helpers.make_program_dict_from_plex_item(plex_item=plex_item, plex_server=plex_server)
+    data = helpers._make_program_dict_from_plex_item(plex_item=plex_item, plex_server=plex_server)
     return Program(data=data, dizque_instance=None, channel_instance=None)
 
 
@@ -39,7 +39,7 @@ def convert_plex_item_to_filler(plex_item: Union[Video, Movie, Episode], plex_se
 
 
 def convert_plex_server_to_dizque_plex_server(plex_server: PServer) -> PlexServer:
-    data = helpers.make_server_dict_from_plex_server(plex_server=plex_server)
+    data = helpers._make_server_dict_from_plex_server(plex_server=plex_server)
     return PlexServer(data=data, dizque_instance=None)
 
 
@@ -163,7 +163,7 @@ class API:
         :param kwargs: keyword arguments of setting names and values
         :return: True if successful, False if unsuccessful
         """
-        if helpers.settings_are_complete(new_settings_dict=kwargs,
+        if helpers._settings_are_complete(new_settings_dict=kwargs,
                                          template_settings_dict=PLEX_SETTINGS_TEMPLATE,
                                          ignore_id=True) \
                 and self._put(endpoint='/plex-servers', data=kwargs):
@@ -180,7 +180,7 @@ class API:
         server = self.get_plex_server(server_name=server_name)
         if server:
             old_settings = server._data
-            new_settings = helpers.combine_settings(new_settings_dict=kwargs, old_settings_dict=old_settings)
+            new_settings = helpers._combine_settings(new_settings_dict=kwargs, old_settings_dict=old_settings)
             if self._post(endpoint='/plex-servers', data=new_settings):
                 return True
         return False
@@ -241,7 +241,7 @@ class API:
         :param kwargs: keyword arguments of setting names and values
         :return: new Channel object or None
         """
-        if helpers.settings_are_complete(new_settings_dict=kwargs,
+        if helpers._settings_are_complete(new_settings_dict=kwargs,
                                          template_settings_dict=CHANNEL_SETTINGS_TEMPLATE,
                                          ignore_id=True) \
                 and self._put(endpoint="/channel", data=kwargs):
@@ -258,7 +258,7 @@ class API:
         channel = self.get_channel(channel_number=channel_number)
         if channel:
             old_settings = channel._data
-            new_settings = helpers.combine_settings(new_settings_dict=kwargs, old_settings_dict=old_settings)
+            new_settings = helpers._combine_settings(new_settings_dict=kwargs, old_settings_dict=old_settings)
             if self._post(endpoint="/channel", data=new_settings):
                 return True
         return False
@@ -291,7 +291,7 @@ class API:
         :return: True if successful, False if unsuccessful
         """
         old_settings = self.ffmpeg_settings._data
-        new_settings = helpers.combine_settings(new_settings_dict=kwargs, old_settings_dict=old_settings)
+        new_settings = helpers._combine_settings(new_settings_dict=kwargs, old_settings_dict=old_settings)
         if self._put(endpoint='/ffmpeg-settings', data=new_settings):
             return True
         return False
@@ -325,7 +325,7 @@ class API:
         :return: True if successful, False if unsuccessful
         """
         old_settings = self.plex_settings._data
-        new_settings = helpers.combine_settings(new_settings_dict=kwargs, old_settings_dict=old_settings)
+        new_settings = helpers._combine_settings(new_settings_dict=kwargs, old_settings_dict=old_settings)
         if self._put(endpoint='/plex-settings', data=new_settings):
             return True
         return False
@@ -368,7 +368,7 @@ class API:
         :return: True if successful, False if unsuccessful
         """
         old_settings = self.xmltv_settings._data
-        new_settings = helpers.combine_settings(new_settings_dict=kwargs, old_settings_dict=old_settings)
+        new_settings = helpers._combine_settings(new_settings_dict=kwargs, old_settings_dict=old_settings)
         if self._put(endpoint='/xmltv-settings', data=new_settings):
             return True
         return False
@@ -402,7 +402,7 @@ class API:
         :return: True if successful, False if unsuccessful
         """
         old_settings = self.hdhr_settings._data
-        new_settings = helpers.combine_settings(new_settings_dict=kwargs, old_settings_dict=old_settings)
+        new_settings = helpers._combine_settings(new_settings_dict=kwargs, old_settings_dict=old_settings)
         if self._put(endpoint='/hdhr-settings', data=new_settings):
             return True
         return False

@@ -54,7 +54,7 @@ class Filler(MediaItem):
     def __init__(self, data: json, dizque_instance, channel_instance):
         super().__init__(data=data, dizque_instance=dizque_instance, channel_instance=channel_instance)
 
-    @helpers.check_for_dizque_instance
+    @helpers._check_for_dizque_instance
     def delete(self) -> bool:
         """
         Delete this filler
@@ -68,7 +68,7 @@ class Program(MediaItem, Redirect):
         super().__init__(data=data, dizque_instance=dizque_instance, channel_instance=channel_instance)
         self.rating = data.get('rating')
 
-    @helpers.check_for_dizque_instance
+    @helpers._check_for_dizque_instance
     def delete(self) -> bool:
         """
         Delete this program
@@ -109,7 +109,7 @@ class Channel:
         return [Program(data=program, dizque_instance=self._dizque_instance, channel_instance=self)
                 for program in self._program_data]
 
-    @helpers.check_for_dizque_instance
+    @helpers._check_for_dizque_instance
     def get_program(self, program_title: str = None, redirect_channel_number: int = None) -> Union[Program, None]:
         """
         Get a specific program on this channel
@@ -133,7 +133,7 @@ class Channel:
         return [Filler(data=filler, dizque_instance=self._dizque_instance, channel_instance=self)
                 for filler in self._fillerContent_data]
 
-    @helpers.check_for_dizque_instance
+    @helpers._check_for_dizque_instance
     def get_filler(self, filler_title: str) -> Union[Filler, None]:
         """
         Get a specific filler item on this channel
@@ -145,7 +145,7 @@ class Channel:
                 return filler
         return None
 
-    @helpers.check_for_dizque_instance
+    @helpers._check_for_dizque_instance
     def refresh(self):
         """
         Reload current Channel object
@@ -157,7 +157,7 @@ class Channel:
             self.__init__(data=json_data, dizque_instance=self._dizque_instance)
             del temp_channel
 
-    @helpers.check_for_dizque_instance
+    @helpers._check_for_dizque_instance
     def update(self, **kwargs) -> bool:
         """
         Edit this Channel on dizqueTV
@@ -170,7 +170,7 @@ class Channel:
             return True
         return False
 
-    @helpers.check_for_dizque_instance
+    @helpers._check_for_dizque_instance
     def delete(self) -> bool:
         """
         Delete this channel
@@ -178,7 +178,7 @@ class Channel:
         """
         return self._dizque_instance.delete_channel(channel_number=self.number)
 
-    @helpers.check_for_dizque_instance
+    @helpers._check_for_dizque_instance
     def add_program(self,
                     plex_item: Union[Video, Movie, Episode] = None,
                     plex_server: PServer = None,
@@ -205,7 +205,7 @@ class Channel:
             template = EPISODE_PROGRAM_TEMPLATE
         elif kwargs['type'] == 'redirect':
             template = REDIRECT_PROGRAM_TEMPLATE
-        if helpers.settings_are_complete(new_settings_dict=kwargs,
+        if helpers._settings_are_complete(new_settings_dict=kwargs,
                                          template_settings_dict=template,
                                          ignore_id=True):
             channel_data = self._data
@@ -214,7 +214,7 @@ class Channel:
             return self.update(**channel_data)
         return False
 
-    @helpers.check_for_dizque_instance
+    @helpers._check_for_dizque_instance
     def delete_program(self, program: Program) -> bool:
         """
         Delete a program from this channel
@@ -230,7 +230,7 @@ class Channel:
                 return self.update(**channel_data)
         return False
 
-    @helpers.check_for_dizque_instance
+    @helpers._check_for_dizque_instance
     def add_filler(self,
                    plex_item: Union[Video, Movie, Episode] = None,
                    plex_server: PServer = None,
@@ -251,7 +251,7 @@ class Channel:
             kwargs = temp_filler._data
         if filler:
             kwargs = filler._data
-        if helpers.settings_are_complete(new_settings_dict=kwargs,
+        if helpers._settings_are_complete(new_settings_dict=kwargs,
                                          template_settings_dict=FILLER_ITEM_TEMPLATE,
                                          ignore_id=True):
             channel_data = self._data
@@ -260,7 +260,7 @@ class Channel:
             return self.update(**channel_data)
         return False
 
-    @helpers.check_for_dizque_instance
+    @helpers._check_for_dizque_instance
     def delete_filler(self, filler: Filler) -> bool:
         """
         Delete a filler item from this channel

@@ -9,7 +9,17 @@ from dizqueTV.exceptions import MissingSettingsError, NotRemoteObjectError
 import dizqueTV.requests as requests
 
 
-def combine_settings(new_settings_dict: json, old_settings_dict: json) -> json:
+# Checks
+def _check_for_dizque_instance(func):
+    def inner(obj, **kwargs):
+        if obj._dizque_instance:
+            return func(obj, **kwargs)
+        raise NotRemoteObjectError(object_type=type(obj).__name__)
+
+    return inner
+
+# Internal Helpers
+def _combine_settings(new_settings_dict: json, old_settings_dict: json) -> json:
     """
     Build a complete dictionary for new settings, using old settings as a base
     :param new_settings_dict: Dictionary of new settings kwargs
@@ -22,7 +32,7 @@ def combine_settings(new_settings_dict: json, old_settings_dict: json) -> json:
     return old_settings_dict
 
 
-def settings_are_complete(new_settings_dict: json, template_settings_dict: json, ignore_id: bool = False) -> bool:
+def _settings_are_complete(new_settings_dict: json, template_settings_dict: json, ignore_id: bool = False) -> bool:
     """
     Check that all elements from the settings template are present in the new settings
     :param new_settings_dict: Dictionary of new settings kwargs
@@ -41,7 +51,7 @@ def settings_are_complete(new_settings_dict: json, template_settings_dict: json,
     return True
 
 
-def make_program_dict_from_plex_item(plex_item: Union[Video, Movie, Episode], plex_server: PServer) -> dict:
+def _make_program_dict_from_plex_item(plex_item: Union[Video, Movie, Episode], plex_server: PServer) -> dict:
     """
     Build a dictionary for a Program using a PlexAPI Video, Movie or Episode object
     :param plex_item: plexapi.video.Video, plexapi.video.Movie or plexapi.video.Episode object
@@ -75,7 +85,7 @@ def make_program_dict_from_plex_item(plex_item: Union[Video, Movie, Episode], pl
     return data
 
 
-def make_filler_dict_from_plex_item(plex_item: Union[Video, Movie, Episode], plex_server: PServer) -> dict:
+def __make_filler_dict_from_plex_item(plex_item: Union[Video, Movie, Episode], plex_server: PServer) -> dict:
     """
     Build a dictionary for a Filler using a PlexAPI Video, Movie or Episode object
     :param plex_item: plexapi.video.Video, plexapi.video.Movie or plexapi.video.Episode object
@@ -108,9 +118,9 @@ def make_filler_dict_from_plex_item(plex_item: Union[Video, Movie, Episode], ple
     return data
 
 
-def make_server_dict_from_plex_server(plex_server: PServer,
-                                      auto_reload_channels: bool = False,
-                                      auto_reload_guide: bool = True) -> dict:
+def _make_server_dict_from_plex_server(plex_server: PServer,
+                                       auto_reload_channels: bool = False,
+                                       auto_reload_guide: bool = True) -> dict:
     """
     Build a dictionary for a PlexServer using a PlexAPI server
     :param plex_server: plexapi.server.PlexServer object
@@ -128,6 +138,7 @@ def make_server_dict_from_plex_server(plex_server: PServer,
     return data
 
 
+# Public Helpers
 def remove_time_from_date(date_string: datetime) -> str:
     """
     Remove time, i.e. 00:00:00, from a datetime.datetime string
@@ -180,11 +191,3 @@ def get_plex_access_token(plex_server: PServer) -> Union[str, None]:
             if server['name'] == plex_server.friendlyName:
                 return server['accessToken']
     return None
-
-
-def check_for_dizque_instance(func):
-    def inner(obj, **kwargs):
-        if obj._dizque_instance:
-            return func(obj, **kwargs)
-        raise NotRemoteObjectError(object_type=type(obj).__name__)
-    return inner
