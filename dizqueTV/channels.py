@@ -1,8 +1,12 @@
 import json
 from typing import List, Union
 
+from plexapi.video import Video, Movie, Episode
+from plexapi.server import PlexServer as PServer
+
 import dizqueTV.helpers as helpers
 from dizqueTV.templates import PROGRAM_ITEM_TEMPLATE, FILLER_ITEM_TEMPLATE
+from dizqueTV.exceptions import MissingParametersError
 
 
 class MediaItem:
@@ -36,14 +40,13 @@ class Filler(MediaItem):
     def __init__(self, data: json, dizque_instance, channel_instance):
         super().__init__(data=data, dizque_instance=dizque_instance, channel_instance=channel_instance)
 
+    @helpers.check_for_dizque_instance
     def delete(self) -> bool:
         """
         Delete this filler
         :return: True if successful, False if unsuccessful
         """
-        if self._channel_instance:
-            return self._channel_instance.delete_filler(filler=self)
-        return False
+        return self._channel_instance.delete_filler(filler=self)
 
 
 class Program(MediaItem):
@@ -51,14 +54,13 @@ class Program(MediaItem):
         super().__init__(data=data, dizque_instance=dizque_instance, channel_instance=channel_instance)
         self.rating = data.get('rating')
 
+    @helpers.check_for_dizque_instance
     def delete(self) -> bool:
         """
         Delete this program
         :return: True if successful, False if unsuccessful
         """
-        if self._channel_instance:
-            return self._channel_instance.delete_program(program=self)
-        return False
+        return self._channel_instance.delete_program(program=self)
 
 
 class Channel:
@@ -93,6 +95,7 @@ class Channel:
         return [Program(data=program, dizque_instance=self._dizque_instance, channel_instance=self)
                 for program in self._program_data]
 
+    @helpers.check_for_dizque_instance
     def get_program(self, program_title: str) -> Union[Program, None]:
         """
         Get a specific program on this channel
@@ -113,6 +116,7 @@ class Channel:
         return [Filler(data=filler, dizque_instance=self._dizque_instance, channel_instance=self)
                 for filler in self._fillerContent_data]
 
+    @helpers.check_for_dizque_instance
     def get_filler(self, filler_title: str) -> Union[Filler, None]:
         """
         Get a specific filler item on this channel
@@ -124,6 +128,7 @@ class Channel:
                 return filler
         return None
 
+    @helpers.check_for_dizque_instance
     def refresh(self):
         """
         Reload current Channel object
@@ -135,6 +140,7 @@ class Channel:
             self.__init__(data=json_data, dizque_instance=self._dizque_instance)
             del temp_channel
 
+    @helpers.check_for_dizque_instance
     def update(self, **kwargs) -> bool:
         """
         Edit this Channel on dizqueTV
@@ -147,6 +153,7 @@ class Channel:
             return True
         return False
 
+    @helpers.check_for_dizque_instance
     def delete(self) -> bool:
         """
         Delete this channel
@@ -154,14 +161,27 @@ class Channel:
         """
         return self._dizque_instance.delete_channel(channel_number=self.number)
 
-    def add_program(self, program: Program = None, **kwargs) -> bool:
+    @helpers.check_for_dizque_instance
+    def add_program(self,
+                    plex_item: Union[Video, Movie, Episode] = None,
+                    plex_server: PServer = None,
+                    program: Program = None,
+                    **kwargs) -> bool:
         """
         Add a program to this channel
+        :param plex_item: plexapi.video.Video, plexapi.video.Movie or plexapi.video.Episode object (optional)
+        :param plex_server: plexapi.server.PlexServer object (optional)
         :param program: Program item (optional)
         :param kwargs: keyword arguments of Program settings names and values
         :return: True if successful, False if unsuccessful (Channel reloads in place)
         """
-        if program:
+        if not plex_item and not program and not kwargs:
+            raise MissingParametersError("Please include either a program, a plex_item/plex_server combo, or kwargs")
+        if plex_item and plex_server:
+            temp_program = self._dizque_instance.convert_plex_item_to_program(plex_item=plex_item,
+                                                                              plex_server=plex_server)
+            kwargs = temp_program._data
+        elif program:
             kwargs = program._data
         if helpers.settings_are_complete(new_settings_dict=kwargs,
                                          template_settings_dict=PROGRAM_ITEM_TEMPLATE,
@@ -172,6 +192,7 @@ class Channel:
             return self.update(**channel_data)
         return False
 
+    @helpers.check_for_dizque_instance
     def delete_program(self, program: Program) -> bool:
         """
         Delete a program from this channel
@@ -186,6 +207,7 @@ class Channel:
                 return self.update(**channel_data)
         return False
 
+    @helpers.check_for_dizque_instance
     def add_filler(self, filler: Filler = None, **kwargs) -> bool:
         """
         Add a filler item to this channel
@@ -204,6 +226,7 @@ class Channel:
             return self.update(**channel_data)
         return False
 
+    @helpers.check_for_dizque_instance
     def delete_filler(self, filler: Filler) -> bool:
         """
         Delete a filler item from this channel
