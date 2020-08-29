@@ -268,9 +268,9 @@ class Channel:
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
         """
         channel_data = self._data
-        for a_filler in channel_data['filler']:
+        for a_filler in channel_data['fillerContent']:
             if a_filler['title'] == filler.title:
                 channel_data['duration'] -= a_filler['duration']
-                channel_data['filler'].remove(a_filler)
+                channel_data['fillerContent'].remove(a_filler)
                 return self.update(**channel_data)
         return False
