@@ -302,6 +302,17 @@ class Channel:
         return False
 
     @helpers._check_for_dizque_instance
+    def sort_programs_randomly(self) -> bool:
+        """
+        Sort all programs on this channel randomly
+        :return: True if successful, False if unsuccessful (Channel reloads in-place)
+        """
+        sorted_programs = sort_media_randomly(media_items=self.programs)
+        if self.delete_all_programs():
+            return self.add_programs(programs=sorted_programs)
+        return False
+
+    @helpers._check_for_dizque_instance
     def remove_specials(self) -> bool:
         """
         Delete all specials from this channel
@@ -399,6 +410,17 @@ class Channel:
             return self.add_fillers(fillers=sorted_filler)
         return False
 
+    @helpers._check_for_dizque_instance
+    def sort_filler_randomly(self) -> bool:
+        """
+        Sort all filler items on this channel randomly
+        :return: True if successful, False if unsuccessful (Channel reloads in-place)
+        """
+        sorted_filler = sort_media_randomly(media_items=self.filler)
+        if self.delete_all_fillers():
+            return self.add_fillers(fillers=sorted_filler)
+        return False
+
 
 # Helper Functions
 def sort_media_alphabetically(media_items: List[Union[Program, Filler]]) -> List[Union[Program, Filler]]:
@@ -471,8 +493,17 @@ def sort_media_by_duration(media_items: List[Union[Program, Filler]]) -> List[Un
     :return: List of Program and Filler objects
     """
     non_redirects = [item for item in media_items if
-                 (helpers._object_has_attribute(object=item, attribute_name='duration')
-                  and helpers._object_has_attribute(object=item, attribute_name='type')
-                  and item.type != 'redirect')]
+                     (helpers._object_has_attribute(object=item, attribute_name='duration')
+                      and helpers._object_has_attribute(object=item, attribute_name='type')
+                      and item.type != 'redirect')]
     sorted_media = sorted(non_redirects, key=lambda x: x.duration)
     return sorted_media
+
+
+def sort_media_randomly(media_items: List[Union[Program, Filler]]) -> List[Union[Program, Filler]]:
+    """
+    Sort media randomly.
+    :param media_items: List of Program and Filler objects
+    :return: List of Program and Filler objects
+    """
+    return helpers.shuffle(items=media_items)

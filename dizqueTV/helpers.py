@@ -1,6 +1,7 @@
 import json
 from datetime import datetime, timedelta
 from typing import List, Union, Tuple
+import random
 
 from plexapi.video import Video, Movie, Episode
 from plexapi.server import PlexServer as PServer
@@ -11,24 +12,19 @@ import dizqueTV.requests as requests
 
 # Checks
 def _check_for_dizque_instance(func):
+    """
+    Check if an object has a _dizque_instance attribute before executing function
+    :param func: Function to execute if object does have a _dizque_instance attribute
+    :return: Result of func
+    """
     def inner(obj, **kwargs):
         if obj._dizque_instance:
             return func(obj, **kwargs)
         raise NotRemoteObjectError(object_type=type(obj).__name__)
-
     return inner
 
 
 # Internal Helpers
-def _dict_to_json(dictionary: dict) -> json:
-    """
-    Convert a dictionary to valid JSON
-    :param dictionary: Dictionary to convert
-    :return: JSON representation of dictionary
-    """
-    return json.dumps(dictionary)
-
-
 def _combine_settings(new_settings_dict: json, old_settings_dict: json) -> json:
     """
     Build a complete dictionary for new settings, using old settings as a base
@@ -161,6 +157,12 @@ def _make_server_dict_from_plex_server(plex_server: PServer,
 
 
 def _separate_with_and_without(items: List, attribute_name: str) -> Tuple[List, List]:
+    """
+    Split a list of items into those with a specific attribute and those without
+    :param items: List of items
+    :param attribute_name: Name of attribute to look for
+    :return: list_with, list_without
+    """
     items_with = []
     items_without = []
     for item in items:
@@ -211,6 +213,10 @@ def get_year_from_date(date_string: datetime) -> int:
 
 
 def get_nearest_30_minute_mark() -> str:
+    """
+    Get the most recently past hour or half-hour time
+    :return: str of datetime
+    """
     now = datetime.now()
     if now.minute >= 30:
         now.replace(second=0, microsecond=0, minute=30)
@@ -220,6 +226,11 @@ def get_nearest_30_minute_mark() -> str:
 
 
 def get_plex_indirect_uri(plex_server: PServer) -> Union[str, None]:
+    """
+    Get the indirect URI (ex. http://192.168.1.1-xxxxxxxxxxxxxxxx.plex.direct) for a Plex server
+    :param plex_server: plexapi.server.PlexServer to get URI from
+    :return: URI string or None
+    """
     headers = {
         'Accept': 'application/json',
         'X-Plex-Product': 'dizqueTV',
@@ -238,6 +249,11 @@ def get_plex_indirect_uri(plex_server: PServer) -> Union[str, None]:
 
 
 def get_plex_access_token(plex_server: PServer) -> Union[str, None]:
+    """
+    Get the access token for a Plex server
+    :param plex_server: plexapi.server.PlexServer to get access token from
+    :return: Access token string or None
+    """
     headers = {
         'Accept': 'application/json',
         'X-Plex-Product': 'dizqueTV',
@@ -253,3 +269,21 @@ def get_plex_access_token(plex_server: PServer) -> Union[str, None]:
             if server['name'] == plex_server.friendlyName:
                 return server['accessToken']
     return None
+
+
+def dict_to_json(dictionary: dict) -> json:
+    """
+    Convert a dictionary to valid JSON
+    :param dictionary: Dictionary to convert
+    :return: JSON representation of dictionary
+    """
+    return json.dumps(dictionary)
+
+
+def shuffle(items: List) -> List:
+    """
+    Randomize the order of the items in a list
+    :param items: list of items to shuffle
+    :return: list of shuffled items
+    """
+    return random.shuffle(items)
