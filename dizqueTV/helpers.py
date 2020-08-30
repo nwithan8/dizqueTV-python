@@ -80,11 +80,13 @@ def _make_program_dict_from_plex_item(plex_item: Union[Video, Movie, Episode], p
     """
     item_type = plex_item.type
     plex_media_item_part = plex_item.media[0].parts[0]
+    plex_uri = get_plex_indirect_uri(plex_server=plex_server)
+    plex_token = get_plex_access_token(plex_server=plex_server)
     data = {
         'title': plex_item.title,
         'key': plex_item.key,
         'ratingKey': plex_item.ratingKey,
-        'icon': plex_item.thumb,
+        'icon': f"{plex_uri}{plex_item.thumb}?X-Plex-Token={plex_token}",
         'type': item_type,
         'duration': plex_item.duration,
         'summary': plex_item.summary,
@@ -219,12 +221,12 @@ def get_nearest_30_minute_mark() -> str:
     Get the most recently past hour or half-hour time
     :return: str of datetime
     """
-    now = datetime.now()
+    now = datetime.utcnow()
     if now.minute >= 30:
-        now.replace(second=0, microsecond=0, minute=30)
+        now = now.replace(second=0, microsecond=0, minute=30)
     else:
-        now.replace(second=0, microsecond=0, minute=0)
-    return now.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+        now = now.replace(second=0, microsecond=0, minute=0)
+    return now.strftime("%Y-%m-%dT%H:%M:%S.000Z")
 
 
 def get_plex_indirect_uri(plex_server: PServer) -> Union[str, None]:
