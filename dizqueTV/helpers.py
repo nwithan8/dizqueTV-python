@@ -1,6 +1,6 @@
 import json
 from datetime import datetime
-from typing import List, Union
+from typing import List, Union, Tuple
 
 from plexapi.video import Video, Movie, Episode
 from plexapi.server import PlexServer as PServer
@@ -17,6 +17,7 @@ def _check_for_dizque_instance(func):
         raise NotRemoteObjectError(object_type=type(obj).__name__)
 
     return inner
+
 
 # Internal Helpers
 def _combine_settings(new_settings_dict: json, old_settings_dict: json) -> json:
@@ -49,6 +50,19 @@ def _settings_are_complete(new_settings_dict: json, template_settings_dict: json
                 print(k)
                 raise MissingSettingsError
     return True
+
+
+def _object_has_attribute(object, attribute_name: str) -> bool:
+    """
+    Check if an object has an attribute (exists and is not None)
+    :param object: object to check
+    :param attribute_name: name of attribute to find
+    :return: True if exists and is not None, False otherwise
+    """
+    if hasattr(object, attribute_name):
+        if getattr(object, attribute_name) is not None:
+            return True
+    return False
 
 
 def _make_program_dict_from_plex_item(plex_item: Union[Video, Movie, Episode], plex_server: PServer) -> dict:
@@ -136,6 +150,37 @@ def _make_server_dict_from_plex_server(plex_server: PServer,
         'arGuide': auto_reload_guide
     }
     return data
+
+
+def _separate_with_and_without(items: List, attribute_name: str) -> Tuple[List, List]:
+    items_with = []
+    items_without = []
+    for item in items:
+        if _object_has_attribute(object=item, attribute_name=attribute_name):
+            items_with.append(item)
+        else:
+            items_without.append(item)
+    return items_with, items_without
+
+
+def make_show_dict(media_items: List) -> dict:
+    """
+    Convert a list of MediaItem objects into a show-season-episode dictionary
+    Disregards any non-episode media items
+    :param media_items: list of MediaItem objects
+    :return: dict object with all episodes arranged by show-season-episode
+    """
+    show_dict = {}
+    for item in media_items:
+        if _object_has_attribute(object=item, attribute_name='type') and item.type == 'episode':
+            if item.showTitle in show_dict.keys():
+                if item.season in show_dict[item.showTitle].keys():
+                    show_dict[item.showTitle][item.season][item.episode] = item
+                else:
+                    show_dict[item.showTitle][item.season] = {item.episode: item}
+            else:
+                show_dict[item.showTitle] = {item.season: {item.episode: item}}
+    return show_dict
 
 
 # Public Helpers

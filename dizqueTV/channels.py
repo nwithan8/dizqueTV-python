@@ -1,5 +1,6 @@
 import json
 from typing import List, Union
+from datetime import datetime
 
 from plexapi.video import Video, Movie, Episode
 from plexapi.server import PlexServer as PServer
@@ -254,6 +255,68 @@ class Channel:
         channel_data['programs'] = []
         return self.update(**channel_data)
 
+    # Sort Programs
+    @helpers._check_for_dizque_instance
+    def sort_programs_by_release_date(self) -> bool:
+        """
+        Sort all programs on this channel by release date
+        :return: True if successful, False if unsuccessful (Channel reloads in-place)
+        """
+        sorted_programs = sort_media_by_release_date(media_items=self.programs)
+        if self.delete_all_programs():
+            return self.add_programs(programs=sorted_programs)
+        return False
+
+    @helpers._check_for_dizque_instance
+    def sort_programs_by_season_order(self) -> bool:
+        """
+        Sort all programs on this channel by season order
+        Movies are added at the end of the list
+        :return: True if successful, False if unsuccessful (Channel reloads in-place)
+        """
+        sorted_programs = sort_media_by_season_order(media_items=self.programs)
+        if self.delete_all_programs():
+            return self.add_programs(programs=sorted_programs)
+        return False
+
+    @helpers._check_for_dizque_instance
+    def sort_programs_alphabetically(self) -> bool:
+        """
+        Sort all programs on this channel in alphabetical order
+        :return: True if successful, False if unsuccessful (Channel reloads in-place)
+        """
+        sorted_programs = sort_media_alphabetically(media_items=self.programs)
+        if self.delete_all_programs():
+            return self.add_programs(programs=sorted_programs)
+        return False
+
+    @helpers._check_for_dizque_instance
+    def sort_programs_by_duration(self) -> bool:
+        """
+        Sort all programs on this channel by duration
+        :return: True if successful, False if unsuccessful (Channel reloads in-place)
+        """
+        sorted_programs = sort_media_by_duration(media_items=self.programs)
+        if self.delete_all_programs():
+            return self.add_programs(programs=sorted_programs)
+        return False
+
+    @helpers._check_for_dizque_instance
+    def remove_specials(self) -> bool:
+        """
+        Delete all specials from this channel
+        Note: Removes all redirects
+        :return: True if successful, False if unsuccessful (Channel reloads in-place)
+        """
+        non_redirects = [item for item in self.programs if
+                         (helpers._object_has_attribute(object=item, attribute_name='type')
+                          and item.type != 'redirect')]
+        non_specials = [item for item in non_redirects if
+                        (helpers._object_has_attribute(object=item, attribute_name='season')
+                         and item.season != 0)]
+        if self.delete_all_programs():
+            return self.add_programs(programs=non_specials)
+        return False
 
     @helpers._check_for_dizque_instance
     def add_filler(self,
@@ -323,3 +386,93 @@ class Channel:
         channel_data['duration'] -= sum(filler.duration for filler in self.filler)
         channel_data['fillerContent'] = []
         return self.update(**channel_data)
+
+    # Sort Filler
+    @helpers._check_for_dizque_instance
+    def sort_filler_by_duration(self) -> bool:
+        """
+        Sort all filler items on this channel by duration
+        :return: True if successful, False if unsuccessful (Channel reloads in-place)
+        """
+        sorted_filler = sort_media_by_duration(media_items=self.filler)
+        if self.delete_all_fillers():
+            return self.add_fillers(fillers=sorted_filler)
+        return False
+
+
+# Helper Functions
+def sort_media_alphabetically(media_items: List[Union[Program, Filler]]) -> List[Union[Program, Filler]]:
+    """
+    Sort media items alphabetically.
+    Note: Shows will be grouped and sorted by series title, but episodes may be out of order
+    :param media_items: List of Program and Filler objects
+    :return: List of Program and Filler objects
+    """
+    items_with_titles, items_without_titles = helpers._separate_with_and_without(items=media_items,
+                                                                                 attribute_name='title')
+    sorted_items = sorted(items_with_titles, key=lambda x: (x.showTitle if x.type == 'episode' else x.title))
+    sorted_items.extend(items_without_titles)
+    return sorted_items
+
+
+def sort_media_by_release_date(media_items: List[Union[Program, Filler]]) -> List[Union[Program, Filler]]:
+    """
+    Sort media items by release date.
+    Note: Items without release dates are appended (alphabetically) at the end of the list
+    :param media_items: List of Program and Filler objects
+    :return: List of Program and Filler objects
+    """
+    items_with_dates, items_without_dates = helpers._separate_with_and_without(items=media_items,
+                                                                               attribute_name='date')
+    sorted_items = sorted(items_with_dates, key=lambda x: datetime.strptime(x.date, "%Y-%m-%d"))
+    sorted_items.extend(sort_media_alphabetically(media_items=items_without_dates))
+    return sorted_items
+
+
+def _sort_shows_by_season_order(shows_dict: dict) -> List[Union[Program, Filler]]:
+    """
+    Sort a show dictionary by series-season-episode.
+    Series are ordered alphabetically
+    :param shows_dict: Series-season-episode dictionary
+    :return: List of Program and Filler objects
+    """
+    sorted_list = []
+    sorted_shows = sorted(shows_dict.items(), key=lambda show_name: show_name)
+    for show in sorted_shows:
+        sorted_seasons = sorted(show[1].items(), key=lambda season_number: season_number)
+        for season in sorted_seasons:
+            sorted_episodes = sorted(season[1].items(), key=lambda episode_number: episode_number)
+            for item in sorted_episodes:
+                sorted_list.append(item[1])
+    return sorted_list
+
+
+def sort_media_by_season_order(media_items: List[Union[Program, Filler]]) -> List[Union[Program, Filler]]:
+    """
+    Sort media items by season order.
+    Note: Series are ordered alphabetically, movies appended (alphabetically) at the end of the list.
+    :param media_items: List of Program and Filler objects
+    :return: List of Program and Filler objects
+    """
+    non_shows = [item for item in media_items if
+                 (helpers._object_has_attribute(object=item, attribute_name='type') and item.type != 'episode')]
+    show_dict = helpers.make_show_dict(media_items=media_items)
+    sorted_shows = _sort_shows_by_season_order(shows_dict=show_dict)
+    sorted_movies = sort_media_alphabetically(media_items=non_shows)
+    sorted_all = sorted_shows + sorted_movies
+    return sorted_all
+
+
+def sort_media_by_duration(media_items: List[Union[Program, Filler]]) -> List[Union[Program, Filler]]:
+    """
+    Sort media by duration.
+    Note: Automatically removes redirect items
+    :param media_items: List of Program and Filler objects
+    :return: List of Program and Filler objects
+    """
+    non_redirects = [item for item in media_items if
+                 (helpers._object_has_attribute(object=item, attribute_name='duration')
+                  and helpers._object_has_attribute(object=item, attribute_name='type')
+                  and item.type != 'redirect')]
+    sorted_media = sorted(non_redirects, key=lambda x: x.duration)
+    return sorted_media
