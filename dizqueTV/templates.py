@@ -31,6 +31,19 @@ CHANNEL_SETTINGS_TEMPLATE = {
     "overlayIcon": bool
 }
 
+CHANNEL_SETTINGS_DEFAULT = {
+    "fillerContent": [],
+    "fillerRepeatCooldown": 1800000,
+    "fallback": [],
+    "disableFillerOverlay": True,
+    "iconWidth": 120,
+    "iconDuration": 60,
+    "iconPosition": "2",
+    "offlineSoundtrack": "",
+    "offlineMode": "pic",
+    "overlayIcon": False
+}
+
 REDIRECT_PROGRAM_TEMPLATE = {
     "isOffline": bool,
     "type": str,

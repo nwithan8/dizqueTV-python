@@ -1,7 +1,7 @@
 import json
+import logging
 from xml.etree import ElementTree
 from typing import List, Union
-from logging import info, error, warning
 
 import m3u8
 from requests import Response
@@ -12,9 +12,9 @@ import dizqueTV.requests as requests
 from dizqueTV.settings import XMLTVSettings, PlexSettings, FFMPEGSettings, HDHomeRunSettings
 from dizqueTV.channels import Channel, Program, Filler
 from dizqueTV.plex_server import PlexServer
-from dizqueTV.templates import PLEX_SETTINGS_TEMPLATE, CHANNEL_SETTINGS_TEMPLATE
+from dizqueTV.templates import PLEX_SETTINGS_TEMPLATE, CHANNEL_SETTINGS_TEMPLATE, CHANNEL_SETTINGS_DEFAULT
 import dizqueTV.helpers as helpers
-from dizqueTV.exceptions import MissingParametersError
+from dizqueTV.exceptions import MissingParametersError, ChannelCreationError
 
 
 def convert_plex_item_to_program(plex_item: Union[Video, Movie, Episode], plex_server: PServer) -> Program:
@@ -48,7 +48,8 @@ class API:
     def __init__(self, url: str, verbose: bool = False):
         self.url = url.rstrip('/')
         self.verbose = verbose
-        self.log_level = (info if verbose else None)
+        logging.basicConfig(format='%(asctime)s %(levelname)s:%(message)s',
+                            level=(logging.INFO if verbose else logging.ERROR))
 
     def _get(self, endpoint: str, params: dict = None, headers: dict = None, timeout: int = 2) -> Union[Response, None]:
         if not endpoint.startswith('/'):
@@ -58,7 +59,7 @@ class API:
                             params=params,
                             headers=headers,
                             timeout=timeout,
-                            log=self.log_level)
+                            log='info')
 
     def _post(self, endpoint: str, params: dict = None, headers: dict = None, data: dict = None, timeout: int = 2) -> \
             Union[Response, None]:
@@ -70,7 +71,7 @@ class API:
                              data=data,
                              headers=headers,
                              timeout=timeout,
-                             log=self.log_level)
+                             log='info')
 
     def _put(self, endpoint: str, params: dict = None, headers: dict = None, data: dict = None, timeout: int = 2) -> \
             Union[Response, None]:
@@ -82,7 +83,7 @@ class API:
                             data=data,
                             headers=headers,
                             timeout=timeout,
-                            log=self.log_level)
+                            log='info')
 
     def _delete(self, endpoint: str, params: dict = None, data: dict = None, timeout: int = 2) -> Union[Response, None]:
         if not endpoint.startswith('/'):
@@ -92,7 +93,7 @@ class API:
                                params=params,
                                data=data,
                                timeout=timeout,
-                               log=self.log_level)
+                               log='info')
 
     def _get_json(self, endpoint: str, params: dict = None, headers: dict = None, timeout: int = 2) -> json:
         response = self._get(endpoint=endpoint, params=params, headers=headers, timeout=timeout)
@@ -236,12 +237,65 @@ class API:
             return data
         return []
 
-    def add_channel(self, **kwargs) -> Union[Channel, None]:
+    def _fill_in_default_channel_settings(self, settings_dict: dict, handle_errors: bool = False) -> dict:
+        """
+        Set some dynamic default values, such as channel number, start time and image URLs
+        :param settings_dict: Dictionary of new settings for channel
+        :return: Dictionary of settings with defaults filled in
+        """
+        if not settings_dict.get('programs'):  # empty or doesn't exist
+            if handle_errors:
+                settings_dict['programs'] = [{
+                    "duration": 600000,
+                    "isOffline": True
+                }]
+            else:
+                raise ChannelCreationError("You must include at least one program when creating a channel.")
+        if settings_dict.get('number') in self.channel_numbers:
+            if handle_errors:
+                settings_dict.pop('number')  # remove 'number' key, will be caught down below
+            else:
+                raise ChannelCreationError(f"Channel #{settings_dict.get('number')} already exists.")
+        if 'number' not in settings_dict.keys():
+            settings_dict['number'] = max(self.channel_numbers) + 1
+        if 'name' not in settings_dict.keys():
+            settings_dict['name'] = f"Channel {settings_dict['number']}"
+        if 'startTime' not in settings_dict.keys():
+            settings_dict['startTime'] = helpers.get_nearest_30_minute_mark()
+        if 'icon' not in settings_dict.keys():
+            settings_dict['icon'] = f"{self.url}/images/dizquetv.png"
+        if 'offlinePicture' not in settings_dict.keys():
+            settings_dict['offlinePicture'] = f"{self.url}/images/generic-offline-screen.png"
+        # override duration regardless of user input
+        settings_dict['duration'] = sum(program['duration'] for program in settings_dict['programs'])
+        return helpers._combine_settings(new_settings_dict=settings_dict, old_settings_dict=CHANNEL_SETTINGS_DEFAULT)
+
+    def add_channel(self,
+                    programs: List[Union[Program, Video, Movie, Episode]],
+                    plex_server: PServer = None,
+                    handle_errors: bool = False,
+                    **kwargs) -> Union[Channel, None]:
         """
         Add a channel to dizqueTV
+        Must include at least one program to create
+        :param programs: At least one Program or PlexAPI Video, Movie or Episode to add to the new channel
+        :param plex_server: plexapi.server.PlexServer (optional, required if adding PlexAPI Video, Movie or Episode)
         :param kwargs: keyword arguments of setting names and values
+        :param handle_errors: Suppress error if they arise
+        (ex. alter invalid channel number, add redirect if no program is included)
         :return: new Channel object or None
         """
+        kwargs['programs'] = []
+        for program in programs:
+            if type(program) == Program:
+                kwargs['programs'].append(program)
+            else:
+                if not plex_server:
+                    raise ChannelCreationError("You must include a plex_server if you are adding PlexAPI Video, "
+                                               "Movie or Episodes as programs")
+                kwargs['programs'].append(
+                    convert_plex_item_to_program(plex_item=program, plex_server=plex_server)._data)
+        kwargs = self._fill_in_default_channel_settings(settings_dict=kwargs, handle_errors=handle_errors)
         if helpers._settings_are_complete(new_settings_dict=kwargs,
                                           template_settings_dict=CHANNEL_SETTINGS_TEMPLATE,
                                           ignore_id=True) \

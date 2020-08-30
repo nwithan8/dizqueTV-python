@@ -1,5 +1,5 @@
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import List, Union, Tuple
 
 from plexapi.video import Video, Movie, Episode
@@ -20,6 +20,15 @@ def _check_for_dizque_instance(func):
 
 
 # Internal Helpers
+def _dict_to_json(dictionary: dict) -> json:
+    """
+    Convert a dictionary to valid JSON
+    :param dictionary: Dictionary to convert
+    :return: JSON representation of dictionary
+    """
+    return json.dumps(dictionary)
+
+
 def _combine_settings(new_settings_dict: json, old_settings_dict: json) -> json:
     """
     Build a complete dictionary for new settings, using old settings as a base
@@ -28,8 +37,7 @@ def _combine_settings(new_settings_dict: json, old_settings_dict: json) -> json:
     :return: Dictionary of new settings
     """
     for k, v in new_settings_dict.items():
-        if k in old_settings_dict.keys():
-            old_settings_dict[k] = v
+        old_settings_dict[k] = v
     return old_settings_dict
 
 
@@ -200,6 +208,15 @@ def get_year_from_date(date_string: datetime) -> int:
     :return: int of year, i.e. 2020
     """
     return int(date_string.strftime("%Y"))
+
+
+def get_nearest_30_minute_mark() -> str:
+    now = datetime.now()
+    if now.minute >= 30:
+        now.replace(second=0, microsecond=0, minute=30)
+    else:
+        now.replace(second=0, microsecond=0, minute=0)
+    return now.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
 
 
 def get_plex_indirect_uri(plex_server: PServer) -> Union[str, None]:
