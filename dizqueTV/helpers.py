@@ -17,10 +17,12 @@ def _check_for_dizque_instance(func):
     :param func: Function to execute if object does have a _dizque_instance attribute
     :return: Result of func
     """
+
     def inner(obj, **kwargs):
         if obj._dizque_instance:
             return func(obj, **kwargs)
         raise NotRemoteObjectError(object_type=type(obj).__name__)
+
     return inner
 
 
@@ -287,3 +289,30 @@ def shuffle(items: List) -> List:
     :return: list of shuffled items
     """
     return random.shuffle(items)
+
+
+def remove_duplicates(items: List) -> List:
+    """
+    Remove duplicate items from a list
+    "Duplicate" objects must be exactly the same (all attributes)
+    :param items: list of items to parse
+    :return: list of filtered items
+    """
+    return list(set(items))
+
+
+def remove_duplicates_by_attribute(items: List, attribute_name: str) -> List:
+    """
+    Remove duplicate items from a list, comparing on a specific attribute
+    :param items: list of items to parse
+    :param attribute_name: name of attribute to check by
+    :return: list of filtered items
+    """
+    filtered = []
+    filtered_attr = []
+    for item in items:
+        attr = getattr(item, attribute_name)
+        if attr not in filtered_attr:
+            filtered.append(item)
+            filtered_attr.append(attr)
+    return filtered

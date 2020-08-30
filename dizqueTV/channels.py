@@ -216,14 +216,21 @@ class Channel:
         return False
 
     @helpers._check_for_dizque_instance
-    def add_programs(self, programs: List[Program]) -> bool:
+    def add_programs(self, programs: List[Union[Program, Video, Movie, Episode]], plex_server: PServer = None) -> bool:
         """
         Add multiple programs to this channel
-        :param programs: List of Program objects
+        :param programs: List of Program, plexapi.video.Video, plexapi.video.Movie or plexapi.video.Episode objects
+        :param plex_server: plexapi.server.PlexServer object
+        (required if adding PlexAPI Video, Movie or Episode objects)
         :return: True if successful, False if unsuccessful (Channel reloads in place)
         """
         channel_data = self._data
         for program in programs:
+            if type(program) != Program:
+                if not plex_server:
+                    raise MissingParametersError("Please include a plex_server if you are adding PlexAPI Video, "
+                                                 "Movie, or Episode items.")
+                program = self._dizque_instance.convert_plex_item_to_program(plex_item=program, plex_server=plex_server)
             channel_data['programs'].append(program._data)
             channel_data['duration'] += program.duration
         return self.update(**channel_data)
@@ -313,6 +320,17 @@ class Channel:
         return False
 
     @helpers._check_for_dizque_instance
+    def remove_duplicate_programs(self) -> bool:
+        """
+        Delete duplicate programs on this channel
+        :return: True if successful, False if unsuccessful (Channel reloads in-place)
+        """
+        sorted_programs = remove_duplicate_media_items(media_items=self.programs)
+        if self.delete_all_programs():
+            return self.add_programs(programs=sorted_programs)
+        return False
+
+    @helpers._check_for_dizque_instance
     def remove_specials(self) -> bool:
         """
         Delete all specials from this channel
@@ -360,14 +378,21 @@ class Channel:
         return False
 
     @helpers._check_for_dizque_instance
-    def add_fillers(self, fillers: List[Filler]) -> bool:
+    def add_fillers(self, fillers: List[Union[Program, Video, Movie, Episode]], plex_server: PServer = None) -> bool:
         """
-        Add multiple filler items to this channel
-        :param fillers: List of Filler objects
+        Add multiple programs to this channel
+        :param fillers: List of Filler, plexapi.video.Video, plexapi.video.Movie or plexapi.video.Episode objects
+        :param plex_server: plexapi.server.PlexServer object
+        (required if adding PlexAPI Video, Movie or Episode objects)
         :return: True if successful, False if unsuccessful (Channel reloads in place)
         """
         channel_data = self._data
         for filler in fillers:
+            if type(filler) != Filler:
+                if not plex_server:
+                    raise MissingParametersError("Please include a plex_server if you are adding PlexAPI Video, "
+                                                 "Movie, or Episode items.")
+                filler = self._dizque_instance.convert_plex_item_to_filler(plex_item=filler, plex_server=plex_server)
             channel_data['fillerContent'].append(filler._data)
             channel_data['duration'] += filler.duration
         return self.update(**channel_data)
@@ -417,6 +442,17 @@ class Channel:
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
         """
         sorted_filler = sort_media_randomly(media_items=self.filler)
+        if self.delete_all_fillers():
+            return self.add_fillers(fillers=sorted_filler)
+        return False
+
+    @helpers._check_for_dizque_instance
+    def remove_duplicate_fillers(self) -> bool:
+        """
+        Delete duplicate filler items on this channel
+        :return: True if successful, False if unsuccessful (Channel reloads in-place)
+        """
+        sorted_filler = remove_duplicate_media_items(media_items=self.filler)
         if self.delete_all_fillers():
             return self.add_fillers(fillers=sorted_filler)
         return False
@@ -507,3 +543,17 @@ def sort_media_randomly(media_items: List[Union[Program, Filler]]) -> List[Union
     :return: List of Program and Filler objects
     """
     return helpers.shuffle(items=media_items)
+
+
+def remove_duplicate_media_items(media_items: List[Union[Program, Filler]]) -> List[Union[Program, Filler]]:
+    """
+    Remove duplicate items from list of media items.
+    Check by ratingKey.
+    Note: Automatically removes redirect items
+    :param media_items: List of Program and Filler objects
+    :return: List of Program and Filler objects
+    """
+    non_redirects = [item for item in media_items if
+                     (helpers._object_has_attribute(object=item, attribute_name='type')
+                      and item.type != 'redirect')]
+    return helpers.remove_duplicates_by_attribute(items=non_redirects, attribute_name='ratingKey')
