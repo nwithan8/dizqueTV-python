@@ -1,16 +1,19 @@
 import json
 
+import dizqueTV.helpers as helpers
+
 
 class XMLTVSettings:
     def __init__(self, data: json, dizque_instance):
         self._data = data
         self._dizque_instance = dizque_instance
         self.cache = data.get('cache')
-        self.refreshTime = data.get('refresh')
+        self.refresh = data.get('refresh')
         self.file = data.get('file')
         self._id = data.get('_id')
 
-    def refresh(self):
+    @helpers._check_for_dizque_instance
+    def reload(self):
         """
         Reload current XMLTVSettings object
         """
@@ -20,6 +23,7 @@ class XMLTVSettings:
             self.__init__(data=json_data, dizque_instance=self._dizque_instance)
             del temp_settings
 
+    @helpers._check_for_dizque_instance
     def update(self, **kwargs) -> bool:
         """
         Edit these XMLTV settings
@@ -28,7 +32,19 @@ class XMLTVSettings:
         :return: True if successful, False if unsuccessful
         """
         if self._dizque_instance.update_xmltv_settings(**kwargs):
-            self.refresh()
+            self.reload()
+            return True
+        return False
+
+    @helpers._check_for_dizque_instance
+    def reset(self) -> bool:
+        """
+        Reset these XMLTV settings
+        Automatically refreshes current XMLTVSettings object
+        :return: True if successful, False if unsuccessful
+        """
+        if self._dizque_instance.reset_xmltv_settings():
+            self.reload()
             return True
         return False
 
@@ -41,6 +57,7 @@ class HDHomeRunSettings:
         self.autoDiscovery = data.get('autoDiscovery')
         self._id = data.get('_id')
 
+    @helpers._check_for_dizque_instance
     def refresh(self):
         """
         Reload current HDHomeRunSettings object
@@ -51,6 +68,7 @@ class HDHomeRunSettings:
             self.__init__(data=json_data, dizque_instance=self._dizque_instance)
             del temp_settings
 
+    @helpers._check_for_dizque_instance
     def update(self, **kwargs) -> bool:
         """
         Edit these HDHomeRun settings
@@ -63,25 +81,37 @@ class HDHomeRunSettings:
             return True
         return False
 
+    @helpers._check_for_dizque_instance
+    def reset(self) -> bool:
+        """
+        Reset these HDHomeRun settings
+        Automatically refreshes current HDHomeRunSettings object
+        :return: True if successful, False if unsuccessful
+        """
+        if self._dizque_instance.reset_hdhr_settings():
+            self.refresh()
+            return True
+        return False
+
 
 class FFMPEGSettings:
     def __init__(self, data: json, dizque_instance):
         self._data = data
         self._dizque_instance = dizque_instance
         self.configVersion = data.get('configVersion')
-        self.path = data.get('ffmpegPath')
+        self.ffmpegPath = data.get('ffmpegPath')
         self.threads = data.get('threads')
         self.concatMuxDelay = data.get('concatMuxDelay')
-        self.logging = data.get('logFfmpeg')
-        self.transcoding = data.get('enableFFMPEGTranscoding')
-        self.audioVolume = data.get('audioVolumePercent')
+        self.logFfmpeg = data.get('logFfmpeg')
+        self.enableFFMPEGTranscoding = data.get('enableFFMPEGTranscoding')
+        self.audioVolumePercent = data.get('audioVolumePercent')
         self.videoEncoder = data.get('videoEncoder')
         self.audioEncoder = data.get('audioEncoder')
-        self.resolution = data.get('targetResolution')
+        self.targetResolution = data.get('targetResolution')
         self.videoBitrate = data.get('videoBitrate')
-        self.videoBufferSize = data.get('videoBufSize')
+        self.videoBufSize = data.get('videoBufSize')
         self.audioBitrate = data.get('audioBitrate')
-        self.audioBufferSize = data.get('audiBufSize')
+        self.audioBufSize = data.get('audioBufSize')
         self.audioSampleRate = data.get('audioSampleRate')
         self.audioChannels = data.get('audioChannels')
         self.errorScreen = data.get('errorScreen')
@@ -92,6 +122,7 @@ class FFMPEGSettings:
         self.normalizeAudio = data.get('normalizeAudio')
         self._id = data.get('_id')
 
+    @helpers._check_for_dizque_instance
     def refresh(self):
         """
         Reload current FFMPEGSettings object
@@ -102,6 +133,7 @@ class FFMPEGSettings:
             self.__init__(data=json_data, dizque_instance=self._dizque_instance)
             del temp_settings
 
+    @helpers._check_for_dizque_instance
     def update(self, **kwargs) -> bool:
         """
         Edit these FFMPEG settings
@@ -114,13 +146,26 @@ class FFMPEGSettings:
             return True
         return False
 
+    @helpers._check_for_dizque_instance
+    def reset(self) -> bool:
+        """
+        Reset these FFMPEG settings
+        Automatically refreshes current FFMPEGSettings object
+        :return: True if successful, False if unsuccessful
+        """
+        if self._dizque_instance.reset_ffmpeg_settings():
+            self.refresh()
+            return True
+        return False
+
 
 class PlexSettings:
     def __init__(self, data: json, dizque_instance):
         self._data = data
         self._dizque_instance = dizque_instance
         self.streamPath = data.get('streamPath')
-        self.logging = data.get('debugLogging')
+        self.debugLogging = data.get('debugLogging')
+        self.directStreamBitrate = data.get('directStreamBitrate')
         self.transcodeBitrate = data.get('transcodeBitrate')
         self.mediaBufferSize = data.get('mediaBufferSize')
         self.transcodeMediaBufferSize = data.get('transcodeMediaBufferSize')
@@ -130,7 +175,7 @@ class PlexSettings:
         self.audioCodecs = data.get('audioCodecs')
         self.maxAudioChannels = data.get('maxAudioChannels')
         self.audioBoost = data.get('audioBoost')
-        self.subtitles = data.get('enableSubtitles')
+        self.enableSubtitles = data.get('enableSubtitles')
         self.subtitleSize = data.get('subtitleSize')
         self.updatePlayStatus = data.get('updatePlayStatus')
         self.streamProtocol = data.get('streamProtocol')
@@ -139,6 +184,7 @@ class PlexSettings:
         self.pathReplaceWith = data.get('pathReplaceWith')
         self._id = data.get('_id')
 
+    @helpers._check_for_dizque_instance
     def refresh(self):
         """
         Reload current PlexSettings object
@@ -149,6 +195,7 @@ class PlexSettings:
             self.__init__(data=json_data, dizque_instance=self._dizque_instance)
             del temp_settings
 
+    @helpers._check_for_dizque_instance
     def update(self, **kwargs) -> bool:
         """
         Edit these Plex settings
@@ -157,6 +204,18 @@ class PlexSettings:
         :return: True if successful, False if unsuccessful
         """
         if self._dizque_instance.update_plex_settings(**kwargs):
+            self.refresh()
+            return True
+        return False
+
+    @helpers._check_for_dizque_instance
+    def reset(self) -> bool:
+        """
+        Reset these Plex settings
+        Automatically refreshes current PlexSettings object
+        :return: True if successful, False if unsuccessful
+        """
+        if self._dizque_instance.reset_plex_settings():
             self.refresh()
             return True
         return False

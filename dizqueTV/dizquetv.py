@@ -1,139 +1,102 @@
 import json
-from urllib.parse import urlencode
+import logging
 from xml.etree import ElementTree
 from typing import List, Union
 
 import m3u8
-import requests
+from requests import Response
+from plexapi.video import Video, Movie, Episode
+from plexapi.server import PlexServer as PServer
 
-from dizqueTV.logging import info, error, warning
-from dizqueTV.exceptions import IncompleteSettingsError
+import dizqueTV.requests as requests
 from dizqueTV.settings import XMLTVSettings, PlexSettings, FFMPEGSettings, HDHomeRunSettings
-from dizqueTV.media import Channel
+from dizqueTV.channels import Channel, Program, Filler
 from dizqueTV.plex_server import PlexServer
-
-PLEX_SETTINGS_TEMPLATE = {
-    "name": str,
-    "uri": str,
-    "accessToken": str,
-    "index": int,
-    "arChannels": bool,
-    "arGuide": bool,
-    "_id": str
-}
-
-CHANNEL_SETTINGS_TEMPLATE = {
-    "programs": List,
-    "fillerContent": List,
-    "fillerRepeatCooldown": int,
-    "fallback": [],
-    "icon": str,
-    "disableFillerOverlay": bool,
-    "iconWidth": int,
-    "iconDuration": int,
-    "iconPosition": str,
-    "startTime": str,
-    "offlinePicture": str,
-    "offlineSoundtrack": str,
-    "offlineMode": str,
-    "number": int,
-    "name": str,
-    "duration": int,
-    "_id": str,
-    "overlayIcon": bool
-}
+from dizqueTV.templates import PLEX_SETTINGS_TEMPLATE, CHANNEL_SETTINGS_TEMPLATE, CHANNEL_SETTINGS_DEFAULT
+import dizqueTV.helpers as helpers
+from dizqueTV.exceptions import MissingParametersError, ChannelCreationError
 
 
-def _validate_settings(new_settings_dict: json, old_settings_dict: json) -> json:
+def convert_plex_item_to_program(plex_item: Union[Video, Movie, Episode], plex_server: PServer) -> Program:
     """
-    Build a complete dictionary for new settings
-    :param new_settings_dict: Dictionary of new settings kwargs
-    :param old_settings_dict: Current settings
-    :return: Dictionary of new settings
+    Convert a PlexAPI Video, Movie or Episode object into a Program
+    :param plex_item: plexapi.video.Video, plexapi.video.Movie or plexapi.video.Episode object
+    :param plex_server: plexapi.server.PlexServer object
+    :return: Program object
     """
-    for k, v in new_settings_dict.items():
-        if k in old_settings_dict.keys():
-            old_settings_dict[k] = v
-    return old_settings_dict
+    data = helpers._make_program_dict_from_plex_item(plex_item=plex_item, plex_server=plex_server)
+    return Program(data=data, dizque_instance=None, channel_instance=None)
 
 
-def _settings_are_complete(new_settings_dict: json, template_settings_dict: json) -> bool:
+def convert_plex_item_to_filler(plex_item: Union[Video, Movie, Episode], plex_server: PServer) -> Filler:
     """
-    Check that all elements from the settings template are present in the new settings
-    :param new_settings_dict: Dictionary of new settings kwargs
-    :param template_settings_dict: Template of settings
-    :return: True if valid, raise dizqueTV.exceptions.IncompleteSettingsError if not valid
+    Convert a PlexAPI Video, Movie or Episode object into a Filler
+    :param plex_item: plexapi.video.Video, plexapi.video.Movie or plexapi.video.Episode object
+    :param plex_server: plexapi.server.PlexServer object
+    :return: Program object
     """
-    for k in template_settings_dict.keys():
-        if k not in new_settings_dict.keys() or not isinstance(new_settings_dict[k], type(template_settings_dict[k])):
-            raise IncompleteSettingsError
-    return True
+    data = helpers._make_filler_dict_from_plex_item(plex_item=plex_item, plex_server=plex_server)
+    return Filler(data=data, dizque_instance=None, channel_instance=None)
+
+
+def convert_plex_server_to_dizque_plex_server(plex_server: PServer) -> PlexServer:
+    data = helpers._make_server_dict_from_plex_server(plex_server=plex_server)
+    return PlexServer(data=data, dizque_instance=None)
 
 
 class API:
     def __init__(self, url: str, verbose: bool = False):
         self.url = url.rstrip('/')
         self.verbose = verbose
+        logging.basicConfig(format='%(asctime)s %(levelname)s:%(message)s',
+                            level=(logging.INFO if verbose else logging.ERROR))
 
-    def _log(self, message: str, level=Union[info, error, warning]) -> None:
-        """
-        Log a message if verbose is enabled.
-        :param message: Message to log
-        :param level: info, error or warning
-        """
-        if self.verbose:
-            level(message)
-
-    def _get(self, endpoint, params=None, timeout: int = 2) -> Union[requests.Response, None]:
+    def _get(self, endpoint: str, params: dict = None, headers: dict = None, timeout: int = 2) -> Union[Response, None]:
         if not endpoint.startswith('/'):
             endpoint = f"/{endpoint}"
         url = f"{self.url}/api{endpoint}"
-        if params:
-            url += f"?{urlencode(params)}"
-        self._log(message=f"GET {url}", level=info)
-        try:
-            return requests.get(url=url, timeout=timeout)
-        except requests.exceptions.Timeout:
-            return None
+        return requests.get(url=url,
+                            params=params,
+                            headers=headers,
+                            timeout=timeout,
+                            log='info')
 
-    def _post(self, endpoint, params=None, data=None, timeout: int = 2) -> Union[requests.Response, None]:
+    def _post(self, endpoint: str, params: dict = None, headers: dict = None, data: dict = None, timeout: int = 2) -> \
+            Union[Response, None]:
         if not endpoint.startswith('/'):
             endpoint = f"/{endpoint}"
         url = f"{self.url}/api{endpoint}"
-        if params:
-            url += f"?{urlencode(params)}"
-        self._log(message=f"POST {url}, Body: {data}", level=info)
-        try:
-            return requests.post(url=url, data=data, timeout=timeout)
-        except requests.exceptions.Timeout:
-            return None
+        return requests.post(url=url,
+                             params=params,
+                             data=data,
+                             headers=headers,
+                             timeout=timeout,
+                             log='info')
 
-    def _put(self, endpoint, params=None, data=None, timeout: int = 2) -> Union[requests.Response, None]:
+    def _put(self, endpoint: str, params: dict = None, headers: dict = None, data: dict = None, timeout: int = 2) -> \
+            Union[Response, None]:
         if not endpoint.startswith('/'):
             endpoint = f"/{endpoint}"
         url = f"{self.url}/api{endpoint}"
-        if params:
-            url += f"?{urlencode(params)}"
-        self._log(message=f"PUT {url}, Body: {data}", level=info)
-        try:
-            return requests.put(url=url, data=data, timeout=timeout)
-        except requests.exceptions.Timeout:
-            return None
+        return requests.put(url=url,
+                            params=params,
+                            data=data,
+                            headers=headers,
+                            timeout=timeout,
+                            log='info')
 
-    def _delete(self, endpoint, params=None, data=None, timeout: int = 2) -> Union[requests.Response, None]:
+    def _delete(self, endpoint: str, params: dict = None, data: dict = None, timeout: int = 2) -> Union[Response, None]:
         if not endpoint.startswith('/'):
             endpoint = f"/{endpoint}"
         url = f"{self.url}/api{endpoint}"
-        if params:
-            url += f"?{urlencode(params)}"
-        self._log(message=f"DELETE {url}", level=info)
-        try:
-            return requests.delete(url=url, data=data, timeout=timeout)
-        except requests.exceptions.Timeout:
-            return None
+        return requests.delete(url=url,
+                               params=params,
+                               data=data,
+                               timeout=timeout,
+                               log='info')
 
-    def _get_json(self, endpoint, params=None, timeout: int = 2) -> json:
-        response = self._get(endpoint=endpoint, params=params, timeout=timeout)
+    def _get_json(self, endpoint: str, params: dict = None, headers: dict = None, timeout: int = 2) -> json:
+        response = self._get(endpoint=endpoint, params=params, headers=headers, timeout=timeout)
         if response:
             return response.json()
         return {}
@@ -202,8 +165,10 @@ class API:
         :param kwargs: keyword arguments of setting names and values
         :return: True if successful, False if unsuccessful
         """
-        if _settings_are_complete(new_settings_dict=kwargs, template_settings_dict=PLEX_SETTINGS_TEMPLATE) and \
-                self._put(endpoint='/plex-servers', data=kwargs):
+        if helpers._settings_are_complete(new_settings_dict=kwargs,
+                                          template_settings_dict=PLEX_SETTINGS_TEMPLATE,
+                                          ignore_id=True) \
+                and self._put(endpoint='/plex-servers', data=kwargs):
             return self.get_plex_server(server_name=kwargs['name'])
         return None
 
@@ -217,7 +182,7 @@ class API:
         server = self.get_plex_server(server_name=server_name)
         if server:
             old_settings = server._data
-            new_settings = _validate_settings(new_settings_dict=kwargs, old_settings_dict=old_settings)
+            new_settings = helpers._combine_settings(new_settings_dict=kwargs, old_settings_dict=old_settings)
             if self._post(endpoint='/plex-servers', data=new_settings):
                 return True
         return False
@@ -272,14 +237,69 @@ class API:
             return data
         return []
 
-    def add_channel(self, **kwargs) -> Union[Channel, None]:
+    def _fill_in_default_channel_settings(self, settings_dict: dict, handle_errors: bool = False) -> dict:
+        """
+        Set some dynamic default values, such as channel number, start time and image URLs
+        :param settings_dict: Dictionary of new settings for channel
+        :return: Dictionary of settings with defaults filled in
+        """
+        if not settings_dict.get('programs'):  # empty or doesn't exist
+            if handle_errors:
+                settings_dict['programs'] = [{
+                    "duration": 600000,
+                    "isOffline": True
+                }]
+            else:
+                raise ChannelCreationError("You must include at least one program when creating a channel.")
+        if settings_dict.get('number') in self.channel_numbers:
+            if handle_errors:
+                settings_dict.pop('number')  # remove 'number' key, will be caught down below
+            else:
+                raise ChannelCreationError(f"Channel #{settings_dict.get('number')} already exists.")
+        if 'number' not in settings_dict.keys():
+            settings_dict['number'] = max(self.channel_numbers) + 1
+        if 'name' not in settings_dict.keys():
+            settings_dict['name'] = f"Channel {settings_dict['number']}"
+        if 'startTime' not in settings_dict.keys():
+            settings_dict['startTime'] = helpers.get_nearest_30_minute_mark()
+        if 'icon' not in settings_dict.keys():
+            settings_dict['icon'] = f"{self.url}/images/dizquetv.png"
+        if 'offlinePicture' not in settings_dict.keys():
+            settings_dict['offlinePicture'] = f"{self.url}/images/generic-offline-screen.png"
+        # override duration regardless of user input
+        settings_dict['duration'] = sum(program['duration'] for program in settings_dict['programs'])
+        return helpers._combine_settings(new_settings_dict=settings_dict, old_settings_dict=CHANNEL_SETTINGS_DEFAULT)
+
+    def add_channel(self,
+                    programs: List[Union[Program, Video, Movie, Episode]],
+                    plex_server: PServer = None,
+                    handle_errors: bool = False,
+                    **kwargs) -> Union[Channel, None]:
         """
         Add a channel to dizqueTV
+        Must include at least one program to create
+        :param programs: At least one Program or PlexAPI Video, Movie or Episode to add to the new channel
+        :param plex_server: plexapi.server.PlexServer (optional, required if adding PlexAPI Video, Movie or Episode)
         :param kwargs: keyword arguments of setting names and values
+        :param handle_errors: Suppress error if they arise
+        (ex. alter invalid channel number, add redirect if no program is included)
         :return: new Channel object or None
         """
-        if _settings_are_complete(new_settings_dict=kwargs, template_settings_dict=CHANNEL_SETTINGS_TEMPLATE) and \
-                self._put(endpoint="/channel", data=kwargs):
+        kwargs['programs'] = []
+        for program in programs:
+            if type(program) == Program:
+                kwargs['programs'].append(program)
+            else:
+                if not plex_server:
+                    raise ChannelCreationError("You must include a plex_server if you are adding PlexAPI Video, "
+                                               "Movie or Episodes as programs")
+                kwargs['programs'].append(
+                    convert_plex_item_to_program(plex_item=program, plex_server=plex_server)._data)
+        kwargs = self._fill_in_default_channel_settings(settings_dict=kwargs, handle_errors=handle_errors)
+        if helpers._settings_are_complete(new_settings_dict=kwargs,
+                                          template_settings_dict=CHANNEL_SETTINGS_TEMPLATE,
+                                          ignore_id=True) \
+                and self._put(endpoint="/channel", data=kwargs):
             return self.get_channel(channel_number=kwargs['number'])
         return None
 
@@ -293,7 +313,7 @@ class API:
         channel = self.get_channel(channel_number=channel_number)
         if channel:
             old_settings = channel._data
-            new_settings = _validate_settings(new_settings_dict=kwargs, old_settings_dict=old_settings)
+            new_settings = helpers._combine_settings(new_settings_dict=kwargs, old_settings_dict=old_settings)
             if self._post(endpoint="/channel", data=new_settings):
                 return True
         return False
@@ -326,7 +346,7 @@ class API:
         :return: True if successful, False if unsuccessful
         """
         old_settings = self.ffmpeg_settings._data
-        new_settings = _validate_settings(new_settings_dict=kwargs, old_settings_dict=old_settings)
+        new_settings = helpers._combine_settings(new_settings_dict=kwargs, old_settings_dict=old_settings)
         if self._put(endpoint='/ffmpeg-settings', data=new_settings):
             return True
         return False
@@ -336,7 +356,8 @@ class API:
         Reset dizqueTV's FFMPEG settings to default
         :return: True if successful, False if unsuccessful
         """
-        if self._post(endpoint='/ffmpeg-settings'):
+        old_settings = self.ffmpeg_settings._data
+        if self._post(endpoint='/ffmpeg-settings', data={'_id': old_settings['_id']}):
             return True
         return False
 
@@ -359,7 +380,7 @@ class API:
         :return: True if successful, False if unsuccessful
         """
         old_settings = self.plex_settings._data
-        new_settings = _validate_settings(new_settings_dict=kwargs, old_settings_dict=old_settings)
+        new_settings = helpers._combine_settings(new_settings_dict=kwargs, old_settings_dict=old_settings)
         if self._put(endpoint='/plex-settings', data=new_settings):
             return True
         return False
@@ -369,7 +390,8 @@ class API:
         Reset dizqueTV's Plex settings to default
         :return: True if successful, False if unsuccessful
         """
-        if self._post(endpoint='/plex-settings'):
+        old_settings = self.plex_settings._data
+        if self._post(endpoint='/plex-settings', data={'_id': old_settings['_id']}):
             return True
         return False
 
@@ -401,7 +423,7 @@ class API:
         :return: True if successful, False if unsuccessful
         """
         old_settings = self.xmltv_settings._data
-        new_settings = _validate_settings(new_settings_dict=kwargs, old_settings_dict=old_settings)
+        new_settings = helpers._combine_settings(new_settings_dict=kwargs, old_settings_dict=old_settings)
         if self._put(endpoint='/xmltv-settings', data=new_settings):
             return True
         return False
@@ -411,7 +433,8 @@ class API:
         Reset dizqueTV's XMLTV settings to default
         :return: True if successful, False if unsuccessful
         """
-        if self._post(endpoint='/xmltv-settings'):
+        old_settings = self.xmltv_settings._data
+        if self._post(endpoint='/xmltv-settings', data={'_id': old_settings['_id']}):
             return True
         return False
 
@@ -434,7 +457,7 @@ class API:
         :return: True if successful, False if unsuccessful
         """
         old_settings = self.hdhr_settings._data
-        new_settings = _validate_settings(new_settings_dict=kwargs, old_settings_dict=old_settings)
+        new_settings = helpers._combine_settings(new_settings_dict=kwargs, old_settings_dict=old_settings)
         if self._put(endpoint='/hdhr-settings', data=new_settings):
             return True
         return False
@@ -444,7 +467,8 @@ class API:
         Reset dizqueTV's HDHomeRun settings to default
         :return: True if successful, False if unsuccessful
         """
-        if self._post(endpoint='/hdhr-settings'):
+        old_settings = self.hdhr_settings._data
+        if self._post(endpoint='/hdhr-settings', data={'_id': old_settings['_id']}):
             return True
         return False
 
@@ -468,3 +492,66 @@ class API:
         :return: m3u8 object
         """
         return m3u8.load(f"{self.url}/api/channels.m3u")
+
+    # Other Functions
+    def convert_plex_item_to_program(self, plex_item: Union[Video, Movie, Episode], plex_server: PServer) -> Program:
+        """
+        Convert a PlexAPI Video, Movie or Episode object into a Program
+        :param plex_item: plexapi.video.Video, plexapi.video.Movie or plexapi.video.Episode object
+        :param plex_server: plexapi.server.PlexServer object
+        :return: Program object
+        """
+        return convert_plex_item_to_program(plex_item=plex_item, plex_server=plex_server)
+
+    def convert_plex_item_to_filler(self, plex_item: Union[Video, Movie, Episode], plex_server: PServer) -> Filler:
+        """
+        Convert a PlexAPI Video, Movie or Episode object into a Filler
+        :param plex_item: plexapi.video.Video, plexapi.video.Movie or plexapi.video.Episode object
+        :param plex_server: plexapi.server.PlexServer object
+        :return: Program object
+        """
+        return convert_plex_item_to_filler(plex_item=plex_item, plex_server=plex_server)
+
+    def add_programs_to_channels(self, programs: List[Program],
+                                 channels: List[Channel] = None,
+                                 channel_numbers: List[int] = None) -> bool:
+        """
+        Add multiple programs to multiple channels
+        :param programs: List of Program objects
+        :param channels: List of Channel objects (optional)
+        :param channel_numbers: List of channel numbers
+        :return: True if successful, False if unsuccessful (Channel objects reload in place)
+        """
+        if not channels and not channel_numbers:
+            raise MissingParametersError(
+                "Please include either a list of Channel objects or a list of channel numbers.")
+        if channel_numbers:
+            channels = []
+            for number in channel_numbers:
+                channels.append(self.get_channel(channel_number=number))
+        for channel in channels:
+            if not channel.add_programs(programs=programs):
+                return False
+        return True
+
+    def add_fillers_to_channels(self, fillers: List[Filler],
+                                channels: List[Channel] = None,
+                                channel_numbers: List[int] = None) -> bool:
+        """
+        Add multiple filler items to multiple channels
+        :param fillers: List of Filler objects
+        :param channels: List of Channel objects (optional)
+        :param channel_numbers: List of channel numbers
+        :return: True if successful, False if unsuccessful (Channel objects reload in place)
+        """
+        if not channels and not channel_numbers:
+            raise MissingParametersError(
+                "Please include either a list of Channel objects or a list of channel numbers.")
+        if channel_numbers:
+            channels = []
+            for number in channel_numbers:
+                channels.append(self.get_channel(channel_number=number))
+        for channel in channels:
+            if not channel.add_fillers(fillers=fillers):
+                return False
+        return True
