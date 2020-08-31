@@ -2,18 +2,22 @@
 A Python library to interact with a [dizqueTV](https://github.com/vexorian/dizquetv) instance
 
 ## Installation
+#### From GitHub
 1. Clone repository with ``git clone https://github.com/nwithan8/dizqueTV-python.git``
 2. Enter project folder with ``cd dizqueTV-python``
-3. Install requirements with ``pip install -r requirements``
+3. Install requirements with ``pip install -r requirements.txt``
+
+#### From PyPi
+Run ``pip install dizqueTV``
 
 ## Setup
-Import the ``API`` class from the ``dizqueTV.dizqueTV`` module
+Import the ``API`` class from the ``dizqueTV`` module
 
 Ex.
 ```
-from dizqueTV import dizqueTV
+from dizqueTV import API
 
-dtv = dizqueTV.API(url="http://localhost:8000")
+dtv = API(url="http://localhost:8000")
 ```
 Enable verbose logging by passing ``verbose=True`` into the ``API`` object declaration
  
