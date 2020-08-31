@@ -1,6 +1,6 @@
 class MissingSettingsError(Exception):
-    def __init__(self):
-        super().__init__("The provided settings are incomplete.")
+    def __init__(self, message):
+        super().__init__(f"The provided settings are incomplete. {message}")
 
 
 class MissingParametersError(Exception):

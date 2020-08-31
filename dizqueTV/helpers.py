@@ -53,8 +53,7 @@ def _settings_are_complete(new_settings_dict: json, template_settings_dict: json
             if k == '_id' and ignore_id:
                 pass
             else:
-                print(k)
-                raise MissingSettingsError
+                raise MissingSettingsError(f"Missing setting: {k}")
     return True
 
 
