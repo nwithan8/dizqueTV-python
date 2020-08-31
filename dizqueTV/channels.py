@@ -16,6 +16,7 @@ class BaseMediaItem:
         self._data = data
         self._dizque_instance = dizque_instance
         self._channel_instance = channel_instance
+        self.type = data.get('type')
         self.isOffline = data.get('isOffline')
         self.duration = data.get('duration')
 
@@ -23,7 +24,6 @@ class BaseMediaItem:
 class Redirect(BaseMediaItem):
     def __init__(self, data: json, dizque_instance, channel_instance):
         super().__init__(data=data, dizque_instance=dizque_instance, channel_instance=channel_instance)
-        self.type = data.get('type')
         self.channel = data.get('channel')
 
 
@@ -33,7 +33,6 @@ class MediaItem(BaseMediaItem):
         self.title = data.get('title')
         self.key = data.get('key')
         self.ratingKey = data.get('ratingKey')
-        self.type = data.get('type')
         self.duration = data.get('duration')
         self.icon = data.get('icon')
         self.summary = data.get('summary')
@@ -85,7 +84,8 @@ class Channel:
         self._program_data = data.get('programs')
         self._fillerContent_data = data.get('fillerContent')
         self.fillerRepeatCooldown = data.get('fillerRepeatCooldown')
-        self.fallback = data.get('fallback')
+        self.fallback = [Filler(data=filler_data, dizque_instance=dizque_instance, channel_instance=self)
+                         for filler_data in data.get('fallback')]
         self.icon = data.get('icon')
         self.disableFillerOverlay = data.get('disableFillerOverlay')
         self.iconWidth = data.get('iconWidth')
@@ -378,7 +378,7 @@ class Channel:
         return False
 
     @helpers._check_for_dizque_instance
-    def add_fillers(self, fillers: List[Union[Program, Video, Movie, Episode]], plex_server: PServer = None) -> bool:
+    def add_fillers(self, fillers: List[Union[Filler, Video, Movie, Episode]], plex_server: PServer = None) -> bool:
         """
         Add multiple programs to this channel
         :param fillers: List of Filler, plexapi.video.Video, plexapi.video.Movie or plexapi.video.Episode objects

@@ -165,6 +165,7 @@ class PlexSettings:
         self._dizque_instance = dizque_instance
         self.streamPath = data.get('streamPath')
         self.debugLogging = data.get('debugLogging')
+        self.directStreamBitrate = data.get('directStreamBitrate')
         self.transcodeBitrate = data.get('transcodeBitrate')
         self.mediaBufferSize = data.get('mediaBufferSize')
         self.transcodeMediaBufferSize = data.get('transcodeMediaBufferSize')
