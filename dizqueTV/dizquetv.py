@@ -473,12 +473,21 @@ class API:
         return False
 
     # XMLTV.XML
+    def refresh_xml(self) -> bool:
+        """
+        Force the server to update the xmltv.xml file
+        :return: True if successful, False if unsuccessful
+        """
+        # updating the xmltv_settings causes the server to reload the xmltv.xml file
+        return self.update_xmltv_settings()
+
     @property
     def xmltv_xml(self) -> Union[ElementTree.Element, None]:
         """
         Get dizqueTV's XMLTV data
         :return: xml.etree.ElementTree.Element object or None
         """
+        self.refresh_xml()
         response = self._get(endpoint='/xmltv.xml')
         if response:
             return ElementTree.fromstring(response.content)
