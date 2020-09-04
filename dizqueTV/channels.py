@@ -262,6 +262,20 @@ class Channel:
         channel_data['programs'] = []
         return self.update(**channel_data)
 
+    @helpers._check_for_dizque_instance
+    def _delete_all_offline_times(self) -> bool:
+        """
+        Delete all offline program in a channel
+        :return: True if successful, False if unsuccessful (Channel reloads in-place)
+        """
+        programs_to_add = []
+        for program in self.programs:
+            if not program.isOffline:
+                programs_to_add.append(program)
+        if self.delete_all_programs():
+            return self.add_programs(programs=programs_to_add)
+        return False
+
     # Sort Programs
     @helpers._check_for_dizque_instance
     def sort_programs_by_release_date(self) -> bool:
@@ -345,6 +359,33 @@ class Channel:
                          and item.season != 0)]
         if self.delete_all_programs():
             return self.add_programs(programs=non_specials)
+        return False
+
+    @helpers._check_for_dizque_instance
+    def pad_times(self, start_every_x_minutes: int) -> bool:
+        """
+        Add padding between programs on a channel, so programs start at specific intervals
+        :param start_every_x_minutes: Programs start every X minutes past the hour
+        (ex.
+        10 for :00, :10, :20, :30, :40 & :50
+        15 for :00, :15, :30 & :45
+        20 for :00, :20 & :40
+        30 for :00 & :30
+        60 or 0 for :00)
+        :return: True if successful, False if unsuccessful (Channel reloads in-place)
+        """
+        programs_and_pads = []
+        if self._delete_all_offline_times():
+            for program in self.programs:
+                filler_time_needed = helpers.get_needed_flex_time(item_time_milliseconds=program.duration,
+                                                                  allowed_minutes_time_frame=start_every_x_minutes)
+                programs_and_pads.append(program)
+                if filler_time_needed > 0:
+                    programs_and_pads.append(Program(data={'duration': filler_time_needed, 'isOffline': True},
+                                                     dizque_instance=self._dizque_instance,
+                                                     channel_instance=self))
+            if self.delete_all_programs():
+                return self.add_programs(programs=programs_and_pads)
         return False
 
     @helpers._check_for_dizque_instance

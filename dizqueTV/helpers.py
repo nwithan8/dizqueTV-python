@@ -228,6 +228,17 @@ def get_nearest_30_minute_mark() -> str:
     return now.strftime("%Y-%m-%dT%H:%M:%S.000Z")
 
 
+def get_needed_flex_time(item_time_milliseconds: int, allowed_minutes_time_frame: int) -> int:
+    minute_start = (30 if datetime.utcnow().minute >= 30 else 0)
+
+    allowed_milliseconds_time_frame = (allowed_minutes_time_frame + (minute_start % allowed_minutes_time_frame)) * \
+                                      60 * 1000
+    remainder = allowed_milliseconds_time_frame - (item_time_milliseconds % allowed_milliseconds_time_frame)
+    if remainder == allowed_milliseconds_time_frame:
+        return 0
+    return remainder
+
+
 def get_plex_indirect_uri(plex_server: PServer) -> Union[str, None]:
     """
     Get the indirect URI (ex. http://192.168.1.1-xxxxxxxxxxxxxxxx.plex.direct) for a Plex server
