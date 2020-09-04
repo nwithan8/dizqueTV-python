@@ -270,7 +270,7 @@ class Channel:
         """
         programs_to_add = []
         for program in self.programs:
-            if not program.isOffline:
+            if not program.isOffline or program.type == 'redirect':
                 programs_to_add.append(program)
         if self.delete_all_programs():
             return self.add_programs(programs=programs_to_add)
