@@ -100,9 +100,9 @@ def _make_program_dict_from_plex_item(plex_item: Union[Video, Movie, Episode], p
         'serverKey': plex_server.friendlyName
     }
     if plex_item.type == 'episode':
-        data['episodeIcon'] = plex_item.thumb
-        data['seasonIcon'] = plex_item.parentThumb
-        data['showIcon'] = plex_item.grandparentThumb
+        data['episodeIcon'] = f"{plex_uri}{plex_item.thumb}?X-Plex-Token={plex_token}"
+        data['seasonIcon'] = f"{plex_uri}{plex_item.parentThumb}?X-Plex-Token={plex_token}"
+        data['showIcon'] = f"{plex_uri}{plex_item.grandparentThumb}?X-Plex-Token={plex_token}"
     return data
 
 
