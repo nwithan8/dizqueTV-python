@@ -403,11 +403,8 @@ class Channel:
         self.remove_duplicate_programs()
         programs_to_add, running_time = _get_first_x_minutes_of_programs(programs=self.programs,
                                                                          minutes=length_hours * 60)
-        print(running_time)
         if running_time < (length_hours * 60 * 60 * 1000):
-            print(running_time)
             time_needed = (length_hours * 60 * 60 * 1000) - running_time
-            print(time_needed)
             programs_to_add.append(Program(data={'duration': time_needed, 'isOffline': True},
                                            dizque_instance=self._dizque_instance,
                                            channel_instance=self))
