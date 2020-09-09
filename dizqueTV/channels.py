@@ -1,5 +1,5 @@
 import json
-from typing import List, Union
+from typing import List, Union, Tuple
 from datetime import datetime
 
 from plexapi.video import Video, Movie, Episode
@@ -389,6 +389,38 @@ class Channel:
         return False
 
     @helpers._check_for_dizque_instance
+    def add_reruns(self, start_time: datetime, length_hours: int, times_to_repeat: int) -> bool:
+        """
+        Add a block of reruns to a dizqueTV channel
+        :param start_time: datetime.datetime object, what time the reruns start
+        :param length_hours: how long the block of reruns should be
+        :param times_to_repeat: how many times to repeat the block of reruns
+        :return: True if successful, False if unsuccessful (Channel reloads in-place)
+        """
+        if start_time > datetime.utcnow():
+            raise Exception("You cannot use a start time in the future.")
+        start_time = start_time.strftime("%Y-%m-%dT%H:%M:%S.000Z")
+        self.remove_duplicate_programs()
+        programs_to_add, running_time = _get_first_x_minutes_of_programs(programs=self.programs,
+                                                                         minutes=length_hours * 60)
+        print(running_time)
+        if running_time < (length_hours * 60 * 60 * 1000):
+            print(running_time)
+            time_needed = (length_hours * 60 * 60 * 1000) - running_time
+            print(time_needed)
+            programs_to_add.append(Program(data={'duration': time_needed, 'isOffline': True},
+                                           dizque_instance=self._dizque_instance,
+                                           channel_instance=self))
+        final_programs_to_add = []
+        for _ in range(0, times_to_repeat):
+            for program in programs_to_add:
+                final_programs_to_add.append(program)
+        self.update(startTime=start_time)
+        if final_programs_to_add and self.delete_all_programs():
+            return self.add_programs(programs=final_programs_to_add)
+        return False
+
+    @helpers._check_for_dizque_instance
     def add_filler(self,
                    plex_item: Union[Video, Movie, Episode] = None,
                    plex_server: PServer = None,
@@ -598,3 +630,21 @@ def remove_duplicate_media_items(media_items: List[Union[Program, Filler]]) -> L
                      (helpers._object_has_attribute(object=item, attribute_name='type')
                       and item.type != 'redirect')]
     return helpers.remove_duplicates_by_attribute(items=non_redirects, attribute_name='ratingKey')
+
+
+def _get_first_x_minutes_of_programs(programs: List[Union[Program, Redirect, Filler]],
+                                     minutes: int) -> Tuple[List[Union[Program, Redirect, Filler]], int]:
+    """
+    Keep building a list of programs in order until a duration limit is met.
+    :param programs: list of Program objects to pull from
+    :param minutes: threshold, in minutes
+    :return: list of Program objects, total running time in milliseconds
+    """
+    milliseconds = minutes * 60 * 1000
+    running_total = 0
+    programs_to_return = []
+    for program in programs:
+        if (running_total + program.duration) <= milliseconds:
+            running_total += program.duration
+            programs_to_return.append(program)
+    return programs_to_return, running_total
