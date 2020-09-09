@@ -272,7 +272,7 @@ class Channel:
         for program in self.programs:
             if not program.isOffline or program.type == 'redirect':
                 programs_to_add.append(program)
-        if self.delete_all_programs():
+        if programs_to_add and self.delete_all_programs():
             return self.add_programs(programs=programs_to_add)
         return False
 
@@ -284,7 +284,7 @@ class Channel:
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
         """
         sorted_programs = sort_media_by_release_date(media_items=self.programs)
-        if self.delete_all_programs():
+        if sorted_programs and self.delete_all_programs():
             return self.add_programs(programs=sorted_programs)
         return False
 
@@ -296,7 +296,7 @@ class Channel:
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
         """
         sorted_programs = sort_media_by_season_order(media_items=self.programs)
-        if self.delete_all_programs():
+        if sorted_programs and self.delete_all_programs():
             return self.add_programs(programs=sorted_programs)
         return False
 
@@ -307,7 +307,7 @@ class Channel:
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
         """
         sorted_programs = sort_media_alphabetically(media_items=self.programs)
-        if self.delete_all_programs():
+        if sorted_programs and self.delete_all_programs():
             return self.add_programs(programs=sorted_programs)
         return False
 
@@ -318,7 +318,7 @@ class Channel:
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
         """
         sorted_programs = sort_media_by_duration(media_items=self.programs)
-        if self.delete_all_programs():
+        if sorted_programs and self.delete_all_programs():
             return self.add_programs(programs=sorted_programs)
         return False
 
@@ -329,7 +329,7 @@ class Channel:
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
         """
         sorted_programs = sort_media_randomly(media_items=self.programs)
-        if self.delete_all_programs():
+        if sorted_programs and self.delete_all_programs():
             return self.add_programs(programs=sorted_programs)
         return False
 
@@ -340,7 +340,7 @@ class Channel:
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
         """
         sorted_programs = remove_duplicate_media_items(media_items=self.programs)
-        if self.delete_all_programs():
+        if sorted_programs and self.delete_all_programs():
             return self.add_programs(programs=sorted_programs)
         return False
 
@@ -357,7 +357,7 @@ class Channel:
         non_specials = [item for item in non_redirects if
                         (helpers._object_has_attribute(object=item, attribute_name='season')
                          and item.season != 0)]
-        if self.delete_all_programs():
+        if non_specials and self.delete_all_programs():
             return self.add_programs(programs=non_specials)
         return False
 
@@ -384,7 +384,7 @@ class Channel:
                     programs_and_pads.append(Program(data={'duration': filler_time_needed, 'isOffline': True},
                                                      dizque_instance=self._dizque_instance,
                                                      channel_instance=self))
-            if self.delete_all_programs():
+            if programs_and_pads and self.delete_all_programs():
                 return self.add_programs(programs=programs_and_pads)
         return False
 
@@ -472,7 +472,7 @@ class Channel:
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
         """
         sorted_filler = sort_media_by_duration(media_items=self.filler)
-        if self.delete_all_fillers():
+        if sorted_filler and self.delete_all_fillers():
             return self.add_fillers(fillers=sorted_filler)
         return False
 
@@ -483,7 +483,7 @@ class Channel:
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
         """
         sorted_filler = sort_media_randomly(media_items=self.filler)
-        if self.delete_all_fillers():
+        if sorted_filler and self.delete_all_fillers():
             return self.add_fillers(fillers=sorted_filler)
         return False
 
@@ -494,7 +494,7 @@ class Channel:
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
         """
         sorted_filler = remove_duplicate_media_items(media_items=self.filler)
-        if self.delete_all_fillers():
+        if sorted_filler and self.delete_all_fillers():
             return self.add_fillers(fillers=sorted_filler)
         return False
 
