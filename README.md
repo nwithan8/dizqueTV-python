@@ -1,5 +1,5 @@
 # dizqueTV-python
-[![PyPi](https://img.shields.io/pypi/dm/dizquetv?color=green&label=PyPi%20Downloads&logo=Pypi&logoColor=orange&style=flat-square)](https://pypi.org/project/dizqueTV/)
+[![PyPi](https://img.shields.io/pypi/dm/dizquetv?color=green&label=PyPi%20downloads&logo=Pypi&logoColor=orange&style=flat-square)](https://pypi.org/project/dizqueTV/)
 [![License](https://img.shields.io/pypi/l/dizqueTV?color=orange&style=flat-square)](https://github.com/nwithan8/dizqueTV-python/blob/master/LICENSE)
 
 [![Open Issues](https://img.shields.io/github/issues-raw/nwithan8/dizqueTV-python?color=gold&style=flat-square)](https://github.com/nwithan8/dizqueTV-python/issues?q=is%3Aopen+is%3Aissue)
