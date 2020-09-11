@@ -28,7 +28,8 @@ CHANNEL_SETTINGS_TEMPLATE = {
     "name": str,
     "duration": int,
     "_id": str,
-    "overlayIcon": bool
+    "overlayIcon": bool,
+    "stealth": bool
 }
 
 CHANNEL_SETTINGS_DEFAULT = {
@@ -41,7 +42,8 @@ CHANNEL_SETTINGS_DEFAULT = {
     "iconPosition": "2",
     "offlineSoundtrack": "",
     "offlineMode": "pic",
-    "overlayIcon": False
+    "overlayIcon": False,
+    "stealth": False
 }
 
 REDIRECT_PROGRAM_TEMPLATE = {

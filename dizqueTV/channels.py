@@ -99,6 +99,7 @@ class Channel:
         self.number = data.get('number')
         self.name = data.get('name')
         self.duration = data.get('duration')
+        self.stealth = data.get('stealth')
         self._id = data.get('_id')
 
     @property
