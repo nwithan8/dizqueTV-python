@@ -12,7 +12,7 @@ import dizqueTV.requests as requests
 from dizqueTV.settings import XMLTVSettings, PlexSettings, FFMPEGSettings, HDHomeRunSettings
 from dizqueTV.channels import Channel, Program, Filler
 from dizqueTV.plex_server import PlexServer
-from dizqueTV.templates import PLEX_SETTINGS_TEMPLATE, CHANNEL_SETTINGS_TEMPLATE, CHANNEL_SETTINGS_DEFAULT
+from dizqueTV.templates import PLEX_SERVER_SETTINGS_TEMPLATE, CHANNEL_SETTINGS_TEMPLATE, CHANNEL_SETTINGS_DEFAULT
 import dizqueTV.helpers as helpers
 from dizqueTV.exceptions import MissingParametersError, ChannelCreationError
 
@@ -163,14 +163,38 @@ class API:
         """
         Add a Plex Media Server to dizqueTV
         :param kwargs: keyword arguments of setting names and values
-        :return: True if successful, False if unsuccessful
+        :return: PlexServer object or None
         """
         if helpers._settings_are_complete(new_settings_dict=kwargs,
-                                          template_settings_dict=PLEX_SETTINGS_TEMPLATE,
+                                          template_settings_dict=PLEX_SERVER_SETTINGS_TEMPLATE,
                                           ignore_id=True) \
                 and self._put(endpoint='/plex-servers', data=kwargs):
             return self.get_plex_server(server_name=kwargs['name'])
         return None
+
+    def add_plex_server_from_plexapi(self, plex_server: PServer) -> Union[PlexServer, None]:
+        """
+        Convert and add a plexapi.PlexServer as a Plex Media Server to dizqueTV
+        :param plex_server: plexapi.PlexServer object to add to dizqueTV
+        :return: PlexServer object or None
+        """
+        current_servers = self.plex_servers
+        index = 0
+        index_available = False
+        while not index_available:
+            if index in [ps.index for ps in current_servers]:
+                index += 1
+            else:
+                index_available = True
+        server_settings = {
+            'name': plex_server.friendlyName,
+            'uri': helpers.get_plex_indirect_uri(plex_server=plex_server),
+            'accessToken': helpers.get_plex_access_token(plex_server=plex_server),
+            'index': index,
+            'arChannels': True,
+            'arGuide': True
+        }
+        return self.add_plex_server(**server_settings)
 
     def update_plex_server(self, server_name: str, **kwargs) -> bool:
         """

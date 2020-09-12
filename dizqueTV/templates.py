@@ -1,6 +1,6 @@
 from typing import List
 
-PLEX_SETTINGS_TEMPLATE = {
+PLEX_SERVER_SETTINGS_TEMPLATE = {
     "name": str,
     "uri": str,
     "accessToken": str,
