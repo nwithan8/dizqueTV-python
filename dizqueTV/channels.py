@@ -1,6 +1,6 @@
 import json
 from typing import List, Union, Tuple
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from plexapi.video import Video, Movie, Episode
 from plexapi.server import PlexServer as PServer
@@ -20,11 +20,17 @@ class BaseMediaItem:
         self.isOffline = data.get('isOffline')
         self.duration = data.get('duration')
 
+    def __repr__(self):
+        return f"<{self.__class__.__name__}:{self.type}>"
+
 
 class Redirect(BaseMediaItem):
     def __init__(self, data: json, dizque_instance, channel_instance):
         super().__init__(data=data, dizque_instance=dizque_instance, channel_instance=channel_instance)
         self.channel = data.get('channel')
+
+    def __repr__(self):
+        return f"<{self.__class__.__name__}:{self.channel}>"
 
 
 class MediaItem(BaseMediaItem):
@@ -49,6 +55,9 @@ class MediaItem(BaseMediaItem):
         self.episodeIcon = data.get('episodeIcon')
         self.seasonIcon = data.get('seasonIcon')
 
+    def __repr__(self):
+        return f"<{self.__class__.__name__}:{self.title}>"
+
 
 class Filler(MediaItem):
     def __init__(self, data: json, dizque_instance, channel_instance):
@@ -61,6 +70,9 @@ class Filler(MediaItem):
         :return: True if successful, False if unsuccessful
         """
         return self._channel_instance.delete_filler(filler=self)
+
+    def __repr__(self):
+        return f"<{self.__class__.__name__}:{self.title}>"
 
 
 class Program(MediaItem, Redirect):
@@ -75,6 +87,9 @@ class Program(MediaItem, Redirect):
         :return: True if successful, False if unsuccessful
         """
         return self._channel_instance.delete_program(program=self)
+
+    def __repr__(self):
+        return f"<{self.__class__.__name__}:{self.title}>"
 
 
 class Channel:
@@ -101,6 +116,9 @@ class Channel:
         self.duration = data.get('duration')
         self.stealth = data.get('stealth')
         self._id = data.get('_id')
+
+    def __repr__(self):
+        return f"<{self.__class__.__name__}:{self.number}:{self.name}>"
 
     @property
     def programs(self):
@@ -226,8 +244,10 @@ class Channel:
         :return: True if successful, False if unsuccessful (Channel reloads in place)
         """
         channel_data = self._data
+        if not programs:
+            raise Exception("You must provide at least one program to add to the channel.")
         for program in programs:
-            if type(program) != Program:
+            if type(program) not in [Program, Redirect]:
                 if not plex_server:
                     raise MissingParametersError("Please include a plex_server if you are adding PlexAPI Video, "
                                                  "Movie, or Episode items.")
@@ -414,6 +434,143 @@ class Channel:
             for program in programs_to_add:
                 final_programs_to_add.append(program)
         self.update(startTime=start_time)
+        if final_programs_to_add and self.delete_all_programs():
+            return self.add_programs(programs=final_programs_to_add)
+        return False
+
+    @helpers._check_for_dizque_instance
+    def add_channel_at_night(self, night_channel_number: int, start_hour: int, end_hour: int) -> bool:
+        """
+        Add a Channel at Night to a dizqueTV channel
+        :param night_channel_number: number of the channel to redirect to
+        :param start_hour: hour (in 24-hour time) to start the redirect
+        :param end_hour: hour (in 24-hour time) to end the redirect
+        :return: True if successful, False if unsuccessful (Channel reloads in-place)
+        """
+        if start_hour > 23 or start_hour < 0:
+            raise Exception("start_hour must be between 0 and 23.")
+        if end_hour > 23 or end_hour < 0:
+            raise Exception("end_hour must be between 0 and 23.")
+        if start_hour == end_hour:
+            raise Exception("You cannot add a 24-hour Channel at Night.")
+        if night_channel_number not in self._dizque_instance.channel_numbers:
+            raise Exception(f"Channel #{night_channel_number} does not exist.")
+        length_of_night_block = helpers.get_milliseconds_between_two_hours(start_hour=start_hour, end_hour=end_hour)
+        length_of_regular_block = (24 * 60 * 60 * 1000) - length_of_night_block
+        new_channel_start_time = datetime.now().replace(hour=end_hour, minute=0, second=0, microsecond=0)
+        if end_hour > datetime.now().hour:
+            new_channel_start_time = new_channel_start_time - timedelta(days=1)
+        new_channel_start_time = new_channel_start_time + timedelta(hours=helpers.hours_difference_in_timezone())
+        new_channel_start_time = new_channel_start_time.strftime("%Y-%m-%dT%H:%M:%S.000Z")
+        final_programs_to_add = []
+        programs_left = self.programs
+        while programs_left:  # loop until you get done with all the programs
+            programs_to_add, total_running_time, programs_left = \
+                _get_first_x_minutes_of_programs_return_unused(programs=programs_left,
+                                                               minutes=int(
+                                                                   length_of_regular_block / 1000 / 60)
+                                                               )
+            if total_running_time < length_of_regular_block:
+                # add flex time between last item and night channel
+                time_needed = length_of_regular_block - total_running_time
+                programs_to_add.append(Program(data={'duration': time_needed, 'isOffline': True},
+                                               dizque_instance=self._dizque_instance,
+                                               channel_instance=self))
+            programs_to_add.append(Redirect(data={'duration': length_of_night_block,
+                                                  'isOffline': True,
+                                                  'channel': night_channel_number,
+                                                  'type': 'redirect'},
+                                            dizque_instance=self._dizque_instance,
+                                            channel_instance=self))
+            for program in programs_to_add:
+                final_programs_to_add.append(program)
+
+        self.update(startTime=new_channel_start_time)
+        if final_programs_to_add and self.delete_all_programs():
+            return self.add_programs(programs=final_programs_to_add)
+        return False
+
+    @helpers._check_for_dizque_instance
+    def add_channel_at_night_alt(self, night_channel_number: int, start_hour: int, end_hour: int) -> bool:
+        if start_hour > 23 or start_hour < 0:
+            raise Exception("start_hour must be between 0 and 23.")
+        if end_hour > 23 or end_hour < 0:
+            raise Exception("end_hour must be between 0 and 23.")
+        if night_channel_number not in self._dizque_instance.channel_numbers:
+            raise Exception(f"Channel #{night_channel_number} does not exist.")
+        length_of_night_block = helpers.get_milliseconds_between_two_hours(start_hour=start_hour, end_hour=end_hour)
+        if length_of_night_block == 0:
+            raise Exception("You cannot add a 24-hour Channel at Night.")
+        length_of_regular_block = (24 * 60 * 60 * 1000) - length_of_night_block
+        channel_start_time_datetime = helpers.string_to_datetime(date_string=self.startTime)
+        time_until_night_block_start = helpers.get_milliseconds_between_two_datetimes(
+            start_datetime=helpers.adjust_datetime_for_timezone(channel_start_time_datetime),
+            end_datetime=datetime.now().replace(hour=start_hour,
+                                                minute=0,
+                                                second=0,
+                                                microsecond=0)
+        )
+        final_programs_to_add = []
+        all_programs = self.programs
+        programs_to_add, total_running_time = _get_first_x_minutes_of_programs(programs=all_programs,
+                                                                               minutes=int(
+                                                                                   time_until_night_block_start /
+                                                                                   1000 / 60)
+                                                                               )
+        if len(programs_to_add) == len(all_programs):  # all programs can play before night channel even starts
+            if total_running_time < time_until_night_block_start:  # add flex time between last item and night channel
+                time_needed = time_until_night_block_start - total_running_time
+                programs_to_add.append(Program(data={'duration': time_needed, 'isOffline': True},
+                                               dizque_instance=self._dizque_instance,
+                                               channel_instance=self))
+            # add the night channel
+            programs_to_add.append(Redirect(data={'duration': length_of_night_block,
+                                                  'isOffline': True,
+                                                  'channel': night_channel_number,
+                                                  'type': 'redirect'},
+                                            dizque_instance=self._dizque_instance,
+                                            channel_instance=self))
+            final_programs_to_add = programs_to_add
+        else:  # need to interlace programs and night channels
+            programs_left = all_programs
+            programs_to_add, total_running_time, programs_left = \
+                _get_first_x_minutes_of_programs_return_unused(programs=programs_left,
+                                                               minutes=int(
+                                                                   time_until_night_block_start / 1000 / 60)
+                                                               )
+            if total_running_time < time_until_night_block_start:  # add flex time between last item and night channel
+                time_needed = time_until_night_block_start - total_running_time
+                programs_to_add.append(Program(data={'duration': time_needed, 'isOffline': True},
+                                               dizque_instance=self._dizque_instance,
+                                               channel_instance=self))
+            # add the night channel
+            programs_to_add.append(Redirect(data={'duration': length_of_night_block,
+                                                  'isOffline': True,
+                                                  'channel': night_channel_number,
+                                                  'type': 'redirect'},
+                                            dizque_instance=self._dizque_instance,
+                                            channel_instance=self))
+            final_programs_to_add = programs_to_add
+            while programs_left:  # loop until you get done with all the programs
+                programs_to_add, total_running_time, programs_left = \
+                    _get_first_x_minutes_of_programs_return_unused(programs=programs_left,
+                                                                   minutes=int(
+                                                                       length_of_regular_block / 1000 / 60)
+                                                                   )
+                if total_running_time < length_of_regular_block:
+                    # add flex time between last item and night channel
+                    time_needed = length_of_regular_block - total_running_time
+                    programs_to_add.append(Program(data={'duration': time_needed, 'isOffline': True},
+                                                   dizque_instance=self._dizque_instance,
+                                                   channel_instance=self))
+                programs_to_add.append(Redirect(data={'duration': length_of_night_block,
+                                                      'isOffline': True,
+                                                      'channel': night_channel_number,
+                                                      'type': 'redirect'},
+                                                dizque_instance=self._dizque_instance,
+                                                channel_instance=self))
+                for program in programs_to_add:
+                    final_programs_to_add.append(program)
         if final_programs_to_add and self.delete_all_programs():
             return self.add_programs(programs=final_programs_to_add)
         return False
@@ -645,4 +802,36 @@ def _get_first_x_minutes_of_programs(programs: List[Union[Program, Redirect, Fil
         if (running_total + program.duration) <= milliseconds:
             running_total += program.duration
             programs_to_return.append(program)
+        else:
+            break
     return programs_to_return, running_total
+
+
+def _get_first_x_minutes_of_programs_return_unused(programs: List[Union[Program, Redirect, Filler]],
+                                                   minutes: int) -> Tuple[List[Union[Program, Redirect, Filler]],
+                                                                          int,
+                                                                          List[Union[Program, Redirect, Filler]]]:
+    """
+    Keep building a list of programs in order until a duration limit is met.
+    :param programs: list of Program objects to pull from
+    :param minutes: threshold, in minutes
+    :return: list of Program objects, total running time in milliseconds, unused Programs
+    """
+    milliseconds = minutes * 60 * 1000
+    running_total = 0
+    leftover_programs = []
+    programs_to_return = []
+    print(len(programs))
+    for program in programs:
+        print(f"{program.title}: {program.duration}")
+        print(f"Total + duration: {running_total + program.duration} vs Available space: {milliseconds}")
+        if (running_total + program.duration) <= milliseconds:
+            running_total += program.duration
+            programs_to_return.append(program)
+        else:
+            break
+    for program in programs:
+        if program not in programs_to_return:
+            leftover_programs.append(program)
+    print(leftover_programs)
+    return programs_to_return, running_total, leftover_programs
