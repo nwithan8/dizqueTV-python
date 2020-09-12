@@ -273,6 +273,29 @@ class Channel:
         return False
 
     @helpers._check_for_dizque_instance
+    def delete_show(self, show_name: str, season_number: int = None) -> bool:
+        """
+        Delete all episodes of a specific show
+        :param show_name: Name of show to delete
+        :param season_number: (Optional) Number of season to delete
+        :return: True if successful, False if unsuccessful (Channel reloads in-place)
+        """
+        all_programs = self.programs
+        programs_to_add = []
+        for program in all_programs:
+            if program.type == 'episode' and program.showTitle == show_name:
+                if season_number and program.season == season_number:
+                    pass
+                else:
+                    programs_to_add.append(program)
+            else:
+                programs_to_add.append(program)
+        if self.delete_all_programs():
+            return self.add_programs(programs=programs_to_add)
+        return False
+
+
+    @helpers._check_for_dizque_instance
     def delete_all_programs(self) -> bool:
         """
         Delete all programs from this channel
