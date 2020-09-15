@@ -1,6 +1,7 @@
 import json
 from datetime import datetime, timedelta
 from typing import List, Union, Tuple
+import collections
 import random
 
 from plexapi.video import Video, Movie, Episode
@@ -196,6 +197,27 @@ def make_show_dict(media_items: List) -> dict:
     return show_dict
 
 
+def order_show_dict(show_dict: dict) -> dict:
+    """
+    Sort a show dictionary in show-season-episode order
+    :param show_dict: dictionary of shows in show-season-episode structure
+    :return: dict object with all episodes arranged in order by show-season-episode
+    """
+    episode_ordered_dict = {}
+    for show_name, seasons in show_dict.items():
+        episode_ordered_dict[show_name] = {}
+        for season_number, episodes in seasons.items():
+            ordered_episodes = {episode_number: episode for episode_number, episode in
+                                sorted(episodes.items(), key=lambda item: item[0])}
+            episode_ordered_dict[show_name][season_number] = ordered_episodes
+    season_ordered_dict = {}
+    for show_name, seasons in episode_ordered_dict.items():
+        ordered_seasons = {season_number: episodes for season_number, episodes in
+                           sorted(seasons.items(), key=lambda item: item[0])}
+        season_ordered_dict[show_name] = ordered_seasons
+    return season_ordered_dict
+
+
 # Public Helpers
 def remove_time_from_date(date_string: Union[datetime, str]) -> str:
     """
@@ -359,13 +381,41 @@ def dict_to_json(dictionary: dict) -> json:
     return json.dumps(dictionary)
 
 
-def shuffle(items: List) -> List:
+def random_choice(items: List):
     """
-    Randomize the order of the items in a list
+    Get a random item from a list
+    :param items: list of items
+    :return: random item
+    """
+    return random.choice(items)
+
+
+def shuffle(items: List) -> bool:
+    """
+    Randomize the order of the items in a list in-place
     :param items: list of items to shuffle
-    :return: list of shuffled items
+    :return: True if successful, False if unsuccessful
     """
-    return random.shuffle(items)
+    try:
+        random.shuffle(items)
+        return True
+    except:
+        pass
+    return False
+
+
+def rotate_items(items: List, shift_index: int = None) -> List:
+    """
+    Rotate items in a list by a specific number of steps
+    :param items: list of items
+    :param shift_index: Optional index to shift list by. Otherwise random
+    :return: rotated list of items
+    """
+    if not shift_index:
+        shift_index = random.randint(0, len(items) - 1)
+    collection_list = collections.deque(items)
+    collection_list.rotate(shift_index)
+    return list(collection_list)
 
 
 def remove_duplicates(items: List) -> List:
