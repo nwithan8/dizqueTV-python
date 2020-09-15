@@ -294,7 +294,6 @@ class Channel:
             return self.add_programs(programs=programs_to_add)
         return False
 
-
     @helpers._check_for_dizque_instance
     def delete_all_programs(self) -> bool:
         """
@@ -373,6 +372,17 @@ class Channel:
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
         """
         sorted_programs = sort_media_randomly(media_items=self.programs)
+        if sorted_programs and self.delete_all_programs():
+            return self.add_programs(programs=sorted_programs)
+        return False
+
+    @helpers._check_for_dizque_instance
+    def cyclical_shuffle(self) -> bool:
+        """
+        Sort TV shows on this channel cyclically
+        :return: True if successful, False if unsuccessful (Channel reloads in-place)
+        """
+        sorted_programs = sort_media_cyclical_shuffle(media_items=self.programs)
         if sorted_programs and self.delete_all_programs():
             return self.add_programs(programs=sorted_programs)
         return False
@@ -793,7 +803,59 @@ def sort_media_randomly(media_items: List[Union[Program, Filler]]) -> List[Union
     :param media_items: List of Program and Filler objects
     :return: List of Program and Filler objects
     """
-    return helpers.shuffle(items=media_items)
+    helpers.shuffle(items=media_items)
+    return media_items
+
+
+def sort_media_cyclical_shuffle(media_items: List[Union[Program, Filler]]) -> List[Union[Program, Filler]]:
+    """
+    Sort media cyclically.
+    Note: Automatically removes Filler objects
+    :param media_items: List of Program and Filler objects
+    :return: List of Program objects, Filler objects removed
+    """
+    total_item_count = len(media_items)
+    non_shows = [item for item in media_items if
+                 (helpers._object_has_attribute(object=item, attribute_name='type') and item.type != 'episode')]
+    helpers.shuffle(items=non_shows)
+    show_dict = helpers.make_show_dict(media_items=media_items)
+    show_dict = helpers.order_show_dict(show_dict=show_dict)
+    total_episode_count = 0
+    show_list = {}
+    index = 0
+    index_list = []
+    for show_name, seasons in show_dict.items():
+        season_episode_order = []
+        for season_number, episodes in seasons.items():
+            for _, episode in episodes.items():
+                season_episode_order.append(episode)
+                total_episode_count += 1
+        show_cyclical_order = helpers.rotate_items(items=season_episode_order)
+        show_list[index] = show_cyclical_order
+        index_list.append(index)
+        index += 1
+    show_list['remaining_episode_count'] = total_episode_count
+    final_list = []
+    categories = ['show', 'non_show']
+    while len(final_list) != total_item_count:
+        if 'non_show' in categories and len(non_shows) == 0:
+            categories.remove('non_show')
+        if 'show' in categories and show_list['remaining_episode_count'] == 0:
+            categories.remove('show')
+        if not categories:
+            break
+        show_or_non_show = helpers.random_choice(items=categories)
+        if show_or_non_show == 'show':
+            random_index = helpers.random_choice(items=index_list)  # failure 1
+            new_item = show_list[random_index].pop(0)
+            show_list['remaining_episode_count'] -= 1
+            final_list.append(new_item)
+            if len(show_list[random_index]) == 0:
+                index_list.remove(random_index)
+        else:
+            new_item = non_shows.pop(0)
+            final_list.append(new_item)
+    return final_list
 
 
 def remove_duplicate_media_items(media_items: List[Union[Program, Filler]]) -> List[Union[Program, Filler]]:
