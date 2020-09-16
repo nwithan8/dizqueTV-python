@@ -1,4 +1,5 @@
 import setuptools
+import dizqueTV._version
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
@@ -6,15 +7,15 @@ with open("README.md", "r") as fh:
 setuptools.setup(
     name='dizqueTV',  # How you named your package folder (MyLib)
     packages=['dizqueTV'],  # Chose the same as "name"
-    version='0.0.64',  # Start with a small number and increase it with every change you make
+    version=dizqueTV._version.__version__,  # Start with a small number and increase it with every change you make
     license='GNU General Public License v3 (GPLv3)',
     description="Interact with a dizqueTV instance's API",  # Give a short description about your library
     long_description=long_description,
     long_description_content_type="text/markdown",
-    author='Nate Harris',  # Type in your name
+    author=dizqueTV._version.__author__,  # Type in your name
     author_email='n8gr8gbln@gmail.com',  # Type in your E-Mail
     url='https://github.com/nwithan8/dizqueTV-python',  # Provide either the link to your github or to your website
-    download_url='https://github.com/nwithan8/dizqueTV-python/archive/0.0.64.tar.gz',  # I explain this later on
+    download_url='https://github.com/nwithan8/dizqueTV-python/archive/1.0.0.tar.gz',  # I explain this later on
     keywords=[
         'dizqueTV',
         'Plex',
@@ -35,7 +36,7 @@ setuptools.setup(
     ],
     classifiers=[
         'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
         # Chose either "3 - Alpha", "4 - Beta" or "5 - Production/Stable" as the current state of your package
         'Intended Audience :: Developers',  # Define that your audience are developers
         'Topic :: Software Development :: Build Tools',
