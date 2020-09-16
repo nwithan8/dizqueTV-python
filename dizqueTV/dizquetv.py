@@ -12,7 +12,7 @@ import dizqueTV.requests as requests
 from dizqueTV.settings import XMLTVSettings, PlexSettings, FFMPEGSettings, HDHomeRunSettings
 from dizqueTV.channels import Channel, Program, Filler
 from dizqueTV.plex_server import PlexServer
-from dizqueTV.templates import PLEX_SETTINGS_TEMPLATE, CHANNEL_SETTINGS_TEMPLATE, CHANNEL_SETTINGS_DEFAULT
+from dizqueTV.templates import PLEX_SERVER_SETTINGS_TEMPLATE, CHANNEL_SETTINGS_TEMPLATE, CHANNEL_SETTINGS_DEFAULT
 import dizqueTV.helpers as helpers
 from dizqueTV.exceptions import MissingParametersError, ChannelCreationError
 
@@ -40,8 +40,47 @@ def convert_plex_item_to_filler(plex_item: Union[Video, Movie, Episode], plex_se
 
 
 def convert_plex_server_to_dizque_plex_server(plex_server: PServer) -> PlexServer:
+    """
+    Convert a plexapi.PlexServer object to a dizqueTV PlexServer object
+    :param plex_server: plexapi.PlexServer object to convert
+    :return: PlexServer object
+    """
     data = helpers._make_server_dict_from_plex_server(plex_server=plex_server)
     return PlexServer(data=data, dizque_instance=None)
+
+
+def repeat_list(items: List, how_many_times: int) -> List:
+    """
+    Repeat items in a list x number of times.
+    Items will remain in the same order.
+    Ex. [A, B, C] x3 -> [A, B, C, A, B, C, A, B, C]
+    :param items: list of items to repeat
+    :param how_many_times: how many times the list should repeat
+    :return: repeated list
+    """
+    final_list = []
+    for _ in range(0, how_many_times):
+        for item in items:
+            final_list.append(item)
+    return final_list
+
+
+def repeat_and_shuffle_list(items: List, how_many_times: int) -> List:
+    """
+    Repeat items in a list, shuffled, x number of times.
+    Items will be shuffled in each repeat group.
+    Ex. [A, B, C] x3 -> [A, B, C, B, A, C, C, A, B]
+    :param items: list of items to repeat
+    :param how_many_times: how many times the list should repeat
+    :return: repeated list
+    """
+    final_list = []
+    for _ in range(0, how_many_times):
+        list_to_shuffle = items
+        helpers.shuffle(list_to_shuffle)
+        for item in list_to_shuffle:
+            final_list.append(item)
+    return final_list
 
 
 class API:
@@ -163,14 +202,38 @@ class API:
         """
         Add a Plex Media Server to dizqueTV
         :param kwargs: keyword arguments of setting names and values
-        :return: True if successful, False if unsuccessful
+        :return: PlexServer object or None
         """
         if helpers._settings_are_complete(new_settings_dict=kwargs,
-                                          template_settings_dict=PLEX_SETTINGS_TEMPLATE,
+                                          template_settings_dict=PLEX_SERVER_SETTINGS_TEMPLATE,
                                           ignore_id=True) \
                 and self._put(endpoint='/plex-servers', data=kwargs):
             return self.get_plex_server(server_name=kwargs['name'])
         return None
+
+    def add_plex_server_from_plexapi(self, plex_server: PServer) -> Union[PlexServer, None]:
+        """
+        Convert and add a plexapi.PlexServer as a Plex Media Server to dizqueTV
+        :param plex_server: plexapi.PlexServer object to add to dizqueTV
+        :return: PlexServer object or None
+        """
+        current_servers = self.plex_servers
+        index = 0
+        index_available = False
+        while not index_available:
+            if index in [ps.index for ps in current_servers]:
+                index += 1
+            else:
+                index_available = True
+        server_settings = {
+            'name': plex_server.friendlyName,
+            'uri': helpers.get_plex_indirect_uri(plex_server=plex_server),
+            'accessToken': helpers.get_plex_access_token(plex_server=plex_server),
+            'index': index,
+            'arChannels': True,
+            'arGuide': True
+        }
+        return self.add_plex_server(**server_settings)
 
     def update_plex_server(self, server_name: str, **kwargs) -> bool:
         """
@@ -473,12 +536,21 @@ class API:
         return False
 
     # XMLTV.XML
+    def refresh_xml(self) -> bool:
+        """
+        Force the server to update the xmltv.xml file
+        :return: True if successful, False if unsuccessful
+        """
+        # updating the xmltv_settings causes the server to reload the xmltv.xml file
+        return self.update_xmltv_settings()
+
     @property
     def xmltv_xml(self) -> Union[ElementTree.Element, None]:
         """
         Get dizqueTV's XMLTV data
         :return: xml.etree.ElementTree.Element object or None
         """
+        self.refresh_xml()
         response = self._get(endpoint='/xmltv.xml')
         if response:
             return ElementTree.fromstring(response.content)

@@ -1,6 +1,7 @@
 import json
 from datetime import datetime, timedelta
 from typing import List, Union, Tuple
+import collections
 import random
 
 from plexapi.video import Video, Movie, Episode
@@ -100,9 +101,9 @@ def _make_program_dict_from_plex_item(plex_item: Union[Video, Movie, Episode], p
         'serverKey': plex_server.friendlyName
     }
     if plex_item.type == 'episode':
-        data['episodeIcon'] = plex_item.thumb
-        data['seasonIcon'] = plex_item.parentThumb
-        data['showIcon'] = plex_item.grandparentThumb
+        data['episodeIcon'] = f"{plex_uri}{plex_item.thumb}?X-Plex-Token={plex_token}"
+        data['seasonIcon'] = f"{plex_uri}{plex_item.parentThumb}?X-Plex-Token={plex_token}"
+        data['showIcon'] = f"{plex_uri}{plex_item.grandparentThumb}?X-Plex-Token={plex_token}"
     return data
 
 
@@ -196,23 +197,78 @@ def make_show_dict(media_items: List) -> dict:
     return show_dict
 
 
-# Public Helpers
-def remove_time_from_date(date_string: datetime) -> str:
+def order_show_dict(show_dict: dict) -> dict:
     """
-    Remove time, i.e. 00:00:00, from a datetime.datetime string
-    :param date_string: datetime.datetime object to convert
+    Sort a show dictionary in show-season-episode order
+    :param show_dict: dictionary of shows in show-season-episode structure
+    :return: dict object with all episodes arranged in order by show-season-episode
+    """
+    episode_ordered_dict = {}
+    for show_name, seasons in show_dict.items():
+        episode_ordered_dict[show_name] = {}
+        for season_number, episodes in seasons.items():
+            ordered_episodes = {episode_number: episode for episode_number, episode in
+                                sorted(episodes.items(), key=lambda item: item[0])}
+            episode_ordered_dict[show_name][season_number] = ordered_episodes
+    season_ordered_dict = {}
+    for show_name, seasons in episode_ordered_dict.items():
+        ordered_seasons = {season_number: episodes for season_number, episodes in
+                           sorted(seasons.items(), key=lambda item: item[0])}
+        season_ordered_dict[show_name] = ordered_seasons
+    return season_ordered_dict
+
+
+# Public Helpers
+def remove_time_from_date(date_string: Union[datetime, str]) -> str:
+    """
+    Remove time, i.e. 00:00:00, from a datetime.datetime or string
+    :param date_string: datetime.datetime object or string to convert
     :return: str without time, i.e. 2020-08-29
     """
+    if type(date_string) == str:
+        date_string = string_to_datetime(date_string=date_string)
     return date_string.strftime("%Y-%m-%d")
 
 
-def get_year_from_date(date_string: datetime) -> int:
+def get_year_from_date(date_string: Union[datetime, str]) -> int:
     """
-    Extract year from a datetime.datetime string
-    :param date_string: datetime.datetime object
+    Extract year from a datetime.datetime or string
+    :param date_string: datetime.datetime object or string
     :return: int of year, i.e. 2020
     """
+    if type(date_string) == str:
+        date_string = string_to_datetime(date_string=date_string)
     return int(date_string.strftime("%Y"))
+
+
+def string_to_datetime(date_string: str, template: str = "%Y-%m-%dT%H:%M:%S") -> datetime:
+    """
+    Convert a string to a datetime.datetime object
+    :param date_string: datetime string to convert
+    :param template: (Optional) datetime template to use when parsing string
+    :return: datetime.datetime object
+    """
+    if date_string.endswith('Z'):
+        date_string = date_string[:-5]
+    return datetime.strptime(date_string, template)
+
+
+def adjust_datetime_for_timezone(local_time: datetime) -> datetime:
+    """
+    Shift datetime.datetime in regards to UTC time
+    :param local_time: local time datetime.datetime object
+    :return: Shifted datetime.datetime object
+    """
+    difference = datetime.now() - datetime.utcnow()
+    return local_time - difference
+
+
+def hours_difference_in_timezone() -> int:
+    """
+    Get the hours difference between local and UTC time
+    :return: int number of hours
+    """
+    return int((datetime.utcnow() - datetime.now()).total_seconds() / 60 / 60)
 
 
 def get_nearest_30_minute_mark() -> str:
@@ -226,6 +282,48 @@ def get_nearest_30_minute_mark() -> str:
     else:
         now = now.replace(second=0, microsecond=0, minute=0)
     return now.strftime("%Y-%m-%dT%H:%M:%S.000Z")
+
+
+def get_milliseconds_between_two_hours(start_hour: int, end_hour: int) -> int:
+    """
+    Get how many milliseconds between two 24-hour hours
+    :param start_hour: starting hour (in 24-hour time)
+    :param end_hour: ending hour (in 24-hour time)
+    :return: int of milliseconds between the two hours
+    """
+    start_date = datetime(2020, 1, 1, start_hour, 0)
+    if end_hour < start_hour:
+        end_date = datetime(2020, 1, 2, end_hour, 0)
+    else:
+        end_date = datetime(2020, 1, 1, end_hour, 0)
+    return int((end_date - start_date).total_seconds()) * 1000
+
+
+def get_milliseconds_between_two_datetimes(start_datetime: datetime, end_datetime: datetime) -> int:
+    """
+    Get how many milliseconds between two datetime.datetime objects
+    :param start_datetime: starting datetime.datetime object
+    :param end_datetime: ending datetime.datetime object
+    :return: int of milliseconds between the two datetime.datetime objects
+    """
+    return int((end_datetime - start_datetime).total_seconds()) * 1000
+
+
+def get_needed_flex_time(item_time_milliseconds: int, allowed_minutes_time_frame: int) -> int:
+    """
+    Get how many milliseconds needed to stretch an item's runtime to a specific interval length
+    :param item_time_milliseconds: how long the item is in milliseconds
+    :param allowed_minutes_time_frame: how long an interval the item is supposed to be, in minutes
+    :return: int of milliseconds needed to stretch item
+    """
+    minute_start = (30 if datetime.utcnow().minute >= 30 else 0)
+
+    allowed_milliseconds_time_frame = (allowed_minutes_time_frame + (minute_start % allowed_minutes_time_frame)) * \
+                                      60 * 1000
+    remainder = allowed_milliseconds_time_frame - (item_time_milliseconds % allowed_milliseconds_time_frame)
+    if remainder == allowed_milliseconds_time_frame:
+        return 0
+    return remainder
 
 
 def get_plex_indirect_uri(plex_server: PServer) -> Union[str, None]:
@@ -283,13 +381,41 @@ def dict_to_json(dictionary: dict) -> json:
     return json.dumps(dictionary)
 
 
-def shuffle(items: List) -> List:
+def random_choice(items: List):
     """
-    Randomize the order of the items in a list
+    Get a random item from a list
+    :param items: list of items
+    :return: random item
+    """
+    return random.choice(items)
+
+
+def shuffle(items: List) -> bool:
+    """
+    Randomize the order of the items in a list in-place
     :param items: list of items to shuffle
-    :return: list of shuffled items
+    :return: True if successful, False if unsuccessful
     """
-    return random.shuffle(items)
+    try:
+        random.shuffle(items)
+        return True
+    except:
+        pass
+    return False
+
+
+def rotate_items(items: List, shift_index: int = None) -> List:
+    """
+    Rotate items in a list by a specific number of steps
+    :param items: list of items
+    :param shift_index: Optional index to shift list by. Otherwise random
+    :return: rotated list of items
+    """
+    if not shift_index:
+        shift_index = random.randint(0, len(items) - 1)
+    collection_list = collections.deque(items)
+    collection_list.rotate(shift_index)
+    return list(collection_list)
 
 
 def remove_duplicates(items: List) -> List:

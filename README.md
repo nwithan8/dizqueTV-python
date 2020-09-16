@@ -1,4 +1,14 @@
 # dizqueTV-python
+[![PyPi](https://img.shields.io/pypi/dm/dizquetv?color=green&label=PyPi%20downloads&logo=Pypi&logoColor=orange&style=flat-square)](https://pypi.org/project/dizqueTV/)
+[![License](https://img.shields.io/pypi/l/dizqueTV?color=orange&style=flat-square)](https://github.com/nwithan8/dizqueTV-python/blob/master/LICENSE)
+
+[![Open Issues](https://img.shields.io/github/issues-raw/nwithan8/dizqueTV-python?color=gold&style=flat-square)](https://github.com/nwithan8/dizqueTV-python/issues?q=is%3Aopen+is%3Aissue)
+[![Closed Issues](https://img.shields.io/github/issues-closed-raw/nwithan8/dizqueTV-python?color=black&style=flat-square)](https://github.com/nwithan8/dizqueTV-python/issues?q=is%3Aissue+is%3Aclosed)
+[![Latest Release](https://img.shields.io/github/v/release/nwithan8/dizqueTV-python?color=red&label=latest%20release&logo=github&style=flat-square)](https://github.com/nwithan8/dizqueTV-python/releases)
+
+[![Discord](https://img.shields.io/discord/472537215457689601?color=blue&logo=discord&style=flat-square)](https://discord.gg/7jGbCJQ)
+[![Twitter](https://img.shields.io/twitter/follow/nwithan8?label=%40nwithan8&logo=twitter&style=flat-square)](https://twitter.com/nwithan8)
+
 A Python library to interact with a [dizqueTV](https://github.com/vexorian/dizquetv) instance
 
 ## Installation
@@ -36,6 +46,7 @@ Enable verbose logging by passing ``verbose=True`` into the ``API`` object decla
 - Refresh a channel: ``Channel.refresh()`` -> None (reloads ``Channel`` object in-place)
 
 
+
 #### Programs
 - Get a channel's programs: ``programs = Channel.programs`` -> list of ``MediaItem`` objects
 - Add program (or PlexAPI Video) to a channel: ``added = Channel.add_program(plex_item: PlexAPI Video, plex_server: PlexAPI Server, program: Program, **kwargs)`` -> True/False
@@ -43,13 +54,20 @@ Enable verbose logging by passing ``verbose=True`` into the ``API`` object decla
 - Add multiple programs to multiple channels: ``added = dtv.add_programs_to_channels(programs: [Program], channels: [Channel], channel_numbers: [int])`` -> True/False
 - Delete a program: ``deleted = Channel.delete_program(program: Program)`` -> True/False
 - Delete all programs: ``deleted = Channel.delete_all_programs()`` -> True/False
+- Delete all episodes of a show (or of a season): ``deleted = Channel.delete_show(show_name: str, season_number: int (Optional))`` -> True/False
 - Sort programs by release date: ``sorted = Channel.sort_programs_by_release_date()`` -> True/False
 - Sort programs by season order: ``sorted = Channel.sort_programs_by_season_order()`` -> True/False
 - Sort programs alphabetically: ``sorted = Channel.sort_programs_alphabetically()`` -> True/False
 - Sort programs by duration: ``sorted = Channel.sort_programs_by_duration()`` -> True/False
 - Sort programs randomly: ``sorted = Channel.sort_programs_randomly()`` -> True/False
+- Sort programs cylically: ``sorted = Channel.cyclical_shuffl()`` -> True/False
+- Repeat programs: ``repeated = Channel.replicate(how_many_times: int)`` -> True/False
+- Repeat and shuffle programs ``repeated = Channel.replicate_and_shuffle(how_many_times: int)`` -> True/False
 - Remove duplicate programs: ``sorted = Channel.remove_duplicate_programs()`` -> True/False
 - Remove specials: ``sorted = Channel.remove_specials()`` -> True/False
+- Add pad times: ``added = Channel.pad_times(start_every_x_minutes: int)`` -> True/False
+- Add reruns: ``added = Channel.add_reruns(start_time: datetime.datetime, length_hours: int, times_to_repeat: int)`` -> True/False
+- Add "Channel at Night": ``added = Channel.add_channel_at_night(night_channel_number: int, start_hour: int (24-hour time), end_hour: int (24-hour time))`` -> True/False
 
 
 #### Filler (Flex)
@@ -95,6 +113,7 @@ Enable verbose logging by passing ``verbose=True`` into the ``API`` object decla
 - Get dizqueTV version: ``version = dtv.dizquetv_version`` -> str
 - Get FFMPEG version: ``version = dtv.ffmpeg_version`` -> str
 - Get XMLTV XML file: ``xml = dtv.xmltv_xml`` -> ``xml.etree.ElementTree.Element`` object
+- Refresh XMLTV XML file server-side: ``refreshed = dtv.refresh_xml()`` -> True/False
 - Get M3U playlist: ``m3u = dtv.m3u`` -> ``m3u8`` object
 - Get last time XMLTV was refreshed: ``last_time = dtv.last_xmltv_refresh`` -> str
 
@@ -102,7 +121,8 @@ Enable verbose logging by passing ``verbose=True`` into the ``API`` object decla
 - Convert a Python PlexAPI Video to a Program: ``program = dtv.convert_plex_item_to_program(plex_item: PlexAPI Video, plex_server: PlexAPI Server)`` or ``program = Channel.convert_plex_item_to_program(plex_item: PlexAPI Video, plex_server: PlexAPI Server)`` -> Program
 - Convert a Python PlexAPI Video to a Filler: ``filler = dtv.convert_plex_item_to_filler(plex_item: PlexAPI Video, plex_server: PlexAPI Server)`` or ``filler = Channel.convert_plex_item_to_filler(plex_item: PlexAPI Video, plex_server: PlexAPI Server)`` -> Program
 - Convert a Python PlexAPI Server to a PlexServer: ``server = dtv.convert_plex_server_to_dizque_plex_server(plex_server: PlexAPI Server)`` -> PlexServer
-
+- Repeat a list: ``repeated_list = dtv.repeat_list(items: List, how_many_times: int)`` -> List
+- Repeat and shuffle a list: ``repeated_list = dtv.repeate_and_shuffle_list(items: List, how_many_times: int)`` -> List
 
 
 
@@ -142,6 +162,7 @@ Enable verbose logging by passing ``verbose=True`` into the ``API`` object decla
 - ``number``: int
 - ``name``: str
 - ``duration``: int
+- ``stealth``: bool
 
 #### Program
 - ``title``: str
