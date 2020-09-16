@@ -388,6 +388,24 @@ class Channel:
         return False
 
     @helpers._check_for_dizque_instance
+    def replicate(self, how_many_times: int) -> bool:
+        """
+        Replicate/repeat the channel lineup x number of times
+        Items will remain in the same order.
+        Ex. [A, B, C] x3 -> [A, B, C, A, B, C, A, B, C]
+        :param how_many_times: how many times to repeat the lineup
+        :return: True if successful, False if unsuccessful (Channel reloads in-place)
+        """
+        programs = self.programs
+        final_program_list = []
+        for _ in range(0, how_many_times):
+            for program in programs:
+                final_program_list.append(program)
+        if final_program_list and self.delete_all_programs():
+            return self.add_programs(programs=final_program_list)
+        return False
+
+    @helpers._check_for_dizque_instance
     def remove_duplicate_programs(self) -> bool:
         """
         Delete duplicate programs on this channel
