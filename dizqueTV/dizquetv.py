@@ -40,8 +40,47 @@ def convert_plex_item_to_filler(plex_item: Union[Video, Movie, Episode], plex_se
 
 
 def convert_plex_server_to_dizque_plex_server(plex_server: PServer) -> PlexServer:
+    """
+    Convert a plexapi.PlexServer object to a dizqueTV PlexServer object
+    :param plex_server: plexapi.PlexServer object to convert
+    :return: PlexServer object
+    """
     data = helpers._make_server_dict_from_plex_server(plex_server=plex_server)
     return PlexServer(data=data, dizque_instance=None)
+
+
+def repeat_list(items: List, how_many_times: int) -> List:
+    """
+    Repeat items in a list x number of times.
+    Items will remain in the same order.
+    Ex. [A, B, C] x3 -> [A, B, C, A, B, C, A, B, C]
+    :param items: list of items to repeat
+    :param how_many_times: how many times the list should repeat
+    :return: repeated list
+    """
+    final_list = []
+    for _ in range(0, how_many_times):
+        for item in items:
+            final_list.append(item)
+    return final_list
+
+
+def repeat_and_shuffle_list(items: List, how_many_times: int) -> List:
+    """
+    Repeat items in a list, shuffled, x number of times.
+    Items will be shuffled in each repeat group.
+    Ex. [A, B, C] x3 -> [A, B, C, B, A, C, C, A, B]
+    :param items: list of items to repeat
+    :param how_many_times: how many times the list should repeat
+    :return: repeated list
+    """
+    final_list = []
+    for _ in range(0, how_many_times):
+        list_to_shuffle = items
+        helpers.shuffle(list_to_shuffle)
+        for item in list_to_shuffle:
+            final_list.append(item)
+    return final_list
 
 
 class API:
