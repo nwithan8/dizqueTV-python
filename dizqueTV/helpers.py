@@ -10,6 +10,9 @@ from plexapi.server import PlexServer as PServer
 from dizqueTV.exceptions import MissingSettingsError, NotRemoteObjectError
 import dizqueTV.requests as requests
 
+_access_tokens = {}
+_uris = {}
+
 
 # Checks
 def _check_for_dizque_instance(func):
@@ -326,17 +329,20 @@ def get_needed_flex_time(item_time_milliseconds: int, allowed_minutes_time_frame
     return remainder
 
 
-def get_plex_indirect_uri(plex_server: PServer) -> Union[str, None]:
+def get_plex_indirect_uri(plex_server: PServer, force_update: bool = False) -> Union[str, None]:
     """
     Get the indirect URI (ex. http://192.168.1.1-xxxxxxxxxxxxxxxx.plex.direct) for a Plex server
     :param plex_server: plexapi.server.PlexServer to get URI from
+    :param force_update: ignore cached results, force an update
     :return: URI string or None
     """
+    if _uris.get(plex_server.friendlyName) and not force_update:
+        return _uris[plex_server.friendlyName]
     headers = {
         'Accept': 'application/json',
-        'X-Plex-Product': 'dizqueTV',
+        'X-Plex-Product': 'dizqueTV-Python',
         'X-Plex-Version': 'Plex OAuth',
-        'X-Plex-Client-Identifier': 'rg14zekk3pa5zp4safjwaa8z',
+        'X-Plex-Client-Identifier': 'dizqueTV-Python',
         'X-Plex-Model': 'Plex OAuth',
         'X-Plex-Token': plex_server._token
     }
@@ -345,21 +351,25 @@ def get_plex_indirect_uri(plex_server: PServer) -> Union[str, None]:
         json_data = response.json()
         for server in json_data:
             if server['name'] == plex_server.friendlyName:
+                _uris[plex_server.friendlyName] = server['connections'][0]['uri']
                 return server['connections'][0]['uri']
     return None
 
 
-def get_plex_access_token(plex_server: PServer) -> Union[str, None]:
+def get_plex_access_token(plex_server: PServer, force_update: bool = False) -> Union[str, None]:
     """
     Get the access token for a Plex server
     :param plex_server: plexapi.server.PlexServer to get access token from
+    :param force_update: ignore cached results, force an update
     :return: Access token string or None
     """
+    if not force_update:
+        return plex_server._token
     headers = {
         'Accept': 'application/json',
-        'X-Plex-Product': 'dizqueTV',
+        'X-Plex-Product': 'dizqueTV-Python',
         'X-Plex-Version': 'Plex OAuth',
-        'X-Plex-Client-Identifier': 'rg14zekk3pa5zp4safjwaa8z',
+        'X-Plex-Client-Identifier': 'dizqueTV-Python',
         'X-Plex-Model': 'Plex OAuth',
         'X-Plex-Token': plex_server._token
     }
