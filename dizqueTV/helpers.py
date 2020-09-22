@@ -9,6 +9,7 @@ from plexapi.server import PlexServer as PServer
 
 from dizqueTV.exceptions import MissingSettingsError, NotRemoteObjectError
 import dizqueTV.requests as requests
+from dizqueTV.media import Program, Redirect, FillerItem
 
 _access_tokens = {}
 _uris = {}
@@ -112,7 +113,7 @@ def _make_program_dict_from_plex_item(plex_item: Union[Video, Movie, Episode], p
 
 def _make_filler_dict_from_plex_item(plex_item: Union[Video, Movie, Episode], plex_server: PServer) -> dict:
     """
-    Build a dictionary for a Filler using a PlexAPI Video, Movie or Episode object
+    Build a dictionary for a FillerItem using a PlexAPI Video, Movie or Episode object
     :param plex_item: plexapi.video.Video, plexapi.video.Movie or plexapi.video.Episode object
     :param plex_server: plexapi.server.PlexServer object
     :return: dict of Plex item information
@@ -391,6 +392,7 @@ def dict_to_json(dictionary: dict) -> json:
     return json.dumps(dictionary)
 
 
+# Sorting
 def random_choice(items: List):
     """
     Get a random item from a list
@@ -453,3 +455,205 @@ def remove_duplicates_by_attribute(items: List, attribute_name: str) -> List:
             filtered.append(item)
             filtered_attr.append(attr)
     return filtered
+
+
+def sort_media_alphabetically(media_items: List[Union[Program, FillerItem]]) -> List[Union[Program, FillerItem]]:
+    """
+    Sort media items alphabetically.
+    Note: Shows will be grouped and sorted by series title, but episodes may be out of order
+    :param media_items: List of Program and FillerItem objects
+    :return: List of Program and FillerItem objects
+    """
+    items_with_titles, items_without_titles = _separate_with_and_without(items=media_items,
+                                                                         attribute_name='title')
+    sorted_items = sorted(items_with_titles, key=lambda x: (x.showTitle if x.type == 'episode' else x.title))
+    sorted_items.extend(items_without_titles)
+    return sorted_items
+
+
+def sort_media_by_release_date(media_items: List[Union[Program, FillerItem]]) -> List[Union[Program, FillerItem]]:
+    """
+    Sort media items by release date.
+    Note: Items without release dates are appended (alphabetically) at the end of the list
+    :param media_items: List of Program and FillerItem objects
+    :return: List of Program and FillerItem objects
+    """
+    items_with_dates, items_without_dates = _separate_with_and_without(items=media_items,
+                                                                       attribute_name='date')
+    sorted_items = sorted(items_with_dates, key=lambda x: datetime.strptime(x.date, "%Y-%m-%d"))
+    sorted_items.extend(sort_media_alphabetically(media_items=items_without_dates))
+    return sorted_items
+
+
+def _sort_shows_by_season_order(shows_dict: dict) -> List[Union[Program, FillerItem]]:
+    """
+    Sort a show dictionary by series-season-episode.
+    Series are ordered alphabetically
+    :param shows_dict: Series-season-episode dictionary
+    :return: List of Program and FillerItem objects
+    """
+    sorted_list = []
+    sorted_shows = sorted(shows_dict.items(), key=lambda show_name: show_name)
+    for show in sorted_shows:
+        sorted_seasons = sorted(show[1].items(), key=lambda season_number: season_number)
+        for season in sorted_seasons:
+            sorted_episodes = sorted(season[1].items(), key=lambda episode_number: episode_number)
+            for item in sorted_episodes:
+                sorted_list.append(item[1])
+    return sorted_list
+
+
+def sort_media_by_season_order(media_items: List[Union[Program, FillerItem]]) -> List[Union[Program, FillerItem]]:
+    """
+    Sort media items by season order.
+    Note: Series are ordered alphabetically, movies appended (alphabetically) at the end of the list.
+    :param media_items: List of Program and FillerItem objects
+    :return: List of Program and FillerItem objects
+    """
+    non_shows = [item for item in media_items if
+                 (_object_has_attribute(object=item, attribute_name='type') and item.type != 'episode')]
+    show_dict = make_show_dict(media_items=media_items)
+    sorted_shows = _sort_shows_by_season_order(shows_dict=show_dict)
+    sorted_movies = sort_media_alphabetically(media_items=non_shows)
+    sorted_all = sorted_shows + sorted_movies
+    return sorted_all
+
+
+def sort_media_by_duration(media_items: List[Union[Program, FillerItem]]) -> List[Union[Program, FillerItem]]:
+    """
+    Sort media by duration.
+    Note: Automatically removes redirect items
+    :param media_items: List of Program and FillerItem objects
+    :return: List of Program and FillerItem objects
+    """
+    non_redirects = [item for item in media_items if
+                     (_object_has_attribute(object=item, attribute_name='duration')
+                      and _object_has_attribute(object=item, attribute_name='type')
+                      and item.type != 'redirect')]
+    sorted_media = sorted(non_redirects, key=lambda x: x.duration)
+    return sorted_media
+
+
+def sort_media_randomly(media_items: List[Union[Program, FillerItem]]) -> List[Union[Program, FillerItem]]:
+    """
+    Sort media randomly.
+    :param media_items: List of Program and FillerItem objects
+    :return: List of Program and FillerItem objects
+    """
+    shuffle(items=media_items)
+    return media_items
+
+
+def sort_media_cyclical_shuffle(media_items: List[Union[Program, FillerItem]]) -> List[Union[Program, FillerItem]]:
+    """
+    Sort media cyclically.
+    Note: Automatically removes FillerItem objects
+    :param media_items: List of Program and FillerItem objects
+    :return: List of Program objects, FillerItem objects removed
+    """
+    total_item_count = len(media_items)
+    non_shows = [item for item in media_items if
+                 (_object_has_attribute(object=item, attribute_name='type') and item.type != 'episode')]
+    shuffle(items=non_shows)
+    show_dict = make_show_dict(media_items=media_items)
+    show_dict = order_show_dict(show_dict=show_dict)
+    total_episode_count = 0
+    show_list = {}
+    index = 0
+    index_list = []
+    for show_name, seasons in show_dict.items():
+        season_episode_order = []
+        for season_number, episodes in seasons.items():
+            for _, episode in episodes.items():
+                season_episode_order.append(episode)
+                total_episode_count += 1
+        show_cyclical_order = rotate_items(items=season_episode_order)
+        show_list[index] = show_cyclical_order
+        index_list.append(index)
+        index += 1
+    show_list['remaining_episode_count'] = total_episode_count
+    final_list = []
+    categories = ['show', 'non_show']
+    while len(final_list) != total_item_count:
+        if 'non_show' in categories and len(non_shows) == 0:
+            categories.remove('non_show')
+        if 'show' in categories and show_list['remaining_episode_count'] == 0:
+            categories.remove('show')
+        if not categories:
+            break
+        show_or_non_show = random_choice(items=categories)
+        if show_or_non_show == 'show':
+            random_index = random_choice(items=index_list)  # failure 1
+            new_item = show_list[random_index].pop(0)
+            show_list['remaining_episode_count'] -= 1
+            final_list.append(new_item)
+            if len(show_list[random_index]) == 0:
+                index_list.remove(random_index)
+        else:
+            new_item = non_shows.pop(0)
+            final_list.append(new_item)
+    return final_list
+
+
+def remove_duplicate_media_items(media_items: List[Union[Program, FillerItem]]) -> List[Union[Program, FillerItem]]:
+    """
+    Remove duplicate items from list of media items.
+    Check by ratingKey.
+    Note: Automatically removes redirect items
+    :param media_items: List of Program and FillerItem objects
+    :return: List of Program and FillerItem objects
+    """
+    non_redirects = [item for item in media_items if
+                     (_object_has_attribute(object=item, attribute_name='type')
+                      and item.type != 'redirect')]
+    return remove_duplicates_by_attribute(items=non_redirects, attribute_name='ratingKey')
+
+
+def _get_first_x_minutes_of_programs(programs: List[Union[Program, Redirect, FillerItem]],
+                                     minutes: int) -> Tuple[List[Union[Program, Redirect, FillerItem]], int]:
+    """
+    Keep building a list of programs in order until a duration limit is met.
+    :param programs: list of Program objects to pull from
+    :param minutes: threshold, in minutes
+    :return: list of Program objects, total running time in milliseconds
+    """
+    milliseconds = minutes * 60 * 1000
+    running_total = 0
+    programs_to_return = []
+    for program in programs:
+        if (running_total + program.duration) <= milliseconds:
+            running_total += program.duration
+            programs_to_return.append(program)
+        else:
+            break
+    return programs_to_return, running_total
+
+
+def _get_first_x_minutes_of_programs_return_unused(programs: List[Union[Program, Redirect, FillerItem]],
+                                                   minutes: int) -> Tuple[List[Union[Program, Redirect, FillerItem]],
+                                                                          int,
+                                                                          List[Union[Program, Redirect, FillerItem]]]:
+    """
+    Keep building a list of programs in order until a duration limit is met.
+    :param programs: list of Program objects to pull from
+    :param minutes: threshold, in minutes
+    :return: list of Program objects, total running time in milliseconds, unused Programs
+    """
+    milliseconds = minutes * 60 * 1000
+    running_total = 0
+    leftover_programs = []
+    programs_to_return = []
+    print(len(programs))
+    for program in programs:
+        print(f"{program.title}: {program.duration}")
+        print(f"Total + duration: {running_total + program.duration} vs Available space: {milliseconds}")
+        if (running_total + program.duration) <= milliseconds:
+            running_total += program.duration
+            programs_to_return.append(program)
+        else:
+            break
+    for program in programs:
+        if program not in programs_to_return:
+            leftover_programs.append(program)
+    print(leftover_programs)
+    return programs_to_return, running_total, leftover_programs
