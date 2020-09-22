@@ -72,7 +72,7 @@ def delete(url: str,
     try:
         res = requests.delete(url=url, json=data, headers=headers, timeout=timeout)
         if log:
-            logs.log(message=f"DELETE {url}", level=log)
+            logs.log(message=f"DELETE {url}, Body: {data}", level=log)
             logs.log(message=f"Response: {res}", level=("error" if not res else log))
         return res
         # use json= rather than data= to convert single-quoted dict to double-quoted JSON
