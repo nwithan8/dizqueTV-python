@@ -9,7 +9,7 @@ import dizqueTV.helpers as helpers
 from dizqueTV.fillers import FillerList
 from dizqueTV.media import Redirect, Program, FillerItem
 from dizqueTV.templates import MOVIE_PROGRAM_TEMPLATE, EPISODE_PROGRAM_TEMPLATE, \
-    REDIRECT_PROGRAM_TEMPLATE
+    REDIRECT_PROGRAM_TEMPLATE, FILLER_LIST_SETTINGS_TEMPLATE, FILLER_LIST_CHANNEL_TEMPLATE
 from dizqueTV.exceptions import MissingParametersError
 
 
@@ -236,6 +236,60 @@ class Channel:
         if programs_to_add and self.delete_all_programs():
             return self.add_programs(programs=programs_to_add)
         return False
+
+    @helpers._check_for_dizque_instance
+    def add_filler_list(self,
+                        filler_list: FillerList = None,
+                        filler_list_id: str = None,
+                        weight: int = 300,
+                        cooldown: int = 0) -> bool:
+        """
+        Add a filler list to this channel
+        :param filler_list: FillerList object (optional)
+        :param filler_list_id: ID of FillerList (optional)
+        :param weight: weight to assign list in channel (default: 300)
+        :param cooldown: cooldown to assign list in channel (default: 0)
+        :return: True if successful, False if unsuccessful (Channel reloads in place)
+        """
+        if not filler_list and not filler_list_id:
+            raise MissingParametersError("Please include either a FillerList object or kwargs")
+        if filler_list:
+            filler_list_id = filler_list.id
+        new_settings_dict = {
+            'id': filler_list_id,
+            'weight': weight,
+            'cooldown': cooldown
+        }
+        if helpers._settings_are_complete(new_settings_dict=new_settings_dict,
+                                          template_settings_dict=FILLER_LIST_CHANNEL_TEMPLATE,
+                                          ignore_id=False):
+            channel_data = self._data
+            channel_data['fillerCollections'].append(new_settings_dict)
+            # filler_list_data['duration'] += kwargs['duration']
+            return self.update(**channel_data)
+        return False
+
+    def delete_filler_list(self, filler_list: FillerList) -> bool:
+        """
+        Delete a program from this channel
+        :param filler_list: FillerList object to delete
+        :return: True if successful, False if unsuccessful (Channel reloads in-place)
+        """
+        channel_data = self._data
+        for a_list in channel_data['fillerCollections']:
+            if filler_list.id == a_list.get('id'):
+                channel_data['fillerCollections'].remove(a_list)
+                return self.update(**channel_data)
+        return False
+
+    def delete_all_filler_lists(self):
+        """
+        Delete all filler lists from this channel
+        :return: True if successful, False if unsuccessful (Channel reloads in-place)
+        """
+        channel_data = self._data
+        channel_data['fillerCollections'] = []
+        return self.update(**channel_data)
 
     # Sort Programs
     @helpers._check_for_dizque_instance
