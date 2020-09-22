@@ -12,14 +12,13 @@ from dizqueTV.exceptions import MissingParametersError
 
 
 class FillerList:
-    def __init__(self, data: json, dizque_instance, channels: List = None):
+    def __init__(self, data: json, dizque_instance):
         self._data = data
         self._dizque_instance = dizque_instance
         self.id = data.get('id')
         self.name = data.get('name')
         self.count = data.get('count')
         self._filler_data = data.get('content')
-        self._channels = channels
         if not self.count and self._filler_data:
             self.count = len(self._filler_data)
 
@@ -193,5 +192,8 @@ class FillerList:
         Delete this filler list
         :return: True if successful, False if unsuccessful
         """
+        # delete from all channels first
+        for channel in self.channels:
+            channel.delete_filler_list(filler_list=self)
         return self._dizque_instance.delete_filler_list(filler_list_id=self.id)
 

@@ -473,9 +473,10 @@ class API:
         kwargs = self._fill_in_default_filler_list_settings(settings_dict=kwargs, handle_errors=handle_errors)
         if helpers._settings_are_complete(new_settings_dict=kwargs,
                                           template_settings_dict=FILLER_LIST_SETTINGS_TEMPLATE,
-                                          ignore_id=True) \
-                and self._put(endpoint="/filler", data=kwargs):
-            return self.get_filler_list(filler_list_id=kwargs['id'])
+                                          ignore_id=True):
+            response = self._put(endpoint="/filler", data=kwargs)
+            if response:
+                return self.get_filler_list(filler_list_id=response.json()['id'])
         return None
 
     def update_filler_list(self, filler_list_id: str, **kwargs) -> bool:
