@@ -10,11 +10,14 @@ from plexapi.server import PlexServer as PServer
 
 import dizqueTV.requests as requests
 from dizqueTV.settings import XMLTVSettings, PlexSettings, FFMPEGSettings, HDHomeRunSettings
-from dizqueTV.channels import Channel, Program, Filler
+from dizqueTV.channels import Channel
+from dizqueTV.fillers import FillerList
+from dizqueTV.media import FillerItem, Program
 from dizqueTV.plex_server import PlexServer
-from dizqueTV.templates import PLEX_SERVER_SETTINGS_TEMPLATE, CHANNEL_SETTINGS_TEMPLATE, CHANNEL_SETTINGS_DEFAULT
+from dizqueTV.templates import PLEX_SERVER_SETTINGS_TEMPLATE, CHANNEL_SETTINGS_TEMPLATE, CHANNEL_SETTINGS_DEFAULT, \
+    FILLER_LIST_SETTINGS_TEMPLATE, FILLER_LIST_SETTINGS_DEFAULT
 import dizqueTV.helpers as helpers
-from dizqueTV.exceptions import MissingParametersError, ChannelCreationError
+from dizqueTV.exceptions import MissingParametersError, ChannelCreationError, ItemCreationError
 
 
 def convert_plex_item_to_program(plex_item: Union[Video, Movie, Episode], plex_server: PServer) -> Program:
@@ -28,15 +31,15 @@ def convert_plex_item_to_program(plex_item: Union[Video, Movie, Episode], plex_s
     return Program(data=data, dizque_instance=None, channel_instance=None)
 
 
-def convert_plex_item_to_filler(plex_item: Union[Video, Movie, Episode], plex_server: PServer) -> Filler:
+def convert_plex_item_to_filler_item(plex_item: Union[Video, Movie, Episode], plex_server: PServer) -> FillerItem:
     """
-    Convert a PlexAPI Video, Movie or Episode object into a Filler
+    Convert a PlexAPI Video, Movie or Episode object into a FillerItem
     :param plex_item: plexapi.video.Video, plexapi.video.Movie or plexapi.video.Episode object
     :param plex_server: plexapi.server.PlexServer object
     :return: Program object
     """
     data = helpers._make_filler_dict_from_plex_item(plex_item=plex_item, plex_server=plex_server)
-    return Filler(data=data, dizque_instance=None, channel_instance=None)
+    return FillerItem(data=data, dizque_instance=None, filler_list_instance=None)
 
 
 def convert_plex_server_to_dizque_plex_server(plex_server: PServer) -> PlexServer:
@@ -142,6 +145,7 @@ class API:
 
     # Versions
     @property
+    # TODO Check if this works with new dual versions
     def dizquetv_version(self) -> str:
         """
         Get dizqueTV version number
@@ -354,8 +358,8 @@ class API:
                 kwargs['programs'].append(program)
             else:
                 if not plex_server:
-                    raise ChannelCreationError("You must include a plex_server if you are adding PlexAPI Video, "
-                                               "Movie or Episodes as programs")
+                    raise ItemCreationError("You must include a plex_server if you are adding PlexAPI Video, "
+                                            "Movie or Episodes as programs")
                 kwargs['programs'].append(
                     convert_plex_item_to_program(plex_item=program, plex_server=plex_server)._data)
         kwargs = self._fill_in_default_channel_settings(settings_dict=kwargs, handle_errors=handle_errors)
@@ -387,6 +391,114 @@ class API:
         :return: True if successful, False if unsuccessful
         """
         if self._delete(endpoint="/channel", data={'number': channel_number}):
+            return True
+        return False
+
+    # FillerItem List Settings
+    @property
+    def filler_lists(self) -> List[FillerList]:
+        """
+        Get all dizqueTV filler lists
+        :return: List of FillerList objects
+        """
+        json_data = self._get_json(endpoint='/fillers', timeout=5)  # large JSON may take longer, so bigger timeout
+        return [FillerList(data=filler_list, dizque_instance=self) for filler_list in json_data]
+
+    def get_filler_list(self, filler_list_id: str) -> Union[FillerList, None]:
+        """
+        Get a specific dizqueTV filler list
+        :param filler_list_id: id of filler list
+        :return: FillerList object
+        """
+        filler_list_data = self._get_json(endpoint=f'/filler/{filler_list_id}')
+        if filler_list_data:
+            return FillerList(data=filler_list_data, dizque_instance=self)
+        return None
+
+    def get_filler_list_info(self, filler_list_id: str) -> json:
+        """
+        Get the name, content and id for a dizqueTV filler list
+        :param filler_list_id: id of filler list
+        :return: JSON data with filler list name, content and id
+        """
+        return self._get_json(endpoint=f'/filler/{filler_list_id}')
+
+    def get_filler_list_channels(self, filler_list_id: str) -> List[Channel]:
+        channel_data = self._get_json(endpoint=f'/filler/{filler_list_id}/channels')
+        return [self.get_channel(channel_number=channel.get('number')) for channel in channel_data]
+
+    def _fill_in_default_filler_list_settings(self, settings_dict: dict, handle_errors: bool = False) -> dict:
+        """
+        Set some dynamic default values, such as filler list name
+        :param settings_dict: Dictionary of new settings for filler list
+        :return: Dictionary of settings with defaults filled in
+        """
+        if not settings_dict.get('content'):  # empty or doesn't exist
+            if handle_errors:
+                settings_dict['content'] = [{
+                    "duration": 600000,
+                    "isOffline": True
+                }]
+            else:
+                raise ChannelCreationError("You must include at least one program when creating a filler list.")
+        if 'name' not in settings_dict.keys():
+            settings_dict['name'] = f"New List {len(self.filler_lists) + 1}"
+        return helpers._combine_settings(new_settings_dict=settings_dict, old_settings_dict=CHANNEL_SETTINGS_DEFAULT)
+
+    def add_filler_list(self,
+                        content: List[Union[Program, Video, Movie, Episode]],
+                        plex_server: PServer = None,
+                        handle_errors: bool = False,
+                        **kwargs) -> Union[FillerList, None]:
+        """
+        Add a filler list to dizqueTV
+        Must include at least one program to create
+        :param content: At least one Program or PlexAPI Video, Movie or Episode to add to the new filler list
+        :param plex_server: plexapi.server.PlexServer (optional, required if adding PlexAPI Video, Movie or Episode)
+        :param kwargs: keyword arguments of setting names and values
+        :param handle_errors: Suppress error if they arise
+        (ex. add redirect if no program is included)
+        :return: new FillerList object or None
+        """
+        kwargs['content'] = []
+        for item in content:
+            if type(item) == FillerItem:
+                kwargs['content'].append(item)
+            else:
+                if not plex_server:
+                    raise ItemCreationError("You must include a plex_server if you are adding PlexAPI Video, "
+                                            "Movie or Episodes as programs")
+                kwargs['content'].append(
+                    convert_plex_item_to_filler_item(plex_item=item, plex_server=plex_server)._data)
+        kwargs = self._fill_in_default_filler_list_settings(settings_dict=kwargs, handle_errors=handle_errors)
+        if helpers._settings_are_complete(new_settings_dict=kwargs,
+                                          template_settings_dict=FILLER_LIST_SETTINGS_TEMPLATE,
+                                          ignore_id=True) \
+                and self._put(endpoint="/filler", data=kwargs):
+            return self.get_filler_list(filler_list_id=kwargs['id'])
+        return None
+
+    def update_filler_list(self, filler_list_id: str, **kwargs) -> bool:
+        """
+        Edit a dizqueTV FillerList
+        :param filler_list_id: ID of FillerList to update
+        :param kwargs: keyword arguments of setting names and values
+        :return: True if successful, False if unsuccessful
+        """
+        filler_list = self.get_filler_list(filler_list_id=filler_list_id)
+        if filler_list:
+            old_settings = filler_list._data
+            new_settings = helpers._combine_settings(new_settings_dict=kwargs, old_settings_dict=old_settings)
+            if self._post(endpoint=f"/filler/{filler_list_id}", data=new_settings):
+                return True
+        return False
+
+    def delete_filler_list(self, filler_list_id: str) -> bool:
+        """
+        Delete a dizqueTV filler list
+        :return: True if successful, False if unsuccessful
+        """
+        if self._delete(endpoint=f"/filler/{filler_list_id}"):
             return True
         return False
 
@@ -575,14 +687,15 @@ class API:
         """
         return convert_plex_item_to_program(plex_item=plex_item, plex_server=plex_server)
 
-    def convert_plex_item_to_filler(self, plex_item: Union[Video, Movie, Episode], plex_server: PServer) -> Filler:
+    def convert_plex_item_to_filler_item(self, plex_item: Union[Video, Movie, Episode], plex_server: PServer) -> \
+            FillerItem:
         """
-        Convert a PlexAPI Video, Movie or Episode object into a Filler
+        Convert a PlexAPI Video, Movie or Episode object into a FillerItem
         :param plex_item: plexapi.video.Video, plexapi.video.Movie or plexapi.video.Episode object
         :param plex_server: plexapi.server.PlexServer object
         :return: Program object
         """
-        return convert_plex_item_to_filler(plex_item=plex_item, plex_server=plex_server)
+        return convert_plex_item_to_filler_item(plex_item=plex_item, plex_server=plex_server)
 
     def add_programs_to_channels(self, programs: List[Program],
                                  channels: List[Channel] = None,
@@ -606,12 +719,13 @@ class API:
                 return False
         return True
 
-    def add_fillers_to_channels(self, fillers: List[Filler],
+    # TODO Retire/refactor this function
+    def add_fillers_to_channels(self, fillers: List[FillerItem],
                                 channels: List[Channel] = None,
                                 channel_numbers: List[int] = None) -> bool:
         """
         Add multiple filler items to multiple channels
-        :param fillers: List of Filler objects
+        :param fillers: List of FillerItem objects
         :param channels: List of Channel objects (optional)
         :param channel_numbers: List of channel numbers
         :return: True if successful, False if unsuccessful (Channel objects reload in place)
