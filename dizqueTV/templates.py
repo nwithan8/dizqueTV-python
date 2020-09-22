@@ -49,12 +49,23 @@ CHANNEL_SETTINGS_DEFAULT = {
 FILLER_LIST_SETTINGS_TEMPLATE = {
     "name": str,
     "content": List,
-    "id": str,
+    "id": str
 }
 
 FILLER_LIST_SETTINGS_DEFAULT = {
     "name": "New List",
-    "content": [],
+    "content": []
+}
+
+FILLER_LIST_CHANNEL_TEMPLATE = {
+    "id": str,
+    "weight": int,
+    "cooldown": int
+}
+
+FILLER_LIST_CHANNEL_DEFAULT = {
+    "weight": 300,
+    "cooldown": 0
 }
 
 REDIRECT_PROGRAM_TEMPLATE = {

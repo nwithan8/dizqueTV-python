@@ -55,7 +55,7 @@ def _settings_are_complete(new_settings_dict: json, template_settings_dict: json
     for k in template_settings_dict.keys():
         if k not in new_settings_dict.keys():
             # or not isinstance(new_settings_dict[k], type(template_settings_dict[k]))
-            if k == '_id' and ignore_id:
+            if k in ['_id', 'id'] and ignore_id:
                 pass
             else:
                 raise MissingSettingsError(f"Missing setting: {k}")
