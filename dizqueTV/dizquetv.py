@@ -363,6 +363,8 @@ class API:
                                             "Movie or Episodes as programs")
                 kwargs['programs'].append(
                     convert_plex_item_to_program(plex_item=program, plex_server=plex_server)._data)
+        if kwargs.get('iconPosition'):
+            kwargs['iconPosition'] = helpers.convert_icon_position(position_text=kwargs['iconPosition'])
         kwargs = self._fill_in_default_channel_settings(settings_dict=kwargs, handle_errors=handle_errors)
         if helpers._settings_are_complete(new_settings_dict=kwargs,
                                           template_settings_dict=CHANNEL_SETTINGS_TEMPLATE,
@@ -381,6 +383,8 @@ class API:
         channel = self.get_channel(channel_number=channel_number)
         if channel:
             old_settings = channel._data
+            if kwargs.get('iconPosition'):
+                kwargs['iconPosition'] = helpers.convert_icon_position(position_text=kwargs['iconPosition'])
             new_settings = helpers._combine_settings(new_settings_dict=kwargs, old_settings_dict=old_settings)
             if self._post(endpoint="/channel", data=new_settings):
                 return True

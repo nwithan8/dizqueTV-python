@@ -62,6 +62,26 @@ def _settings_are_complete(new_settings_dict: json, template_settings_dict: json
     return True
 
 
+def convert_icon_position(position_text) -> str:
+    """
+    Convert ex. Top Left -> 0
+    :param position_text: position
+    :return: str(int)
+    """
+    if type(position_text) == int:
+        return str(position_text)
+    position_text = position_text.lower()
+    if 'top' in position_text:
+        if 'left' in position_text:
+            return '0'
+        if 'right' in position_text:
+            return '1'
+    if 'bottom' in position_text:
+        if 'left' in position_text:
+            return '2'
+    return '3'
+
+
 def _object_has_attribute(object, attribute_name: str) -> bool:
     """
     Check if an object has an attribute (exists and is not None)
