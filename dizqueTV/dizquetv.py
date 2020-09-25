@@ -670,13 +670,24 @@ class API:
         return None
 
     @property
-    def m3u(self) -> m3u8:
+    def channels_m3u(self) -> m3u8:
         """
-        Get dizqueTV's m3u playlist
+        Get dizqueTV's channels.m3u playlist
         Without m3u8, this method currently produces an error.
         :return: m3u8 object
         """
         return m3u8.load(f"{self.url}/api/channels.m3u")
+
+    @property
+    def hls_m3u(self) -> m3u8:
+        """
+        Get dizqueTV's hls.m3u playlist
+        Without m3u8, this method currently produces an error.
+        :return: m3u8 object
+        """
+        return m3u8.load(f"{self.url}/api/hls.m3u")
+
+
 
     # Other Functions
     def convert_plex_item_to_program(self, plex_item: Union[Video, Movie, Episode], plex_server: PServer) -> Program:
