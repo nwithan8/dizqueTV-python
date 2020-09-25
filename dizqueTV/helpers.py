@@ -257,6 +257,16 @@ def string_to_datetime(date_string: str, template: str = "%Y-%m-%dT%H:%M:%S") ->
     return datetime.strptime(date_string, template)
 
 
+def datetime_to_string(datetime_object: datetime, template: str = "%Y-%m-%dT%H:%M:%S.000Z") -> str:
+    """
+    Convert a datetime.datetime object to a string
+    :param datetime_object: datetime.datetime object to convert
+    :param template: (Optional) datetime template to use when parsing string
+    :return: str representation of datetime
+    """
+    return datetime_object.strftime(template)
+
+
 def adjust_datetime_for_timezone(local_time: datetime) -> datetime:
     """
     Shift datetime.datetime in regards to UTC time

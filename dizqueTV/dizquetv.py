@@ -1,5 +1,6 @@
 import json
 import logging
+from datetime import datetime
 from xml.etree import ElementTree
 from typing import List, Union
 
@@ -11,6 +12,7 @@ from plexapi.server import PlexServer as PServer
 import dizqueTV.requests as requests
 from dizqueTV.settings import XMLTVSettings, PlexSettings, FFMPEGSettings, HDHomeRunSettings
 from dizqueTV.channels import Channel
+from dizqueTV.guide import Guide
 from dizqueTV.fillers import FillerList
 from dizqueTV.media import FillerItem, Program
 from dizqueTV.plex_server import PlexServer
@@ -145,7 +147,6 @@ class API:
 
     # Versions
     @property
-    # TODO Check if this works with new dual versions
     def dizquetv_version(self) -> str:
         """
         Get dizqueTV version number
@@ -677,6 +678,46 @@ class API:
         :return: m3u8 object
         """
         return m3u8.load(f"{self.url}/api/channels.m3u")
+
+    # Guide
+    @property
+    def guide(self) -> Guide:
+        """
+        Get the dizqueTV guide
+        :return: dizqueTV.Guide object
+        """
+        json_data = self._get_json(endpoint='/guide/debug')
+        return Guide(data=json_data, dizque_instance=self)
+
+    @property
+    def last_guide_update(self) -> Union[datetime, None]:
+        """
+        Get the last update time for the guide
+        :return: datetime.datetime object
+        """
+        data = self._get_json(endpoint='/guide/status')
+        if data and data.get('lastUpdate'):
+            return helpers.string_to_datetime(date_string=data['lastUpdate'])
+        return None
+
+    @property
+    def guide_channel_numbers(self) -> List[str]:
+        """
+        Get the list of channel numbers from the guide
+        :return: List of strings (not ints)
+        """
+        data = self._get_json(endpoint='/guide/status')
+        if data and data.get('channelNumbers'):
+            return data['channelNumbers']
+        return []
+
+    @property
+    def guide_lineup_json(self) -> json:
+        """
+        Get the raw guide JSON data
+        :return: JSON data
+        """
+        return self._get_json(endpoint='/guide/debug')
 
     # Other Functions
     def convert_plex_item_to_program(self, plex_item: Union[Video, Movie, Episode], plex_server: PServer) -> Program:
