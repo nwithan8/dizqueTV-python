@@ -92,11 +92,15 @@ def _make_program_dict_from_plex_item(plex_item: Union[Video, Movie, Episode], p
         'ratingKey': plex_item.ratingKey,
         'icon': f"{plex_uri}{plex_item.thumb}?X-Plex-Token={plex_token}",
         'type': item_type,
-        'duration': plex_item.duration,
+        'duration': (plex_item.duration if (hasattr(plex_item, 'duration') and plex_item.duration) else 0),
         'summary': plex_item.summary,
         'rating': plex_item.contentRating,
-        'date': remove_time_from_date(plex_item.originallyAvailableAt),
-        'year': get_year_from_date(plex_item.originallyAvailableAt),
+        'date': (remove_time_from_date(plex_item.originallyAvailableAt)
+                 if (hasattr(plex_item, 'originallyAvailableAt') and plex_item.originallyAvailableAt)
+                 else '1900-01-01'),
+        'year': (get_year_from_date(plex_item.originallyAvailableAt)
+                 if (hasattr(plex_item, 'originallyAvailableAt') and plex_item.originallyAvailableAt)
+                 else '1900'),
         'plexFile': plex_media_item_part.key,
         'file': plex_media_item_part.file,
         'showTitle': (plex_item.grandparentTitle if item_type == 'episode' else plex_item.title),
@@ -126,10 +130,14 @@ def _make_filler_dict_from_plex_item(plex_item: Union[Video, Movie, Episode], pl
         'ratingKey': plex_item.ratingKey,
         'icon': plex_item.thumb,
         'type': item_type,
-        'duration': plex_item.duration,
+        'duration': (plex_item.duration if (hasattr(plex_item, 'duration') and plex_item.duration) else 0),
         'summary': plex_item.summary,
-        'date': remove_time_from_date(plex_item.originallyAvailableAt),
-        'year': get_year_from_date(plex_item.originallyAvailableAt),
+        'date': (remove_time_from_date(plex_item.originallyAvailableAt)
+                 if (hasattr(plex_item, 'originallyAvailableAt') and plex_item.originallyAvailableAt)
+                 else '1900-01-01'),
+        'year': (get_year_from_date(plex_item.originallyAvailableAt)
+                 if (hasattr(plex_item, 'originallyAvailableAt') and plex_item.originallyAvailableAt)
+                 else '1900-01-01'),
         'plexFile': plex_media_item_part.key,
         'file': plex_media_item_part.file,
         'showTitle': (plex_item.grandparentTitle if item_type == 'episode' else plex_item.title),
