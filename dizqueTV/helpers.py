@@ -209,6 +209,17 @@ def _separate_with_and_without(items: List, attribute_name: str) -> Tuple[List, 
     return items_with, items_without
 
 
+def get_non_shows(media_items: List) -> List:
+    """
+    Get all non_show items
+    :param media_items: list of MediaItem objects
+    :return: list of non-show MediaItem objects
+    """
+    return [item for item in media_items if
+            ((_object_has_attribute(object=item, attribute_name='type') and item.type != 'episode') or
+             (_object_has_attribute(object=item, attribute_name='season') and not item.season))]
+
+
 def make_show_dict(media_items: List) -> dict:
     """
     Convert a list of MediaItem objects into a show-season-episode dictionary
@@ -218,7 +229,7 @@ def make_show_dict(media_items: List) -> dict:
     """
     show_dict = {}
     for item in media_items:
-        if _object_has_attribute(object=item, attribute_name='type') and item.type == 'episode':
+        if _object_has_attribute(object=item, attribute_name='type') and item.type == 'episode' and item.episode:
             if item.showTitle in show_dict.keys():
                 if item.season in show_dict[item.showTitle].keys():
                     show_dict[item.showTitle][item.season][item.episode] = item
@@ -248,6 +259,25 @@ def order_show_dict(show_dict: dict) -> dict:
                            sorted(seasons.items(), key=lambda item: item[0])}
         season_ordered_dict[show_name] = ordered_seasons
     return season_ordered_dict
+
+
+def add_durations_to_show_dict(show_dict: dict) -> dict:
+    """
+    Add episode, season and show duration to show_dict
+    :param show_dict: dictionary of shows in show-season-episode structure
+    :return: dict object with duration included for each episode, season and show
+    """
+    sorted_shows = {}
+    for show_name, seasons in show_dict.items():
+        sorted_shows[show_name] = {'seasons': {}, 'duration': 0}
+        for season_number, episodes in seasons.items():
+            sorted_shows[show_name]['seasons'][season_number] = {'episodes': {}, 'duration': 0}
+            for episode_number, episode in episodes.items():
+                episode_dict = {'episode': episode, 'duration': episode.duration}
+                sorted_shows[show_name]['seasons'][season_number]['episodes'][episode_number] = episode_dict
+                sorted_shows[show_name]['seasons'][season_number]['duration'] += episode.duration
+                sorted_shows[show_name]['duration'] += episode.duration
+    return sorted_shows
 
 
 # Public Helpers
@@ -548,8 +578,7 @@ def sort_media_by_season_order(media_items: List[Union[Program, FillerItem]]) ->
     :param media_items: List of Program and FillerItem objects
     :return: List of Program and FillerItem objects
     """
-    non_shows = [item for item in media_items if
-                 (_object_has_attribute(object=item, attribute_name='type') and item.type != 'episode')]
+    non_shows = get_non_shows(media_items=media_items)
     show_dict = make_show_dict(media_items=media_items)
     sorted_shows = _sort_shows_by_season_order(shows_dict=show_dict)
     sorted_movies = sort_media_alphabetically(media_items=non_shows)
@@ -590,8 +619,7 @@ def sort_media_cyclical_shuffle(media_items: List[Union[Program, FillerItem]]) -
     :return: List of Program objects, FillerItem objects removed
     """
     total_item_count = len(media_items)
-    non_shows = [item for item in media_items if
-                 (_object_has_attribute(object=item, attribute_name='type') and item.type != 'episode')]
+    non_shows = get_non_shows(media_items=media_items)
     shuffle(items=non_shows)
     show_dict = make_show_dict(media_items=media_items)
     show_dict = order_show_dict(show_dict=show_dict)
@@ -631,6 +659,45 @@ def sort_media_cyclical_shuffle(media_items: List[Union[Program, FillerItem]]) -
             new_item = non_shows.pop(0)
             final_list.append(new_item)
     return final_list
+
+
+def balance_shows(media_items: List[Union[Program, FillerItem]], margin_of_correction: float = 0.1) -> \
+        List[Union[Program, FillerItem]]:
+    """
+    Balance weights of the shows. Movies are untouched.
+    :param media_items: List of Program and FillerItem objects
+    :param margin_of_correction: Percentage over shortest time to use when assessing whether to add a new episode
+    :return: List of Program and FillerItem objects
+    """
+    non_shows = get_non_shows(media_items=media_items)
+    show_dict = make_show_dict(media_items=media_items)
+    ordered_show_dict = order_show_dict(show_dict=show_dict)
+    ordered_show_dict_with_durations = add_durations_to_show_dict(show_dict=show_dict)
+    show_durations = []
+    for show_name in ordered_show_dict_with_durations.keys():
+        show_durations.append(ordered_show_dict_with_durations[show_name]['duration'])
+    shortest_show_length = min(show_durations)
+    margin = 1 + margin_of_correction
+    final_shows = []
+    print(ordered_show_dict_with_durations)
+    for show_name, show_data in ordered_show_dict_with_durations.items():
+        show_running_duration = 0
+        continue_with_show = True
+        for season_number, season_data in show_data['seasons'].items():
+            if not continue_with_show:
+                break
+            for episode_number, episode_data in season_data['episodes'].items():
+                if not continue_with_show:
+                    break
+                potential_show_duration = show_running_duration + episode_data['duration']
+                if (float(potential_show_duration) / float(shortest_show_length)) <= margin:
+                    final_shows.append(episode_data['episode'])
+                    show_running_duration += episode_data['duration']
+                else:
+                    continue_with_show = False
+    sorted_movies = sort_media_alphabetically(media_items=non_shows)
+    sorted_all = final_shows + sorted_movies
+    return sorted_all
 
 
 def remove_duplicate_media_items(media_items: List[Union[Program, FillerItem]]) -> List[Union[Program, FillerItem]]:
@@ -681,10 +748,7 @@ def _get_first_x_minutes_of_programs_return_unused(programs: List[Union[Program,
     running_total = 0
     leftover_programs = []
     programs_to_return = []
-    print(len(programs))
     for program in programs:
-        print(f"{program.title}: {program.duration}")
-        print(f"Total + duration: {running_total + program.duration} vs Available space: {milliseconds}")
         if (running_total + program.duration) <= milliseconds:
             running_total += program.duration
             programs_to_return.append(program)
@@ -693,5 +757,4 @@ def _get_first_x_minutes_of_programs_return_unused(programs: List[Union[Program,
     for program in programs:
         if program not in programs_to_return:
             leftover_programs.append(program)
-    print(leftover_programs)
     return programs_to_return, running_total, leftover_programs
