@@ -618,6 +618,19 @@ class Channel:
             return self.add_programs(programs=final_programs_to_add)
         return False
 
+    def balance_programs(self, margin_of_error: float = 0.1) -> bool:
+        """
+        Balance shows to the shortest show length. Movies unaffected.
+        :param margin_of_error: (Optional) Specify margin of error when deciding whether to add another episode.
+        Ex. margin_of_error = 0.1 -> If adding a new episode would eclipse the shortest show length by 10% or less,
+        add the episode.
+        :return: True if successful, False if unsuccessful (Channel reloads in-place)
+        """
+        sorted_programs = helpers.balance_shows(media_items=self.programs, margin_of_correction=margin_of_error)
+        if sorted_programs and self.delete_all_programs():
+            return self.add_programs(programs=sorted_programs)
+        return False
+
     # Delete
     @helpers._check_for_dizque_instance
     def delete(self) -> bool:
