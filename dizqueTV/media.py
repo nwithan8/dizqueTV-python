@@ -20,7 +20,7 @@ def _check_for_dizque_instance(func):
 
 
 class BaseMediaItem:
-    def __init__(self, data: json, dizque_instance):
+    def __init__(self, data: json, dizque_instance, channel_instance=None):
         self._data = data
         self._dizque_instance = dizque_instance
         self.type = data.get('type')
@@ -32,8 +32,8 @@ class BaseMediaItem:
 
 
 class MediaItem(BaseMediaItem):
-    def __init__(self, data: json, dizque_instance):
-        super().__init__(data=data, dizque_instance=dizque_instance)
+    def __init__(self, data: json, dizque_instance, channel_instance=None):
+        super().__init__(data=data, dizque_instance=dizque_instance, channel_instance=channel_instance)
         self.title = data.get('title')
         self.key = data.get('key')
         self.ratingKey = data.get('ratingKey')
