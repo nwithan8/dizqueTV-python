@@ -60,26 +60,38 @@ Enable verbose logging by passing ``verbose=True`` into the ``API`` object decla
 - Sort programs alphabetically: ``sorted = Channel.sort_programs_alphabetically()`` -> True/False
 - Sort programs by duration: ``sorted = Channel.sort_programs_by_duration()`` -> True/False
 - Sort programs randomly: ``sorted = Channel.sort_programs_randomly()`` -> True/False
-- Sort programs cylically: ``sorted = Channel.cyclical_shuffl()`` -> True/False
+- Sort programs cylically: ``sorted = Channel.cyclical_shuffle()`` -> True/False
+- Sort programs by block shuffle: ``sorted = Channel.block_shuffle(block_length: int, randomize: bool)`` -> True/False
 - Repeat programs: ``repeated = Channel.replicate(how_many_times: int)`` -> True/False
 - Repeat and shuffle programs ``repeated = Channel.replicate_and_shuffle(how_many_times: int)`` -> True/False
 - Remove duplicate programs: ``sorted = Channel.remove_duplicate_programs()`` -> True/False
 - Remove specials: ``sorted = Channel.remove_specials()`` -> True/False
+- Balance shows: ``balanced = Channel.balance_programs(margin_of_error: float)`` -> True/False
 - Add pad times: ``added = Channel.pad_times(start_every_x_minutes: int)`` -> True/False
 - Add reruns: ``added = Channel.add_reruns(start_time: datetime.datetime, length_hours: int, times_to_repeat: int)`` -> True/False
 - Add "Channel at Night": ``added = Channel.add_channel_at_night(night_channel_number: int, start_hour: int (24-hour time), end_hour: int (24-hour time))`` -> True/False
 
-
 #### Filler (Flex)
-- Get a channel's filler (Flex) items: ``filler = Channel.filler`` -> list of ``MediaItem`` objects
-- Add filler (or PlexAPI Video) to a channel: ``added = Channel.add_filler(plex_item: PlexAPI Video, plex_server: PlexAPI Server, filler: Filler, **kwargs)`` -> True/False
-- Add multiple fillers (or PlexAPI Video) to a channel: ``added = Channel.add_fillers(fillers: [Filler, PlexAPI Video, ...], plex_server: PlexAPI Server)`` -> True/False
-- Add multiple fillers to multiple channels: ``added = dtv.add_fillers_to_channels(fillers: [Filler], channels: [Channel], channel_numbers: [int])`` -> True/False
-- Delete a filler: ``deleted = Channel.delete_filler(filler: Filler)`` -> True/False
-- Delete all filler: ``deleted = Channel.delete_all_filler()`` -> True/False
-- Sort filler by duration: ``sorted = Channel.sort_filler_by_duration()`` -> True/False
-- Sort filler randomly: ``sorted = Channel.sort_filler_randomly()`` -> True/False
-- Remove duplicate filler: ``sorted = Channel.remove_duplicate_fillers()`` -> True/False
+- Get a filler list: ``filler_list = dtv.get_filler_list(filler_list_id: str)`` -> ``FillerList`` object
+- Get all filler lists: ``filler_lists = dtv.filler_lists`` -> List of ``FillerList`` objects
+- Get a filler list info: ``filler_list_info = dtv.get_filler_list_info(filler_list_id: str)`` or ``FillerList.details`` -> JSON
+- Get a filler list's channels: ``filler_list_channels = dtv.get_filler_list_channels(filler_list_id: str)`` or ``FillerList.channels`` -> List of ``Channel`` objects
+- Get a filler list's content: ``filler_list_contents = FillerList.contents`` -> List of ``FillerItem`` objects
+- Add a filler list: ``new_filler_list = dtv.add_filler_list(content: [Program, Video, Movie, Episode, ...], plex_server: PlexAPI Server, handle_errors: bool, **kwargs)`` -> ``FillerList`` object
+- Update a filler list: ``updated = dtv.update_filler_list(filler_list_id: str, **kwargs)`` or ``FillerList.update(**kwargs)`` -> True/False
+- Delete a filler list: ``deleted = dtv.delete_filler_list(filler_list_id: str)`` or ``FillerList.delete()`` -> True/False
+- Refresh a filler list: ``FillerList.refresh()`` -> None (reloads ``FillerList`` object in-place)
+- Add a filler list to a channel: ``added = Channel.add_filler_list(filler_list: FillerList, filler_list_id: str, weight: int, cooldown: int)`` -> True/False
+- Add multiple filler lists to multiple channels: ``added = dtv.add_filler_lists_to_channels(filler_lists: [FillerList, ...], channels: [Channel, ...], channel_numbers: [int, ...])`` -> True/False
+- Delete a filler list from a channel: ``deleted = Channel.delete_filler_list(filler_list: FillerList, filler_list_id: str)`` -> True/False
+- Delete all filler lists from a channel: ``deleted = Channel.delete_all_filler_lists()`` -> True/False
+- Add a filler item (or PlexAPI Video) to a filler list: ``added = FillerList.add_filler(plex_item: plexapi.media.Video/Movie/Episode, plex_server: PlexAPI Server, filler: FillerItem, **kwargs)`` -> True/False
+- Add multiple filler items (or PlexAPI Video) to a filler list: ``added = FillerList.add_fillers(fillers: [FillerItem, plexapi.media.Video/Movie/Episode, ...], plex_server: PlexAPI Server)`` -> True/False
+- Delete a filler item: ``deleted = FillerList.delete_filler(filler: FillerItem)`` -> True/False
+- Delete all filler items: ``deleted = FillerList.delete_all_fillers()`` -> True/False
+- Sort filler items by duration: ``sorted = FillerList.sort_filler_by_duration()`` -> True/False
+- Sort filler items randomly: ``sorted = FillerList.sort_filler_randomly()`` -> True/False
+- Remove duplicate filler items: ``sorted = FillerList.remove_duplicate_fillers()`` -> True/False
 
 #### Plex
 - Get all Plex Media Servers: ``servers = dtv.plex_servers`` -> list of ``PlexServer`` objects
@@ -114,8 +126,17 @@ Enable verbose logging by passing ``verbose=True`` into the ``API`` object decla
 - Get FFMPEG version: ``version = dtv.ffmpeg_version`` -> str
 - Get XMLTV XML file: ``xml = dtv.xmltv_xml`` -> ``xml.etree.ElementTree.Element`` object
 - Refresh XMLTV XML file server-side: ``refreshed = dtv.refresh_xml()`` -> True/False
-- Get M3U playlist: ``m3u = dtv.m3u`` -> ``m3u8`` object
+- Get M3U playlist: ``m3u = dtv.channels_m3u`` -> ``m3u8`` object
+- Get HLS playlist: ``hls = dtv.hls_m3u`` -> ``m3u8`` object
 - Get last time XMLTV was refreshed: ``last_time = dtv.last_xmltv_refresh`` -> str
+
+#### Guide
+- Get dizqueTV guide: ``guide = dtv.guide`` -> ``Guide`` object
+- Get last guide update time: ``update_time = dtv.last_guide_update`` or ``Guide.last_update`` -> ``datetime.datetime`` object
+- Get guide channel numbers: ``guide_numbers = dtv.guide_channel_numbers`` -> List of strings (not ints)
+- Get guide channels: ``guide_channels = Guide.channels`` -> List of ``GuideChannel`` objects
+- Get guide lineup data (JSON): ``guide_lineup = dtv.guide_lineup_json`` -> JSON
+- Get guide channel lineup (``GuideProgram`` objects): ``guide_lineup = GuideChannel.get_lineup(from_date: datetime.datetime, to_date: datetime.datetime)`` -> List of ``GuideProgram`` objects
 
 #### Helper
 - Convert a Python PlexAPI Video to a Program: ``program = dtv.convert_plex_item_to_program(plex_item: PlexAPI Video, plex_server: PlexAPI Server)`` or ``program = Channel.convert_plex_item_to_program(plex_item: PlexAPI Video, plex_server: PlexAPI Server)`` -> Program
