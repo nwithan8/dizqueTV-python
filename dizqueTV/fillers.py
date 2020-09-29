@@ -38,8 +38,9 @@ class FillerList:
             self.__init__(data=json_data, dizque_instance=self._dizque_instance)
             del temp_filler_list
 
+    @property
     @helpers._check_for_dizque_instance
-    def get_details(self) -> json:
+    def details(self) -> json:
         return self._dizque_instance.get_filler_list_info(filler_list_id=self.id)
 
     @property
@@ -54,6 +55,7 @@ class FillerList:
                 for filler in self._filler_data]
 
     @property
+    @helpers._check_for_dizque_instance
     def channels(self) -> List:
         """
         Get all channels this filler list is used on
@@ -106,7 +108,9 @@ class FillerList:
         return False
 
     @helpers._check_for_dizque_instance
-    def add_fillers(self, fillers: List[Union[FillerItem, Video, Movie, Episode]], plex_server: PServer = None) -> bool:
+    def add_fillers(self,
+                    fillers: List[Union[FillerItem, Video, Movie, Episode]],
+                    plex_server: PServer = None) -> bool:
         """
         Add multiple programs to this channel
         :param fillers: List of FillerItem, plexapi.video.Video, plexapi.video.Movie or plexapi.video.Episode objects

@@ -269,19 +269,25 @@ class Channel:
             return self.update(**channel_data)
         return False
 
-    def delete_filler_list(self, filler_list: FillerList) -> bool:
+    @helpers._check_for_dizque_instance
+    def delete_filler_list(self, filler_list: FillerList = None, filler_list_id: str = None) -> bool:
         """
         Delete a program from this channel
         :param filler_list: FillerList object to delete
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
         """
+        if not filler_list and not filler_list_id:
+            raise Exception("You must include either a filler_list or a filler_list_id.")
+        if filler_list:
+            filler_list_id = filler_list.id
         channel_data = self._data
         for a_list in channel_data['fillerCollections']:
-            if filler_list.id == a_list.get('id'):
+            if filler_list_id == a_list.get('id'):
                 channel_data['fillerCollections'].remove(a_list)
                 return self.update(**channel_data)
         return False
 
+    @helpers._check_for_dizque_instance
     def delete_all_filler_lists(self):
         """
         Delete all filler lists from this channel
@@ -633,6 +639,7 @@ class Channel:
             return self.add_programs(programs=final_programs_to_add)
         return False
 
+    @helpers._check_for_dizque_instance
     def balance_programs(self, margin_of_error: float = 0.1) -> bool:
         """
         Balance shows to the shortest show length. Movies unaffected.

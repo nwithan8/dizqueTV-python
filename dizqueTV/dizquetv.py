@@ -774,13 +774,13 @@ class API:
                 return False
         return True
 
-    # TODO Retire/refactor this function
-    def add_fillers_to_channels(self, fillers: List[FillerItem],
-                                channels: List[Channel] = None,
-                                channel_numbers: List[int] = None) -> bool:
+    def add_filler_lists_to_channels(self,
+                                      filler_lists: List[FillerList],
+                                      channels: List[Channel] = None,
+                                      channel_numbers: List[int] = None) -> bool:
         """
-        Add multiple filler items to multiple channels
-        :param fillers: List of FillerItem objects
+        Add multiple filler lists to multiple channels
+        :param filler_lists: List of FillerList objects
         :param channels: List of Channel objects (optional)
         :param channel_numbers: List of channel numbers
         :return: True if successful, False if unsuccessful (Channel objects reload in place)
@@ -793,6 +793,7 @@ class API:
             for number in channel_numbers:
                 channels.append(self.get_channel(channel_number=number))
         for channel in channels:
-            if not channel.add_fillers(fillers=fillers):
-                return False
+            for filler_list in filler_lists:
+                if not channel.add_filler_list(filler_list=filler_list):
+                    return False
         return True
