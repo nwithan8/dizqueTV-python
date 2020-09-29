@@ -280,6 +280,25 @@ def add_durations_to_show_dict(show_dict: dict) -> dict:
     return sorted_shows
 
 
+def condense_show_dict(show_dict: dict) -> dict:
+    """
+    Condense a show-season-episode dictionary into a show-episode dictionary
+    Disregards any non-episode media items
+    DO NOT PASS IN A SHOW_DICT WITH DURATIONS
+    :param show_dict: dictionary of shows in show-season-episode structure
+    :return: dict object with all episodes arranged by show-episode
+    """
+    sorted_shows = {'count': 0, 'shows': {}}
+    for show_name, seasons in show_dict.items():
+        sorted_shows['shows'][show_name] = {'episodes': [], 'count': 0}
+        for season_number, episodes in seasons.items():
+            for episode_number, episode in episodes.items():
+                sorted_shows['shows'][show_name]['episodes'].append(episode)
+                sorted_shows['shows'][show_name]['count'] += 1
+                sorted_shows['count'] += 1
+    return sorted_shows
+
+
 # Public Helpers
 def remove_time_from_date(date_string: Union[datetime, str]) -> str:
     """
@@ -661,6 +680,45 @@ def sort_media_cyclical_shuffle(media_items: List[Union[Program, FillerItem]]) -
     return final_list
 
 
+def sort_media_block_shuffle(media_items: List[Union[Program, FillerItem]],
+                             block_length: int = 1,
+                             randomize: bool = False) -> List[Union[Program, FillerItem]]:
+    """
+    Sort media with block shuffle.
+    Default: Items are alternated one at a time, alphabetically
+    Note: Automatically removes FillerItem objects
+    :param media_items: List of Program and FillerItem objects
+    :param block_length: length of each block of programming
+    :param randomize: random length (up to block_length) and random order
+    :return: List of Program objects, FillerItem objects removed
+    """
+    non_shows = get_non_shows(media_items=media_items)
+    show_dict = make_show_dict(media_items=media_items)
+    ordered_show_dict = order_show_dict(show_dict=show_dict)
+    condensed_show_dict = condense_show_dict(show_dict=ordered_show_dict)
+    final_show_list = []
+    target_length = condensed_show_dict['count']
+    if randomize:
+        while len(final_show_list) < target_length:
+            random_show_name = random.choice(list(condensed_show_dict['shows'].keys()))
+            for _ in range(0, random.randint(1, block_length)):
+                if len(condensed_show_dict['shows'][random_show_name]['episodes']) > 0:
+                    final_show_list.append(condensed_show_dict['shows'][random_show_name]['episodes'].pop(0))
+                else:
+                    del condensed_show_dict['shows'][random_show_name]
+                    break
+    else:
+        while len(final_show_list) < target_length:
+            for show_name, data in condensed_show_dict['shows'].items():
+                for _ in range(0, block_length):
+                    if len(data['episodes']) > 0:
+                        final_show_list.append(data['episodes'].pop(0))
+                    else:
+                        break
+    final_list = final_show_list + non_shows
+    return final_list
+
+
 def balance_shows(media_items: List[Union[Program, FillerItem]], margin_of_correction: float = 0.1) -> \
         List[Union[Program, FillerItem]]:
     """
@@ -672,7 +730,7 @@ def balance_shows(media_items: List[Union[Program, FillerItem]], margin_of_corre
     non_shows = get_non_shows(media_items=media_items)
     show_dict = make_show_dict(media_items=media_items)
     ordered_show_dict = order_show_dict(show_dict=show_dict)
-    ordered_show_dict_with_durations = add_durations_to_show_dict(show_dict=show_dict)
+    ordered_show_dict_with_durations = add_durations_to_show_dict(show_dict=ordered_show_dict)
     show_durations = []
     for show_name in ordered_show_dict_with_durations.keys():
         show_durations.append(ordered_show_dict_with_durations[show_name]['duration'])

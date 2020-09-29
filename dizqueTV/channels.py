@@ -360,6 +360,21 @@ class Channel:
         return False
 
     @helpers._check_for_dizque_instance
+    def block_shuffle(self, block_length: int, randomize: bool = False) -> bool:
+        """
+        Sort TV shows on this channel cyclically
+        :param block_length: Length of each block
+        :param randomize: Random block lengths between 1 and block_length
+        :return: True if successful, False if unsuccessful (Channel reloads in-place)
+        """
+        sorted_programs = helpers.sort_media_block_shuffle(media_items=self.programs,
+                                                           block_length=block_length,
+                                                           randomize=randomize)
+        if sorted_programs and self.delete_all_programs():
+            return self.add_programs(programs=sorted_programs)
+        return False
+
+    @helpers._check_for_dizque_instance
     def replicate(self, how_many_times: int) -> bool:
         """
         Replicate/repeat the channel lineup x number of times
