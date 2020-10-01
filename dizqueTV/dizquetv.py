@@ -335,7 +335,7 @@ class API:
         if 'offlinePicture' not in settings_dict.keys():
             settings_dict['offlinePicture'] = f"{self.url}/images/generic-offline-screen.png"
         # override duration regardless of user input
-        settings_dict['duration'] = sum(program['duration'] for program in settings_dict['programs'])
+        settings_dict['duration'] = sum(program.duration for program in settings_dict['programs'])
         return helpers._combine_settings(new_settings_dict=settings_dict, old_settings_dict=CHANNEL_SETTINGS_DEFAULT)
 
     def add_channel(self,
