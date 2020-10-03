@@ -120,6 +120,7 @@ class FFMPEGSettings:
         self.normalizeAudioCodec = data.get('normalizeAudioCodec')
         self.normalizeResolution = data.get('normalizeResolution')
         self.normalizeAudio = data.get('normalizeAudio')
+        self.maxFPS = data.get('maxFPS')
         self._id = data.get('_id')
 
     @helpers._check_for_dizque_instance
