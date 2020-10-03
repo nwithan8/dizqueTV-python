@@ -339,14 +339,13 @@ class API:
         return helpers._combine_settings(new_settings_dict=settings_dict, old_settings_dict=CHANNEL_SETTINGS_DEFAULT)
 
     def add_channel(self,
-                    programs: List[Union[Program, Video, Movie, Episode]],
+                    programs: List[Union[Program, Video, Movie, Episode]] = None,
                     plex_server: PServer = None,
-                    handle_errors: bool = False,
+                    handle_errors: bool = True,
                     **kwargs) -> Union[Channel, None]:
         """
         Add a channel to dizqueTV
-        Must include at least one program to create
-        :param programs: At least one Program or PlexAPI Video, Movie or Episode to add to the new channel
+        :param programs: Program or PlexAPI Video, Movie or Episode objects to add to the new channel
         :param plex_server: plexapi.server.PlexServer (optional, required if adding PlexAPI Video, Movie or Episode)
         :param kwargs: keyword arguments of setting names and values
         :param handle_errors: Suppress error if they arise
@@ -354,15 +353,15 @@ class API:
         :return: new Channel object or None
         """
         kwargs['programs'] = []
-        for program in programs:
-            if type(program) == Program:
-                kwargs['programs'].append(program)
+        for item in programs:
+            if type(item) == Program:
+                kwargs['programs'].append(item._data)
             else:
                 if not plex_server:
                     raise ItemCreationError("You must include a plex_server if you are adding PlexAPI Video, "
                                             "Movie or Episodes as programs")
                 kwargs['programs'].append(
-                    convert_plex_item_to_program(plex_item=program, plex_server=plex_server)._data)
+                    convert_plex_item_to_program(plex_item=item, plex_server=plex_server)._data)
         if kwargs.get('iconPosition'):
             kwargs['iconPosition'] = helpers.convert_icon_position(position_text=kwargs['iconPosition'])
         kwargs = self._fill_in_default_channel_settings(settings_dict=kwargs, handle_errors=handle_errors)
