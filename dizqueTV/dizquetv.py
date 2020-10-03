@@ -419,6 +419,17 @@ class API:
             return FillerList(data=filler_list_data, dizque_instance=self)
         return None
 
+    def get_filler_list_by_name(self, filler_list_name: str) -> Union[FillerList, None]:
+        """
+        Get a specific dizqueTV filler list
+        :param filler_list_name: name of filler list
+        :return: FillerList object
+        """
+        for filler_list in self.filler_lists:
+            if filler_list.name == filler_list_name:
+                return filler_list
+        return None
+
     def get_filler_list_info(self, filler_list_id: str) -> json:
         """
         Get the name, content and id for a dizqueTV filler list
