@@ -14,7 +14,7 @@ from dizqueTV.exceptions import MissingParametersError
 
 
 class Channel:
-    def __init__(self, data: json, dizque_instance):
+    def __init__(self, data: json, dizque_instance, plex_server: PServer = None):
         self._data = data
         self._dizque_instance = dizque_instance
         self._program_data = data.get('programs')
@@ -37,6 +37,7 @@ class Channel:
         self.duration = data.get('duration')
         self.stealth = data.get('stealth')
         self._id = data.get('_id')
+        self.plex_server = plex_server
 
     def __repr__(self):
         return f"<{self.__class__.__name__}:{self.number}:{self.name}>"
@@ -132,9 +133,11 @@ class Channel:
         """
         if not plex_item and not program and not kwargs:
             raise MissingParametersError("Please include either a program, a plex_item/plex_server combo, or kwargs")
-        if plex_item and plex_server:
+        if plex_item and (plex_server or self.plex_server):
             temp_program = self._dizque_instance.convert_plex_item_to_program(plex_item=plex_item,
-                                                                              plex_server=plex_server)
+                                                                              plex_server=(
+                                                                                  plex_server if plex_server else self.plex_server)
+                                                                              )
             kwargs = temp_program._data
         elif program:
             kwargs = program._data
@@ -166,10 +169,13 @@ class Channel:
             raise Exception("You must provide at least one program to add to the channel.")
         for program in programs:
             if type(program) not in [Program, Redirect]:
-                if not plex_server:
+                if not plex_server and not self.plex_server:
                     raise MissingParametersError("Please include a plex_server if you are adding PlexAPI Video, "
                                                  "Movie, or Episode items.")
-                program = self._dizque_instance.convert_plex_item_to_program(plex_item=program, plex_server=plex_server)
+                program = self._dizque_instance.convert_plex_item_to_program(plex_item=program,
+                                                                             plex_server=(
+                                                                                 plex_server if plex_server else self.plex_server)
+                                                                             )
             channel_data['programs'].append(program._data)
             channel_data['duration'] += program.duration
         return self.update(**channel_data)
