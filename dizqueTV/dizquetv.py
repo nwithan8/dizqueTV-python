@@ -14,7 +14,7 @@ from dizqueTV.settings import XMLTVSettings, PlexSettings, FFMPEGSettings, HDHom
 from dizqueTV.channels import Channel
 from dizqueTV.guide import Guide
 from dizqueTV.fillers import FillerList
-from dizqueTV.media import FillerItem, Program
+from dizqueTV.media import FillerItem, Program, Redirect
 from dizqueTV.plex_server import PlexServer
 from dizqueTV.templates import PLEX_SERVER_SETTINGS_TEMPLATE, CHANNEL_SETTINGS_TEMPLATE, CHANNEL_SETTINGS_DEFAULT, \
     FILLER_LIST_SETTINGS_TEMPLATE, FILLER_LIST_SETTINGS_DEFAULT
@@ -339,7 +339,7 @@ class API:
         return helpers._combine_settings(new_settings_dict=settings_dict, old_settings_dict=CHANNEL_SETTINGS_DEFAULT)
 
     def add_channel(self,
-                    programs: List[Union[Program, Video, Movie, Episode]] = None,
+                    programs: List[Union[Program, Redirect, Video, Movie, Episode]] = None,
                     plex_server: PServer = None,
                     handle_errors: bool = True,
                     **kwargs) -> Union[Channel, None]:
@@ -354,7 +354,7 @@ class API:
         """
         kwargs['programs'] = []
         for item in programs:
-            if type(item) == Program:
+            if type(item) in [Program, Redirect]:
                 kwargs['programs'].append(item._data)
             else:
                 if not plex_server:
