@@ -95,6 +95,9 @@ class API:
         logging.basicConfig(format='%(asctime)s %(levelname)s:%(message)s',
                             level=(logging.INFO if verbose else logging.ERROR))
 
+    def __repr__(self):
+        return f"<{self.__class__.__name__}:{self.url}>"
+
     def _get(self, endpoint: str, params: dict = None, headers: dict = None, timeout: int = 2) -> Union[Response, None]:
         if not endpoint.startswith('/'):
             endpoint = f"/{endpoint}"
@@ -785,9 +788,9 @@ class API:
         return True
 
     def add_filler_lists_to_channels(self,
-                                      filler_lists: List[FillerList],
-                                      channels: List[Channel] = None,
-                                      channel_numbers: List[int] = None) -> bool:
+                                     filler_lists: List[FillerList],
+                                     channels: List[Channel] = None,
+                                     channel_numbers: List[int] = None) -> bool:
         """
         Add multiple filler lists to multiple channels
         :param filler_lists: List of FillerList objects

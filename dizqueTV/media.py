@@ -72,6 +72,9 @@ class Program(MediaItem, Redirect):
         super().__init__(data=data, dizque_instance=dizque_instance, channel_instance=channel_instance)
         self.rating = data.get('rating')
 
+    def __repr__(self):
+        return f"<{self.__class__.__name__}:{self.title}>"
+
     @_check_for_dizque_instance
     def delete(self) -> bool:
         """
@@ -80,14 +83,14 @@ class Program(MediaItem, Redirect):
         """
         return self._channel_instance.delete_program(program=self)
 
-    def __repr__(self):
-        return f"<{self.__class__.__name__}:{self.title}>"
-
 
 class FillerItem(MediaItem):
     def __init__(self, data: json, dizque_instance, filler_list_instance):
         super().__init__(data=data, dizque_instance=dizque_instance)
         self._filler_list_instance = filler_list_instance
+
+    def __repr__(self):
+        return f"<{self.__class__.__name__}:{self.title}>"
 
     @_check_for_dizque_instance
     def delete(self) -> bool:
@@ -96,6 +99,3 @@ class FillerItem(MediaItem):
         :return: True if successful, False if unsuccessful
         """
         return self._filler_list_instance.delete_filler(filler=self)
-
-    def __repr__(self):
-        return f"<{self.__class__.__name__}:{self.title}>"
