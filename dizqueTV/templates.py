@@ -10,16 +10,37 @@ PLEX_SERVER_SETTINGS_TEMPLATE = {
     "_id": str
 }
 
+WATERMARK_SETTINGS_TEMPLATE = {
+    "enabled": bool,
+    "width": float,
+    "verticalMargin": float,
+    "horizontalMargin": float,
+    "duration": int,
+    "fixedSize": bool,
+    "position": str,
+    "url": str,
+    "animated": bool
+}
+
+WATERMARK_SETTINGS_DEFAULT = {
+    "enabled": False,
+    "width": 6.25,
+    "verticalMargin": 1.8518518518518519,
+    "horizontalMargin": 1.0416666666666667,
+    "duration": 60,
+    "fixedSize": False,
+    "position": "bottom-right",
+    "url": "",
+    "animated": False
+}
+
 CHANNEL_SETTINGS_TEMPLATE = {
     "programs": List,
-    "fillerContent": List,
+    "fillerCollections": List,
     "fillerRepeatCooldown": int,
     "fallback": [],
     "icon": str,
     "disableFillerOverlay": bool,
-    "iconWidth": int,
-    "iconDuration": int,
-    "iconPosition": str,
     "startTime": str,
     "offlinePicture": str,
     "offlineSoundtrack": str,
@@ -28,21 +49,18 @@ CHANNEL_SETTINGS_TEMPLATE = {
     "name": str,
     "duration": int,
     "_id": str,
-    "overlayIcon": bool,
+    "watermark": {},
     "stealth": bool
 }
 
 CHANNEL_SETTINGS_DEFAULT = {
-    "fillerContent": [],
+    "fillerCollections": [],
     "fillerRepeatCooldown": 1800000,
     "fallback": [],
     "disableFillerOverlay": True,
-    "iconWidth": 120,
-    "iconDuration": 60,
-    "iconPosition": "2",
     "offlineSoundtrack": "",
     "offlineMode": "pic",
-    "overlayIcon": False,
+    "watermark": WATERMARK_SETTINGS_DEFAULT,
     "stealth": False
 }
 

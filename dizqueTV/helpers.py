@@ -32,9 +32,10 @@ def _check_for_dizque_instance(func):
 
 
 # Internal Helpers
-def _combine_settings(new_settings_dict: json, old_settings_dict: json) -> json:
+def _combine_settings(new_settings_dict: dict, old_settings_dict: dict) -> dict:
     """
     Build a complete dictionary for new settings, using old settings as a base
+    Add new keys to template.
     :param new_settings_dict: Dictionary of new settings kwargs
     :param old_settings_dict: Current settings
     :return: Dictionary of new settings
@@ -42,6 +43,20 @@ def _combine_settings(new_settings_dict: json, old_settings_dict: json) -> json:
     for k, v in new_settings_dict.items():
         old_settings_dict[k] = v
     return old_settings_dict
+
+
+def _combine_settings_by_template(new_settings_dict: dict, settings_template: dict) -> dict:
+    """
+    Build a complete dictionary for new settings, using old settings as a base
+    Do not add new keys to template.
+    :param new_settings_dict: Dictionary of new settings kwargs
+    :param settings_template: settings template
+    :return: Dictionary of new settings
+    """
+    for k, v in new_settings_dict.items():
+        if k in settings_template.keys():
+            settings_template[k] = v
+    return settings_template
 
 
 def _settings_are_complete(new_settings_dict: json, template_settings_dict: json, ignore_id: bool = False) -> bool:

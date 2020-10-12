@@ -13,6 +13,46 @@ from dizqueTV.templates import MOVIE_PROGRAM_TEMPLATE, EPISODE_PROGRAM_TEMPLATE,
 from dizqueTV.exceptions import MissingParametersError
 
 
+class Watermark:
+    def __init__(self, data: dict, dizque_instance, channel_instance):
+        self._data = data
+        self._dizque_instance = dizque_instance
+        self._channel_instance = channel_instance
+        self.enabled = data.get('enabled')
+        self.width = data.get('width')
+        self.verticalMargin = data.get('verticalMargin')
+        self.horizontalMargin = data.get('horizontalMargin')
+        self.duration = data.get('duration')
+        self.fixedSize = data.get('fixedSize')
+        self.position = data.get('position')
+        self.url = data.get('url')
+        self.animated = data.get('animated')
+
+    @property
+    def json(self):
+        """
+        Get watermark JSON
+        :return: JSON data for watermark object
+        """
+        return self._data
+
+    @helpers._check_for_dizque_instance
+    def update(self, **kwargs) -> bool:
+        """
+        Edit this Watermark on dizqueTV
+        Automatically refreshes associated Channel object
+        :param kwargs: keyword arguments of Watermark settings names and values
+        :return: True if successful, False if unsuccessful (Channel reloads in-place, Watermark object is destroyed)
+        """
+        new_watermark_dict = self._dizque_instance._fill_in_watermark_settings(**kwargs)
+        if self._dizque_instance.update_channel(channel_number=self._channel_instance.number,
+                                                watermark=new_watermark_dict):
+            self._channel_instance.refresh()
+            del self
+            return True
+        return False
+
+
 class Channel:
     def __init__(self, data: json, dizque_instance, plex_server: PServer = None):
         self._data = data
@@ -20,14 +60,6 @@ class Channel:
         self._program_data = data.get('programs')
         self._fillerCollections_data = data.get('fillerCollections')
         self.fillerRepeatCooldown = data.get('fillerRepeatCooldown')
-        self.fallback = [FillerItem(data=filler_data, dizque_instance=dizque_instance, filler_list_instance=None)
-                         for filler_data in data.get('fallback')]
-        self.icon = data.get('icon')
-        self.disableFillerOverlay = data.get('disableFillerOverlay')
-        self.iconWidth = data.get('iconWidth')
-        self.iconDuration = data.get('iconDuration')
-        self.iconPosition = data.get('iconPosition')
-        self.overlayIcon = data.get('overlayIcon')
         self.startTime = data.get('startTime')
         self.offlinePicture = data.get('offlinePicture')
         self.offlineSoundtrack = data.get('offlineSoundtrack')
@@ -37,6 +69,9 @@ class Channel:
         self.duration = data.get('duration')
         self.stealth = data.get('stealth')
         self._id = data.get('_id')
+        self.fallback = [FillerItem(data=filler_data, dizque_instance=dizque_instance, filler_list_instance=None)
+                         for filler_data in data.get('fallback')]
+        self.watermark = Watermark(data=data.get('watermark'), dizque_instance=dizque_instance, channel_instance=self)
         self.plex_server = plex_server
 
     def __repr__(self):
@@ -91,6 +126,14 @@ class Channel:
                 return filler_list
         return None
 
+    @property
+    def json(self):
+        """
+        Get channel JSON
+        :return: JSON data for channel object
+        """
+        return self._data
+
     # Update
     @helpers._check_for_dizque_instance
     def refresh(self):
@@ -118,6 +161,15 @@ class Channel:
         return False
 
     @helpers._check_for_dizque_instance
+    def edit(self, **kwargs) -> bool:
+        """
+        Alias for channels.update()
+        :param kwargs: keyword arguments of Channel settings names and values
+        :return: True if successful, False if unsuccessful (Channel reloads in-place)
+        """
+        return self.update(**kwargs)
+
+    @helpers._check_for_dizque_instance
     def add_program(self,
                     plex_item: Union[Video, Movie, Episode] = None,
                     plex_server: PServer = None,
@@ -136,7 +188,8 @@ class Channel:
         if plex_item and (plex_server or self.plex_server):
             temp_program = self._dizque_instance.convert_plex_item_to_program(plex_item=plex_item,
                                                                               plex_server=(
-                                                                                  plex_server if plex_server else self.plex_server)
+                                                                                  plex_server if plex_server
+                                                                                  else self.plex_server)
                                                                               )
             kwargs = temp_program._data
         elif program:
@@ -174,7 +227,8 @@ class Channel:
                                                  "Movie, or Episode items.")
                 program = self._dizque_instance.convert_plex_item_to_program(plex_item=program,
                                                                              plex_server=(
-                                                                                 plex_server if plex_server else self.plex_server)
+                                                                                 plex_server if plex_server
+                                                                                 else self.plex_server)
                                                                              )
             channel_data['programs'].append(program._data)
             channel_data['duration'] += program.duration
@@ -221,7 +275,7 @@ class Channel:
     @helpers._check_for_dizque_instance
     def add_x_number_of_show_episodes(self,
                                       number_of_episodes: int,
-                                      list_of_episodes: List[Program, Episode],
+                                      list_of_episodes: List[Union[Program, Episode]],
                                       plex_server: PServer = None) -> bool:
         """
         Add the first X number of items from a list of programs to a dizqueTV channel
@@ -238,7 +292,8 @@ class Channel:
                                                  "or Episode items.")
                 list_of_episodes[i] = self._dizque_instance.convert_plex_item_to_program(plex_item=list_of_episodes[i],
                                                                                          plex_server=(
-                                                                                             plex_server if plex_server else self.plex_server)
+                                                                                             plex_server if plex_server
+                                                                                             else self.plex_server)
                                                                                          )
             channel_data['programs'].append(list_of_episodes[i]._data)
             channel_data['duration'] += list_of_episodes[i].duration
@@ -247,7 +302,7 @@ class Channel:
     @helpers._check_for_dizque_instance
     def add_x_duration_of_show_episodes(self,
                                         duration_in_milliseconds: int,
-                                        list_of_episodes: List[Program, Episode],
+                                        list_of_episodes: List[Union[Program, Episode]],
                                         plex_server: PServer = None,
                                         allow_overtime: bool = False) -> bool:
         """
@@ -267,10 +322,12 @@ class Channel:
                 if not plex_server and not self.plex_server:
                     raise MissingParametersError("Please include a plex_server if you are adding PlexAPI Video "
                                                  "or Episode items.")
-                list_of_episodes[list_index] = self._dizque_instance.convert_plex_item_to_program(plex_item=list_of_episodes[list_index],
-                                                                                                  plex_server=(
-                                                                                                      plex_server if plex_server else self.plex_server)
-                                                                                                  )
+                list_of_episodes[list_index] = \
+                    self._dizque_instance.convert_plex_item_to_program(plex_item=list_of_episodes[list_index],
+                                                                       plex_server=(
+                                                                           plex_server if plex_server
+                                                                           else self.plex_server)
+                                                                       )
             if (total_runtime + list_of_episodes[list_index].duration) > duration_in_milliseconds:
                 if allow_overtime:
                     channel_data['programs'].append(list_of_episodes[list_index]._data)

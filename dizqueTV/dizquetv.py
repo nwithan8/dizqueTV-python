@@ -17,7 +17,7 @@ from dizqueTV.fillers import FillerList
 from dizqueTV.media import FillerItem, Program, Redirect
 from dizqueTV.plex_server import PlexServer
 from dizqueTV.templates import PLEX_SERVER_SETTINGS_TEMPLATE, CHANNEL_SETTINGS_TEMPLATE, CHANNEL_SETTINGS_DEFAULT, \
-    FILLER_LIST_SETTINGS_TEMPLATE, FILLER_LIST_SETTINGS_DEFAULT
+    FILLER_LIST_SETTINGS_TEMPLATE, FILLER_LIST_SETTINGS_DEFAULT, WATERMARK_SETTINGS_DEFAULT
 import dizqueTV.helpers as helpers
 from dizqueTV.exceptions import MissingParametersError, ChannelCreationError, ItemCreationError
 
@@ -308,6 +308,25 @@ class API:
             return data
         return []
 
+    def _fill_in_watermark_settings(self, handle_errors: bool = True, **kwargs) -> dict:
+        """
+        Create complete watermark settings
+        :param kwargs: All kwargs, including some related to watermark
+        :return: A complete and valid watermark dict
+        """
+        final_dict = helpers._combine_settings_by_template(new_settings_dict=kwargs,
+                                                           settings_template=WATERMARK_SETTINGS_DEFAULT)
+        if handle_errors and final_dict['enabled'] is True:
+            if not (0 < final_dict['width'] <= 100):
+                raise Exception("Watermark width must greater than 0 and less than 100")
+            if not (final_dict['width'] + final_dict['horizontalMargin'] <= 100):
+                raise Exception("Watermark width + horizontalMargin must not be greater than 100")
+            if not (final_dict['verticalMargin'] <= 100):
+                raise Exception("Watermark verticalMargin must not be greater than 100")
+            if not (final_dict['duration'] and final_dict['duration'] >= 0):
+                raise Exception("Must include a watermark duration. Use 0 for a permanent watermark.")
+        return final_dict
+
     def _fill_in_default_channel_settings(self, settings_dict: dict, handle_errors: bool = False) -> dict:
         """
         Set some dynamic default values, such as channel number, start time and image URLs
@@ -339,6 +358,7 @@ class API:
             settings_dict['offlinePicture'] = f"{self.url}/images/generic-offline-screen.png"
         # override duration regardless of user input
         settings_dict['duration'] = sum(program['duration'] for program in settings_dict['programs'])
+        settings_dict['watermark'] = self._fill_in_watermark_settings(**settings_dict)
         return helpers._combine_settings(new_settings_dict=settings_dict, old_settings_dict=CHANNEL_SETTINGS_DEFAULT)
 
     def add_channel(self,
