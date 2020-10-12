@@ -219,6 +219,72 @@ class Channel:
         return False
 
     @helpers._check_for_dizque_instance
+    def add_x_number_of_show_episodes(self,
+                                      number_of_episodes: int,
+                                      list_of_episodes: List[Program, Episode],
+                                      plex_server: PServer = None) -> bool:
+        """
+        Add the first X number of items from a list of programs to a dizqueTV channel
+        :param number_of_episodes: number of items to add from the list
+        :param list_of_episodes: list of Program or plexapi.media.Episode objects
+        :param plex_server: plexapi.server, needed if adding plexapi.media.Episode objects
+        :return: True if successful, False if unsuccessful (Channel reloads in-place)
+        """
+        channel_data = self._data
+        for i in range(0, number_of_episodes):
+            if not type(list_of_episodes[i]) == Program:
+                if not plex_server and not self.plex_server:
+                    raise MissingParametersError("Please include a plex_server if you are adding PlexAPI Video "
+                                                 "or Episode items.")
+                list_of_episodes[i] = self._dizque_instance.convert_plex_item_to_program(plex_item=list_of_episodes[i],
+                                                                                         plex_server=(
+                                                                                             plex_server if plex_server else self.plex_server)
+                                                                                         )
+            channel_data['programs'].append(list_of_episodes[i]._data)
+            channel_data['duration'] += list_of_episodes[i].duration
+        return self.update(**channel_data)
+
+    @helpers._check_for_dizque_instance
+    def add_x_duration_of_show_episodes(self,
+                                        duration_in_milliseconds: int,
+                                        list_of_episodes: List[Program, Episode],
+                                        plex_server: PServer = None,
+                                        allow_overtime: bool = False) -> bool:
+        """
+        Add an X duration of items from a list of programs to a dizqueTV channel
+        :param duration_in_milliseconds: length of time to add
+        :param list_of_episodes: list of Program or plexapi.media.Episode objects
+        :param plex_server: plexapi.server, needed if adding plexapi.media.Episode objects
+        :param allow_overtime: Allow adding one more episode, even if total time would go over.
+        Otherwise, don't add any more if total time would exceed duration_in_milliseconds (default: False)
+        :return: True if successful, False if unsuccessful (Channel reloads in-place)
+        """
+        channel_data = self._data
+        total_runtime = 0
+        list_index = 0
+        while total_runtime < duration_in_milliseconds:
+            if not type(list_of_episodes[list_index]) == Program:
+                if not plex_server and not self.plex_server:
+                    raise MissingParametersError("Please include a plex_server if you are adding PlexAPI Video "
+                                                 "or Episode items.")
+                list_of_episodes[list_index] = self._dizque_instance.convert_plex_item_to_program(plex_item=list_of_episodes[list_index],
+                                                                                                  plex_server=(
+                                                                                                      plex_server if plex_server else self.plex_server)
+                                                                                                  )
+            if (total_runtime + list_of_episodes[list_index].duration) > duration_in_milliseconds:
+                if allow_overtime:
+                    channel_data['programs'].append(list_of_episodes[list_index]._data)
+                    channel_data['duration'] += list_of_episodes[list_index].duration
+                else:
+                    pass
+            else:
+                channel_data['programs'].append(list_of_episodes[list_index]._data)
+                channel_data['duration'] += list_of_episodes[list_index].duration
+            total_runtime += list_of_episodes[list_index].duration
+            list_index += 1
+        return self.update(**channel_data)
+
+    @helpers._check_for_dizque_instance
     def delete_all_programs(self) -> bool:
         """
         Delete all programs from this channel
