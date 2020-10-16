@@ -71,18 +71,20 @@ def _combine_settings(new_settings_dict: dict, template_dict: dict, ignore_keys:
     return template_dict
 
 
-def _settings_are_complete(new_settings_dict: json, template_settings_dict: json, ignore_id: bool = False) -> bool:
+def _settings_are_complete(new_settings_dict: json, template_settings_dict: json, ignore_keys: List = None) -> bool:
     """
     Check that all elements from the settings template are present in the new settings
     :param new_settings_dict: Dictionary of new settings kwargs
     :param template_settings_dict: Template of settings
-    :param ignore_id: Ignore if "_id" is not included in new_settings_dict
+    :param ignore_keys: List of keys to ignore when analyzing completeness Ignore if "_id" is not included in new_settings_dict
     :return: True if valid, raise dizqueTV.exceptions.IncompleteSettingsError if not valid
     """
+    if not ignore_keys:
+        ignore_keys = []
     for k in template_settings_dict.keys():
         if k not in new_settings_dict.keys():
             # or not isinstance(new_settings_dict[k], type(template_settings_dict[k]))
-            if k in ['_id', 'id'] and ignore_id:
+            if k in ignore_keys:
                 pass
             else:
                 raise MissingSettingsError(f"Missing setting: {k}")

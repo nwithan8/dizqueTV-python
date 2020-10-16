@@ -214,7 +214,7 @@ class API:
         """
         if helpers._settings_are_complete(new_settings_dict=kwargs,
                                           template_settings_dict=PLEX_SERVER_SETTINGS_TEMPLATE,
-                                          ignore_id=True) \
+                                          ignore_keys=['_id', 'id']) \
                 and self._put(endpoint='/plex-servers', data=kwargs):
             return self.get_plex_server(server_name=kwargs['name'])
         return None
@@ -315,7 +315,7 @@ class API:
         :return: A complete and valid watermark dict
         """
         final_dict = helpers._combine_settings_add_new(new_settings_dict=kwargs,
-                                               template_dict=WATERMARK_SETTINGS_DEFAULT)
+                                                       template_dict=WATERMARK_SETTINGS_DEFAULT)
         if handle_errors and final_dict['enabled'] is True:
             if not (0 < final_dict['width'] <= 100):
                 raise Exception("Watermark width must greater than 0 and less than 100")
@@ -390,7 +390,7 @@ class API:
         kwargs = self._fill_in_default_channel_settings(settings_dict=kwargs, handle_errors=handle_errors)
         if helpers._settings_are_complete(new_settings_dict=kwargs,
                                           template_settings_dict=CHANNEL_SETTINGS_TEMPLATE,
-                                          ignore_id=True) \
+                                          ignore_keys=['_id', 'id']) \
                 and self._put(endpoint="/channel", data=kwargs):
             return self.get_channel(channel_number=kwargs['number'])
         return None
@@ -511,7 +511,7 @@ class API:
         kwargs = self._fill_in_default_filler_list_settings(settings_dict=kwargs, handle_errors=handle_errors)
         if helpers._settings_are_complete(new_settings_dict=kwargs,
                                           template_settings_dict=FILLER_LIST_SETTINGS_TEMPLATE,
-                                          ignore_id=True):
+                                          ignore_keys=['_id', 'id']):
             response = self._put(endpoint="/filler", data=kwargs)
             if response:
                 return self.get_filler_list(filler_list_id=response.json()['id'])

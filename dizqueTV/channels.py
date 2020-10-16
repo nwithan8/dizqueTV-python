@@ -255,7 +255,7 @@ class Channel:
             template = REDIRECT_PROGRAM_TEMPLATE
         if helpers._settings_are_complete(new_settings_dict=kwargs,
                                           template_settings_dict=template,
-                                          ignore_id=True):
+                                          ignore_keys=['_id', 'id']):
             channel_data = self._data
             channel_data['programs'].append(kwargs)
             channel_data['duration'] += kwargs['duration']
@@ -445,7 +445,7 @@ class Channel:
         }
         if helpers._settings_are_complete(new_settings_dict=new_settings_dict,
                                           template_settings_dict=FILLER_LIST_CHANNEL_TEMPLATE,
-                                          ignore_id=False):
+                                          ignore_keys=['_id', 'id']):
             channel_data = self._data
             channel_data['fillerCollections'].append(new_settings_dict)
             # filler_list_data['duration'] += kwargs['duration']
