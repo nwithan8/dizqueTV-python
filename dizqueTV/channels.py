@@ -9,7 +9,8 @@ import dizqueTV.helpers as helpers
 from dizqueTV.fillers import FillerList
 from dizqueTV.media import Redirect, Program, FillerItem
 from dizqueTV.templates import MOVIE_PROGRAM_TEMPLATE, EPISODE_PROGRAM_TEMPLATE, \
-    REDIRECT_PROGRAM_TEMPLATE, FILLER_LIST_SETTINGS_TEMPLATE, FILLER_LIST_CHANNEL_TEMPLATE
+    REDIRECT_PROGRAM_TEMPLATE, FILLER_LIST_SETTINGS_TEMPLATE, FILLER_LIST_CHANNEL_TEMPLATE, \
+    CHANNEL_FFMPEG_SETTINGS_DEFAULT
 from dizqueTV.exceptions import MissingParametersError
 
 
@@ -168,6 +169,21 @@ class Channel:
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
         """
         return self.update(**kwargs)
+
+    @helpers._check_for_dizque_instance
+    def edit_ffmpeg_settings(self, use_global_settings: bool = False, **kwargs) -> bool:
+        """
+        Edit the FFMPEG settings for a this Channel
+        :param use_global_settings: Use global dizqueTV FFMPEG settings (default: False)
+        :param kwargs: keyword arguments of Channel FFMPEG settings names and values
+        :return: True if successful, False if unsuccessful (Channel reloads in-place)
+        """
+        if use_global_settings:
+            new_settings = CHANNEL_FFMPEG_SETTINGS_DEFAULT
+        else:
+            new_settings = helpers._combine_settings(new_settings_dict=kwargs,
+                                                     old_settings_dict=CHANNEL_FFMPEG_SETTINGS_DEFAULT)
+        return self.update(transcoding=new_settings)
 
     @helpers._check_for_dizque_instance
     def add_program(self,

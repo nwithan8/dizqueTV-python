@@ -34,9 +34,20 @@ WATERMARK_SETTINGS_DEFAULT = {
     "animated": False
 }
 
+CHANNEL_FFMPEG_SETTINGS_TEMPLATE = {
+    "targetResolution": str,
+    "videoBitrate": int,
+    "videoBufSize": int
+}
+
+CHANNEL_FFMPEG_SETTINGS_DEFAULT = {
+    "targetResolution": "",
+    "videoBitrate": None,
+    "videoBufSize": None
+}
+
 CHANNEL_SETTINGS_TEMPLATE = {
     "programs": List,
-    "fillerCollections": List,
     "fillerRepeatCooldown": int,
     "fallback": [],
     "icon": str,
@@ -49,18 +60,27 @@ CHANNEL_SETTINGS_TEMPLATE = {
     "name": str,
     "duration": int,
     "_id": str,
+    "fillerCollections": List,
     "watermark": {},
-    "stealth": bool
+    "transcoding": {},
+    "guideMinimumDurationSeconds": int,
+    "guideFlexPlaceholder": str,
+    "stealth": bool,
+    "enabled": bool
 }
 
 CHANNEL_SETTINGS_DEFAULT = {
-    "fillerCollections": [],
     "fillerRepeatCooldown": 1800000,
     "fallback": [],
     "disableFillerOverlay": True,
     "offlineSoundtrack": "",
     "offlineMode": "pic",
+    "fillerCollections": [],
     "watermark": WATERMARK_SETTINGS_DEFAULT,
+    "transcoding": CHANNEL_FFMPEG_SETTINGS_DEFAULT,
+    "guideMinimumDurationSeconds": 300,
+    "guideFlexPlaceholder": "",
+    "enabled": True,
     "stealth": False
 }
 
