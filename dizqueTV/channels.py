@@ -14,6 +14,50 @@ from dizqueTV.templates import MOVIE_PROGRAM_TEMPLATE, EPISODE_PROGRAM_TEMPLATE,
 from dizqueTV.exceptions import MissingParametersError
 
 
+class ChannelFFMPEGSettings:
+    def __init__(self, data: dict, dizque_instance, channel_instance):
+        self._data = data
+        self._dizque_instance = dizque_instance
+        self._channel_instance = channel_instance
+        self.targetResolution = data.get('targetResolution')
+        self.videoBitrate = data.get('videoBitrate')
+        self.videoBufSize = data.get('videoBufSize')
+
+    def __repr__(self):
+        return f"<{self.__class__.__name__}:{(self.targetResolution if self.targetResolution else 'Default')}>"
+
+    @property
+    def json(self):
+        """
+        Get ChannelFFMPEGSettings JSON
+        :return: JSON data for ChannelFFMPEGSettings object
+        """
+        return self._data
+
+
+    @helpers._check_for_dizque_instance
+    def update(self, use_global_settings: bool = False, **kwargs) -> bool:
+        """
+        Edit this channel's FFMPEG settings on dizqueTV
+        Automatically refreshes associated Channel object
+        :param use_global_settings: Use global dizqueTV FFMPEG settings (default: False)
+        :param kwargs: keyword arguments of Channel FFMPEG settings names and values
+        :return: True if successful, False if unsuccessful
+        (Channel reloads in-place, ChannelFFMPEGSettings object is destroyed)
+        """
+        if use_global_settings:
+            new_settings = CHANNEL_FFMPEG_SETTINGS_DEFAULT
+        else:
+            new_settings = helpers._combine_settings(new_settings_dict=kwargs,
+                                                     template_dict=CHANNEL_FFMPEG_SETTINGS_DEFAULT)
+        if self._dizque_instance.update_channel(channel_number=self._channel_instance.number,
+                                                transcoding=new_settings):
+            self._channel_instance.refresh()
+            del self
+            return True
+        return False
+
+
 class Watermark:
     def __init__(self, data: dict, dizque_instance, channel_instance):
         self._data = data
@@ -28,6 +72,9 @@ class Watermark:
         self.position = data.get('position')
         self.url = data.get('url')
         self.animated = data.get('animated')
+
+    def __repr__(self):
+        return f"<{self.__class__.__name__}:{self.enabled}:{(self.url if self.url else 'Empty URL')}>"
 
     @property
     def json(self):
@@ -70,9 +117,15 @@ class Channel:
         self.duration = data.get('duration')
         self.stealth = data.get('stealth')
         self._id = data.get('_id')
-        self.fallback = [FillerItem(data=filler_data, dizque_instance=dizque_instance, filler_list_instance=None)
+        self.fallback = [FillerItem(data=filler_data,
+                                    dizque_instance=dizque_instance, filler_list_instance=None)
                          for filler_data in data.get('fallback')]
-        self.watermark = Watermark(data=data.get('watermark'), dizque_instance=dizque_instance, channel_instance=self)
+        self.watermark = Watermark(data=data.get('watermark'),
+                                   dizque_instance=dizque_instance,
+                                   channel_instance=self)
+        self.transcoding = ChannelFFMPEGSettings(data=data.get('transcoding'),
+                                                 dizque_instance=dizque_instance,
+                                                 channel_instance=self)
         self.plex_server = plex_server
 
     def __repr__(self):
@@ -169,21 +222,6 @@ class Channel:
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
         """
         return self.update(**kwargs)
-
-    @helpers._check_for_dizque_instance
-    def edit_ffmpeg_settings(self, use_global_settings: bool = False, **kwargs) -> bool:
-        """
-        Edit the FFMPEG settings for a this Channel
-        :param use_global_settings: Use global dizqueTV FFMPEG settings (default: False)
-        :param kwargs: keyword arguments of Channel FFMPEG settings names and values
-        :return: True if successful, False if unsuccessful (Channel reloads in-place)
-        """
-        if use_global_settings:
-            new_settings = CHANNEL_FFMPEG_SETTINGS_DEFAULT
-        else:
-            new_settings = helpers._combine_settings(new_settings_dict=kwargs,
-                                                     old_settings_dict=CHANNEL_FFMPEG_SETTINGS_DEFAULT)
-        return self.update(transcoding=new_settings)
 
     @helpers._check_for_dizque_instance
     def add_program(self,
