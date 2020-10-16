@@ -34,7 +34,6 @@ class ChannelFFMPEGSettings:
         """
         return self._data
 
-
     @helpers._check_for_dizque_instance
     def update(self, use_global_settings: bool = False, **kwargs) -> bool:
         """
@@ -835,6 +834,62 @@ class Channel:
         if sorted_programs and self.delete_all_programs():
             return self.add_programs(programs=sorted_programs)
         return False
+
+    @helpers._check_for_dizque_instance
+    def fast_forward(self,
+                     seconds: int = 0,
+                     minutes: int = 0,
+                     hours: int = 0,
+                     days: int = 0,
+                     months: int = 0,
+                     years: int = 0) -> bool:
+        """
+        Fast forward the channel start time by an amount of time
+        :param seconds: how many seconds
+        :param minutes: how many minutes
+        :param hours: how many hours
+        :param days: how many days
+        :param months: how many months (assume 30 days in month)
+        :param years: how many years (assume 365 days in year)
+        :return: True if successful, False if unsuccessful (Channel reloads in-place)
+        """
+        current_start_time = helpers.string_to_datetime(date_string=self.startTime)
+        shifted_start_time = helpers.shift_time(starting_time=current_start_time,
+                                                seconds=seconds,
+                                                minutes=minutes,
+                                                hours=hours,
+                                                days=days,
+                                                months=months,
+                                                years=years)
+        shifted_start_time = helpers.datetime_to_string(datetime_object=shifted_start_time)
+        if self.update(startTime=shifted_start_time):
+            return True
+        return False
+
+    @helpers._check_for_dizque_instance
+    def rewind(self,
+               seconds: int = 0,
+               minutes: int = 0,
+               hours: int = 0,
+               days: int = 0,
+               months: int = 0,
+               years: int = 0) -> bool:
+        """
+        Fast forward the channel start time by an amount of time
+        :param seconds: how many seconds
+        :param minutes: how many minutes
+        :param hours: how many hours
+        :param days: how many days
+        :param months: how many months (assume 30 days in month)
+        :param years: how many years (assume 365 days in year)
+        :return: True if successful, False if unsuccessful (Channel reloads in-place)
+        """
+        return self.fast_forward(seconds=seconds * -1,
+                                 minutes=minutes * -1,
+                                 hours=hours * -1,
+                                 days=days * -1,
+                                 months=months * -1,
+                                 years=years * -1)
 
     # Delete
     @helpers._check_for_dizque_instance

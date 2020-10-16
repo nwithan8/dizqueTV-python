@@ -391,6 +391,28 @@ def hours_difference_in_timezone() -> int:
     return int((datetime.utcnow() - datetime.now()).total_seconds() / 60 / 60)
 
 
+def shift_time(starting_time: datetime,
+               seconds: int = 0,
+               minutes: int = 0,
+               hours: int = 0,
+               days: int = 0,
+               months: int = 0,
+               years: int = 0) -> datetime:
+    """
+    Shift a time forward or backwards
+    :param starting_time: datetime.datetime object
+    :param seconds: how many seconds
+    :param minutes: how many minutes
+    :param hours: how many hours
+    :param days: how many days
+    :param months: how many months (assume 30 days in month)
+    :param years: how many years (assume 365 days in year)
+    :return: shifted datetime.datetime object
+    """
+    days = days + (30 * months) + (365 * years)
+    return starting_time + timedelta(seconds=seconds, minutes=minutes, hours=hours, days=days)
+
+
 def get_nearest_30_minute_mark() -> str:
     """
     Get the most recently past hour or half-hour time
