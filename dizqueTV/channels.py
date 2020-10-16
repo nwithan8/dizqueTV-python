@@ -100,6 +100,32 @@ class Watermark:
         return False
 
 
+class TimeSlot:
+    def __init__(self, data: dict):
+        self._data = data
+        self.time = data.get('time')
+        self.showId = data.get('showId')
+        self.order = data.get('order')
+
+    def __repr__(self):
+        return f"<{self.__class__.__name__}:{self.time}:{self.showId}:{self.order}>"
+
+
+class Schedule:
+    def __init__(self, data: dict, dizque_instance, channel_instance):
+        self._data = data
+        self._dizque_instance = dizque_instance
+        self._channel_instance = channel_instance
+        self.lateness = data.get('lateness')
+        self.maxDays = data.get('maxDays')
+        self.slots = [TimeSlot(data=slot) for slot in data['slots']]
+        self.pad = data.get('pad')
+        self.timeZoneOffset = data.get('timeZoneOffset')
+
+    def __repr__(self):
+        return f"<{self.__class__.__name__}:{self.maxDays} Days:{len(self.slots)} TimeSlots>"
+
+
 class Channel:
     def __init__(self, data: json, dizque_instance, plex_server: PServer = None):
         self._data = data
@@ -125,6 +151,9 @@ class Channel:
         self.transcoding = ChannelFFMPEGSettings(data=data.get('transcoding'),
                                                  dizque_instance=dizque_instance,
                                                  channel_instance=self)
+        self.scheduleBackup = Schedule(data=data.get('scheduleBackup'),
+                                       dizque_instance=dizque_instance,
+                                       channel_instance=self)
         self.plex_server = plex_server
 
     def __repr__(self):
