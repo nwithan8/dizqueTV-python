@@ -32,31 +32,43 @@ def _check_for_dizque_instance(func):
 
 
 # Internal Helpers
-def _combine_settings(new_settings_dict: dict, old_settings_dict: dict) -> dict:
+def _combine_settings_add_new(new_settings_dict: dict, template_dict: dict, ignore_keys: List = None) -> dict:
     """
     Build a complete dictionary for new settings, using old settings as a base
     Add new keys to template.
     :param new_settings_dict: Dictionary of new settings kwargs
-    :param old_settings_dict: Current settings
+    :param template_dict: Current settings
+    :param ignore_keys: List of keys to ignore when combining dictionaries
     :return: Dictionary of new settings
     """
+    if not ignore_keys:
+        ignore_keys = []
     for k, v in new_settings_dict.items():
-        old_settings_dict[k] = v
-    return old_settings_dict
+        if k in ignore_keys:
+            pass
+        else:
+            template_dict[k] = v
+    return template_dict
 
 
-def _combine_settings_by_template(new_settings_dict: dict, settings_template: dict) -> dict:
+def _combine_settings(new_settings_dict: dict, template_dict: dict, ignore_keys: List = None) -> dict:
     """
     Build a complete dictionary for new settings, using old settings as a base
     Do not add new keys to template.
     :param new_settings_dict: Dictionary of new settings kwargs
-    :param settings_template: settings template
+    :param template_dict: settings template
+    :param ignore_keys: List of keys to ignore when combining dictionaries
     :return: Dictionary of new settings
     """
+    if not ignore_keys:
+        ignore_keys = []
     for k, v in new_settings_dict.items():
-        if k in settings_template.keys():
-            settings_template[k] = v
-    return settings_template
+        if k in template_dict.keys():
+            if k in ignore_keys:
+                pass
+            else:
+                template_dict[k] = v
+    return template_dict
 
 
 def _settings_are_complete(new_settings_dict: json, template_settings_dict: json, ignore_id: bool = False) -> bool:
