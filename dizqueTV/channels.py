@@ -874,7 +874,7 @@ class Channel:
         return False
 
     @helpers._check_for_dizque_instance
-    def remove_all_redirects(self) -> bool:
+    def remove_redirects(self) -> bool:
         """
         Delete all redirects from a channel, preserving offline times, programs and filler items
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
