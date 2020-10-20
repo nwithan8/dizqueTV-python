@@ -11,7 +11,7 @@ from plexapi.server import PlexServer as PServer
 
 import dizqueTV.requests as requests
 from dizqueTV.settings import XMLTVSettings, PlexSettings, FFMPEGSettings, HDHomeRunSettings
-from dizqueTV.channels import Channel
+from dizqueTV.channels import Channel, TimeSlot, TimeSlotItem, Schedule
 from dizqueTV.guide import Guide
 from dizqueTV.fillers import FillerList
 from dizqueTV.media import FillerItem, Program, Redirect
@@ -20,6 +20,29 @@ from dizqueTV.templates import PLEX_SERVER_SETTINGS_TEMPLATE, CHANNEL_SETTINGS_T
     FILLER_LIST_SETTINGS_TEMPLATE, FILLER_LIST_SETTINGS_DEFAULT, WATERMARK_SETTINGS_DEFAULT
 import dizqueTV.helpers as helpers
 from dizqueTV.exceptions import MissingParametersError, ChannelCreationError, ItemCreationError
+
+
+def make_time_slot_from_dizque_program(program: Union[Program, Redirect],
+                                       time: str,
+                                       order: str) -> Union[TimeSlot, None]:
+    """
+    Convert a DizqueTV Program or Redirect into a TimeSlot object for use in scheduling
+    :param program: Program or Redirect object
+    :param time: time for time slot
+    :param order: order ('shuffle' or 'next') for time slot
+    :return: TimeSlot object
+    """
+    if program.type == 'redirect':
+        item = TimeSlotItem(item_type='redirect', item_value=program.channel)
+    elif program.showTitle:
+        if program.type == 'movie':
+            item = TimeSlotItem(item_type='movie', item_value=program.showTitle)
+        else:
+            item = TimeSlotItem(item_type='tv', item_value=program.showTitle)
+    else:
+        return None
+    data = {'time': helpers.convert_24_time_to_milliseconds_past_midnight(time_string=time), 'showId': item.showId, 'order': order}
+    return TimeSlot(data=data, program=item)
 
 
 def convert_plex_item_to_program(plex_item: Union[Video, Movie, Episode], plex_server: PServer) -> Program:
@@ -252,8 +275,7 @@ class API:
         """
         server = self.get_plex_server(server_name=server_name)
         if server:
-            old_settings = server._data
-            new_settings = helpers._combine_settings(new_settings_dict=kwargs, template_dict=old_settings)
+            new_settings = helpers._combine_settings(new_settings_dict=kwargs, template_dict=server._data)
             if self._post(endpoint='/plex-servers', data=new_settings):
                 return True
         return False
@@ -404,10 +426,9 @@ class API:
         """
         channel = self.get_channel(channel_number=channel_number)
         if channel:
-            old_settings = channel._data
             if kwargs.get('iconPosition'):
                 kwargs['iconPosition'] = helpers.convert_icon_position(position_text=kwargs['iconPosition'])
-            new_settings = helpers._combine_settings_add_new(new_settings_dict=kwargs, template_dict=old_settings)
+            new_settings = helpers._combine_settings_add_new(new_settings_dict=kwargs, template_dict=channel._data)
             if self._post(endpoint="/channel", data=new_settings):
                 return True
         return False
@@ -419,6 +440,32 @@ class API:
         """
         if self._delete(endpoint="/channel", data={'number': channel_number}):
             return True
+        return False
+
+    def _make_schedule(self, channel: Channel, schedule: Schedule = None, schedule_settings: dict = None) -> json:
+        """
+        Add or update a schedule to a Channel
+        :param channel: Channel object to add schedule to
+        :param schedule: Schedule object to add (Optional)
+        :param schedule_settings: Schedule settings dictionary to use (Optional)
+        :return: True if successful, False if unsuccessful (Channel reloads in-place)
+        """
+        data = {'programs': []}
+        if schedule:
+            data['schedule'] = (schedule._data
+                                if helpers._object_has_attribute(object=schedule, attribute_name="_data")
+                                else {})
+        else:
+            data['schedule'] = schedule_settings
+        for item in channel.programs:
+            if type(item) in [Program, Redirect]:
+                data['programs'].append(item._data)
+        res = self._post(endpoint='/channel-tools/time-slots', data=data)
+        if res:
+            schedule_json = res.json()
+            return channel.update(programs=schedule_json['programs'],
+                                  startTime=schedule_json['startTime'],
+                                  scheduleBackup=data['schedule'])
         return False
 
     # FillerItem List Settings
@@ -526,8 +573,7 @@ class API:
         """
         filler_list = self.get_filler_list(filler_list_id=filler_list_id)
         if filler_list:
-            old_settings = filler_list._data
-            new_settings = helpers._combine_settings(new_settings_dict=kwargs, template_dict=old_settings)
+            new_settings = helpers._combine_settings(new_settings_dict=kwargs, template_dict=filler_list._data)
             if self._post(endpoint=f"/filler/{filler_list_id}", data=new_settings):
                 return True
         return False
@@ -559,8 +605,7 @@ class API:
         :param kwargs: keyword arguments of setting names and values
         :return: True if successful, False if unsuccessful
         """
-        old_settings = self.ffmpeg_settings._data
-        new_settings = helpers._combine_settings(new_settings_dict=kwargs, template_dict=old_settings)
+        new_settings = helpers._combine_settings(new_settings_dict=kwargs, template_dict=self.ffmpeg_settings._data)
         if self._put(endpoint='/ffmpeg-settings', data=new_settings):
             return True
         return False
@@ -593,8 +638,7 @@ class API:
         :param kwargs: keyword arguments of setting names and values
         :return: True if successful, False if unsuccessful
         """
-        old_settings = self.plex_settings._data
-        new_settings = helpers._combine_settings(new_settings_dict=kwargs, template_dict=old_settings)
+        new_settings = helpers._combine_settings(new_settings_dict=kwargs, template_dict=self.plex_settings._data)
         if self._put(endpoint='/plex-settings', data=new_settings):
             return True
         return False
@@ -636,8 +680,7 @@ class API:
         :param kwargs: keyword arguments of setting names and values
         :return: True if successful, False if unsuccessful
         """
-        old_settings = self.xmltv_settings._data
-        new_settings = helpers._combine_settings(new_settings_dict=kwargs, template_dict=old_settings)
+        new_settings = helpers._combine_settings(new_settings_dict=kwargs, template_dict=self.xmltv_settings._data)
         if self._put(endpoint='/xmltv-settings', data=new_settings):
             return True
         return False
@@ -670,8 +713,7 @@ class API:
         :param kwargs: keyword arguments of setting names and values
         :return: True if successful, False if unsuccessful
         """
-        old_settings = self.hdhr_settings._data
-        new_settings = helpers._combine_settings(new_settings_dict=kwargs, template_dict=old_settings)
+        new_settings = helpers._combine_settings(new_settings_dict=kwargs, template_dict=self.hdhr_settings._data)
         if self._put(endpoint='/hdhr-settings', data=new_settings):
             return True
         return False
