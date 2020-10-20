@@ -10,16 +10,70 @@ PLEX_SERVER_SETTINGS_TEMPLATE = {
     "_id": str
 }
 
+WATERMARK_SETTINGS_TEMPLATE = {
+    "enabled": bool,
+    "width": float,
+    "verticalMargin": float,
+    "horizontalMargin": float,
+    "duration": int,
+    "fixedSize": bool,
+    "position": str,
+    "url": str,
+    "animated": bool
+}
+
+WATERMARK_SETTINGS_DEFAULT = {
+    "enabled": False,
+    "width": 6.25,
+    "verticalMargin": 1.8518518518518519,
+    "horizontalMargin": 1.0416666666666667,
+    "duration": 60,
+    "fixedSize": False,
+    "position": "bottom-right",
+    "url": "",
+    "animated": False
+}
+
+CHANNEL_FFMPEG_SETTINGS_TEMPLATE = {
+    "targetResolution": str,
+    "videoBitrate": int,
+    "videoBufSize": int
+}
+
+CHANNEL_FFMPEG_SETTINGS_DEFAULT = {
+    "targetResolution": "",
+    "videoBitrate": None,
+    "videoBufSize": None
+}
+
+TIME_SLOT_SETTINGS_TEMPLATE = {
+    "time": int,
+    "showId": str,
+    "order": str
+}
+
+SCHEDULE_SETTINGS_TEMPLATE = {
+    "lateness": int,
+    "maxDays": int,
+    "slots": [],
+    "pad": int,
+    "timeZoneOffset": int
+}
+
+SCHEDULE_SETTINGS_DEFAULT = {
+    "lateness": 0,
+    "maxDays": 365,
+    "slots": [],
+    "pad": 1,
+    "timeZoneOffset": 0
+}
+
 CHANNEL_SETTINGS_TEMPLATE = {
     "programs": List,
-    "fillerContent": List,
     "fillerRepeatCooldown": int,
     "fallback": [],
     "icon": str,
     "disableFillerOverlay": bool,
-    "iconWidth": int,
-    "iconDuration": int,
-    "iconPosition": str,
     "startTime": str,
     "offlinePicture": str,
     "offlineSoundtrack": str,
@@ -28,21 +82,27 @@ CHANNEL_SETTINGS_TEMPLATE = {
     "name": str,
     "duration": int,
     "_id": str,
-    "overlayIcon": bool,
-    "stealth": bool
+    "fillerCollections": List,
+    "watermark": {},
+    "transcoding": {},
+    "guideMinimumDurationSeconds": int,
+    "guideFlexPlaceholder": str,
+    "stealth": bool,
+    "enabled": bool
 }
 
 CHANNEL_SETTINGS_DEFAULT = {
-    "fillerContent": [],
     "fillerRepeatCooldown": 1800000,
     "fallback": [],
     "disableFillerOverlay": True,
-    "iconWidth": 120,
-    "iconDuration": 60,
-    "iconPosition": "2",
     "offlineSoundtrack": "",
     "offlineMode": "pic",
-    "overlayIcon": False,
+    "fillerCollections": [],
+    "watermark": WATERMARK_SETTINGS_DEFAULT,
+    "transcoding": CHANNEL_FFMPEG_SETTINGS_DEFAULT,
+    "guideMinimumDurationSeconds": 300,
+    "guideFlexPlaceholder": "",
+    "enabled": True,
     "stealth": False
 }
 

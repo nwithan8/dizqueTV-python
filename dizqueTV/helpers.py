@@ -32,30 +32,73 @@ def _check_for_dizque_instance(func):
 
 
 # Internal Helpers
-def _combine_settings(new_settings_dict: json, old_settings_dict: json) -> json:
+def _combine_settings_add_new(new_settings_dict: dict, template_dict: dict, ignore_keys: List = None) -> dict:
     """
     Build a complete dictionary for new settings, using old settings as a base
+    Add new keys to template.
     :param new_settings_dict: Dictionary of new settings kwargs
-    :param old_settings_dict: Current settings
+    :param template_dict: Current settings
+    :param ignore_keys: List of keys to ignore when combining dictionaries
     :return: Dictionary of new settings
     """
+    if not ignore_keys:
+        ignore_keys = []
     for k, v in new_settings_dict.items():
-        old_settings_dict[k] = v
-    return old_settings_dict
+        if k in ignore_keys:
+            pass
+        else:
+            template_dict[k] = v
+    return template_dict
 
 
-def _settings_are_complete(new_settings_dict: json, template_settings_dict: json, ignore_id: bool = False) -> bool:
+def _combine_settings(new_settings_dict: dict, template_dict: dict, ignore_keys: List = None) -> dict:
+    """
+    Build a complete dictionary for new settings, using old settings as a base
+    Do not add new keys to template.
+    :param new_settings_dict: Dictionary of new settings kwargs
+    :param template_dict: settings template
+    :param ignore_keys: List of keys to ignore when combining dictionaries
+    :return: Dictionary of new settings
+    """
+    if not ignore_keys:
+        ignore_keys = []
+    for k, v in new_settings_dict.items():
+        if k in template_dict.keys():
+            if k in ignore_keys:
+                pass
+            else:
+                template_dict[k] = v
+    return template_dict
+
+
+def _filter_dictionary(new_dictionary: dict, template_dict: dict) -> dict:
+    """
+    Remove key-value pairs from new_dictionary that are not present in template_dict
+    :param new_dictionary: Dictionary of key-value pairs
+    :param template_dict: Dictionary of accepted key-value pairs
+    :return: Dictionary with only accepted key-value pairs
+    """
+    final_dict = {}
+    for k, v in new_dictionary.items():
+        if k in template_dict.keys():
+            final_dict[k] = v
+    return final_dict
+
+
+def _settings_are_complete(new_settings_dict: json, template_settings_dict: json, ignore_keys: List = None) -> bool:
     """
     Check that all elements from the settings template are present in the new settings
     :param new_settings_dict: Dictionary of new settings kwargs
     :param template_settings_dict: Template of settings
-    :param ignore_id: Ignore if "_id" is not included in new_settings_dict
+    :param ignore_keys: List of keys to ignore when analyzing completeness
     :return: True if valid, raise dizqueTV.exceptions.IncompleteSettingsError if not valid
     """
+    if not ignore_keys:
+        ignore_keys = []
     for k in template_settings_dict.keys():
         if k not in new_settings_dict.keys():
             # or not isinstance(new_settings_dict[k], type(template_settings_dict[k]))
-            if k in ['_id', 'id'] and ignore_id:
+            if k in ignore_keys:
                 pass
             else:
                 raise MissingSettingsError(f"Missing setting: {k}")
@@ -324,7 +367,7 @@ def get_year_from_date(date_string: Union[datetime, str]) -> int:
 
 def string_to_datetime(date_string: str, template: str = "%Y-%m-%dT%H:%M:%S") -> datetime:
     """
-    Convert a string to a datetime.datetime object
+    Convert a datetime string to a datetime.datetime object
     :param date_string: datetime string to convert
     :param template: (Optional) datetime template to use when parsing string
     :return: datetime.datetime object
@@ -335,6 +378,28 @@ def string_to_datetime(date_string: str, template: str = "%Y-%m-%dT%H:%M:%S") ->
 
 
 def datetime_to_string(datetime_object: datetime, template: str = "%Y-%m-%dT%H:%M:%S.000Z") -> str:
+    """
+    Convert a datetime.datetime object to a string
+    :param datetime_object: datetime.datetime object to convert
+    :param template: (Optional) datetime template to use when parsing string
+    :return: str representation of datetime
+    """
+    return datetime_object.strftime(template)
+
+
+def string_to_time(time_string: str, template: str = "%H:%M:%S") -> datetime:
+    """
+    Convert a time string to a datetime.datetime object
+    :param time_string: datetime string to convert
+    :param template: (Optional) datetime template to use when parsing string
+    :return: datetime.datetime object
+    """
+    if time_string.endswith('Z'):
+        time_string = time_string[:-5]
+    return datetime.strptime(time_string, template)
+
+
+def time_to_string(datetime_object: datetime, template: str = "%H:%M:%S") -> str:
     """
     Convert a datetime.datetime object to a string
     :param datetime_object: datetime.datetime object to convert
@@ -362,6 +427,28 @@ def hours_difference_in_timezone() -> int:
     return int((datetime.utcnow() - datetime.now()).total_seconds() / 60 / 60)
 
 
+def shift_time(starting_time: datetime,
+               seconds: int = 0,
+               minutes: int = 0,
+               hours: int = 0,
+               days: int = 0,
+               months: int = 0,
+               years: int = 0) -> datetime:
+    """
+    Shift a time forward or backwards
+    :param starting_time: datetime.datetime object
+    :param seconds: how many seconds
+    :param minutes: how many minutes
+    :param hours: how many hours
+    :param days: how many days
+    :param months: how many months (assume 30 days in month)
+    :param years: how many years (assume 365 days in year)
+    :return: shifted datetime.datetime object
+    """
+    days = days + (30 * months) + (365 * years)
+    return starting_time + timedelta(seconds=seconds, minutes=minutes, hours=hours, days=days)
+
+
 def get_nearest_30_minute_mark() -> str:
     """
     Get the most recently past hour or half-hour time
@@ -373,6 +460,22 @@ def get_nearest_30_minute_mark() -> str:
     else:
         now = now.replace(second=0, microsecond=0, minute=0)
     return now.strftime("%Y-%m-%dT%H:%M:%S.000Z")
+
+
+def convert_24_time_to_milliseconds_past_midnight(time_string: str) -> int:
+    """
+    Get milliseconds between time_string and midnight
+    :param time_string: readable 24-hour time (ex. 00:00:00, 05:30:15, 20:08:30)
+    :return: int of milliseconds since midnight
+    """
+    hour_minute_second = time_string.split(':')
+    if len(hour_minute_second) < 2 or len(hour_minute_second) > 4:
+        raise Exception("Time string must be in two-digit format hour:minute:second")
+    if len(hour_minute_second) == 2:
+        time_string += ":00"
+    time_in_datetime = string_to_time(time_string=time_string)
+    midnight = string_to_time(time_string="00:00:00")
+    return get_milliseconds_between_two_datetimes(start_datetime=midnight, end_datetime=time_in_datetime)
 
 
 def get_milliseconds_between_two_hours(start_hour: int, end_hour: int) -> int:
@@ -538,7 +641,9 @@ def remove_duplicates_by_attribute(items: List, attribute_name: str) -> List:
     filtered_attr = []
     for item in items:
         attr = getattr(item, attribute_name)
-        if attr not in filtered_attr:
+        if not attr:
+            filtered.append(item)
+        elif attr not in filtered_attr:
             filtered.append(item)
             filtered_attr.append(attr)
     return filtered
@@ -737,7 +842,6 @@ def balance_shows(media_items: List[Union[Program, FillerItem]], margin_of_corre
     shortest_show_length = min(show_durations)
     margin = 1 + margin_of_correction
     final_shows = []
-    print(ordered_show_dict_with_durations)
     for show_name, show_data in ordered_show_dict_with_durations.items():
         show_running_duration = 0
         continue_with_show = True
@@ -758,7 +862,18 @@ def balance_shows(media_items: List[Union[Program, FillerItem]], margin_of_corre
     return sorted_all
 
 
-def remove_duplicate_media_items(media_items: List[Union[Program, FillerItem]]) -> List[Union[Program, FillerItem]]:
+def remove_non_programs(media_items: List[Union[Program, Redirect, FillerItem]]) -> List[Union[Program, FillerItem]]:
+    """
+    Remove all non-programs from list of media items.
+    :param media_items: List of Program, Redirect and FillerItem objects
+    :return: List of Program and FillerItem objects
+    """
+    return [item for item in media_items if
+            (_object_has_attribute(object=item, attribute_name='type')
+             and item.type != 'redirect')]
+
+
+def remove_duplicate_media_items(media_items: List[Union[Program, Redirect, FillerItem]]) -> List[Union[Program, FillerItem]]:
     """
     Remove duplicate items from list of media items.
     Check by ratingKey.
@@ -766,9 +881,7 @@ def remove_duplicate_media_items(media_items: List[Union[Program, FillerItem]]) 
     :param media_items: List of Program and FillerItem objects
     :return: List of Program and FillerItem objects
     """
-    non_redirects = [item for item in media_items if
-                     (_object_has_attribute(object=item, attribute_name='type')
-                      and item.type != 'redirect')]
+    non_redirects = remove_non_programs(media_items=media_items)
     return remove_duplicates_by_attribute(items=non_redirects, attribute_name='ratingKey')
 
 

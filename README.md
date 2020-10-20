@@ -44,14 +44,16 @@ Enable verbose logging by passing ``verbose=True`` into the ``API`` object decla
 - Update a channel: ``updated = dtv.update_channel(channel_number: int, **kwargs)`` or ``Channel.update(**kwargs)`` -> True/False
 - Delete a channel: ``deleted = dtv.delete_channel(channel_number: int)`` or ``Channel.delete()`` -> True/False
 - Refresh a channel: ``Channel.refresh()`` -> None (reloads ``Channel`` object in-place)
-
-
+- Edit channel's watermark: ``edited = Watermark.update(**kwargs)`` -> True/False
+- Edit channel's FFMPEG settings: ``edited = ChannelFFMPEGSettings.update(**kwargs)`` -> True/False
 
 #### Programs
 - Get a channel's programs: ``programs = Channel.programs`` -> list of ``MediaItem`` objects
 - Add program (or PlexAPI Video) to a channel: ``added = Channel.add_program(plex_item: PlexAPI Video, plex_server: PlexAPI Server, program: Program, **kwargs)`` -> True/False
 - Add multiple programs (or PlexAPI Video) to a channel: ``added = Channel.add_fillers(programs: [Program, PlexAPI Video, ...], plex_server: PlexAPI Server)`` -> True/False
 - Add multiple programs to multiple channels: ``added = dtv.add_programs_to_channels(programs: [Program], channels: [Channel], channel_numbers: [int])`` -> True/False
+- Add X number of show episodes: ``added = Channel.add_x_number_of_show_episodes(number_of_episodes: int, list_of_episodes: [Program, Episode, ...], plex_server: PServer (Optional))`` -> True/False
+- Add X duration of show episodes: ``added = Channel.add_x_duration_of_show_episodes(duration_in_milliseconds: int, list_of_episodes: [Program, Episode, ...], plex_server: PServer (Optional), allow_overtime: bool)`` -> True/False
 - Delete a program: ``deleted = Channel.delete_program(program: Program)`` -> True/False
 - Delete all programs: ``deleted = Channel.delete_all_programs()`` -> True/False
 - Delete all episodes of a show (or of a season): ``deleted = Channel.delete_show(show_name: str, season_number: int (Optional))`` -> True/False
@@ -66,10 +68,13 @@ Enable verbose logging by passing ``verbose=True`` into the ``API`` object decla
 - Repeat and shuffle programs ``repeated = Channel.replicate_and_shuffle(how_many_times: int)`` -> True/False
 - Remove duplicate programs: ``sorted = Channel.remove_duplicate_programs()`` -> True/False
 - Remove specials: ``sorted = Channel.remove_specials()`` -> True/False
+- Remove redirects: ``sorted = Channel.remove_redirects()`` -> True/False
 - Balance shows: ``balanced = Channel.balance_programs(margin_of_error: float)`` -> True/False
 - Add pad times: ``added = Channel.pad_times(start_every_x_minutes: int)`` -> True/False
 - Add reruns: ``added = Channel.add_reruns(start_time: datetime.datetime, length_hours: int, times_to_repeat: int)`` -> True/False
 - Add "Channel at Night": ``added = Channel.add_channel_at_night(night_channel_number: int, start_hour: int (24-hour time), end_hour: int (24-hour time))`` -> True/False
+- Fast forward: ``success = Channel.fast_forward(seconds: int, minutes: int, hours: int, days: int, months: int, years: int)`` -> True/False
+- Rewind: ``success = Channel.rewind(seconds: int, minutes: int, hours: int, days: int, months: int, years: int)`` -> True/False
 
 #### Filler (Flex)
 - Get a filler list: ``filler_list = dtv.get_filler_list(filler_list_id: str)`` -> ``FillerList`` object
@@ -92,6 +97,15 @@ Enable verbose logging by passing ``verbose=True`` into the ``API`` object decla
 - Sort filler items by duration: ``sorted = FillerList.sort_filler_by_duration()`` -> True/False
 - Sort filler items randomly: ``sorted = FillerList.sort_filler_randomly()`` -> True/False
 - Remove duplicate filler items: ``sorted = FillerList.remove_duplicate_fillers()`` -> True/False
+
+#### Scheduling
+- Get a channel's schedule: ``schedule = Channel.schedule`` -> ``Schedule`` object
+- Add a schedule to a channel: ``added = Channel.add_schedule(time_slots: [TimeSlot, ...], **kwargs)`` -> True/False
+- Update a channel's schedule: ``updated = Channel.update_schedule(**kwargs)`` or ``Schedule.update(**kwargs)`` -> True/False
+- Delete a channel's schedule: ``deleted = Channel.delete_schedule()`` or ``Schedule.delete()`` -> True/False
+- Add a time slot to a schedule: ``added = Schedule.add_time_slot(time_slot: TimeSlot, time_string: str, **kwargs)`` -> True/False
+- Edit a time slot on a schedule: ``edited = Schedule.edit_time_slot(time_slot: TimeSlot, time_string: str, **kwargs)`` or ``TimeSlot.edit(time_string: str, **kwargs)`` -> True/False
+- Delete a time slot on a schedule: ``deleted = Schedule.delete_time_slot(time_slot: TimeSlot)`` or ``TimeSlot.delete()`` -> True/False
 
 #### Plex
 - Get all Plex Media Servers: ``servers = dtv.plex_servers`` -> list of ``PlexServer`` objects
@@ -142,6 +156,7 @@ Enable verbose logging by passing ``verbose=True`` into the ``API`` object decla
 - Convert a Python PlexAPI Video to a Program: ``program = dtv.convert_plex_item_to_program(plex_item: PlexAPI Video, plex_server: PlexAPI Server)`` or ``program = Channel.convert_plex_item_to_program(plex_item: PlexAPI Video, plex_server: PlexAPI Server)`` -> Program
 - Convert a Python PlexAPI Video to a Filler: ``filler = dtv.convert_plex_item_to_filler(plex_item: PlexAPI Video, plex_server: PlexAPI Server)`` or ``filler = Channel.convert_plex_item_to_filler(plex_item: PlexAPI Video, plex_server: PlexAPI Server)`` -> Program
 - Convert a Python PlexAPI Server to a PlexServer: ``server = dtv.convert_plex_server_to_dizque_plex_server(plex_server: PlexAPI Server)`` -> PlexServer
+- Convert a DizqueTV Program or Redirect to a TimeSlot: ``time_slot = dtv.make_time_slot_from_dizque_program(program: Union[Program, Redirect], time: str, order: str)`` -> ``TimeSlot`` object
 - Repeat a list: ``repeated_list = dtv.repeat_list(items: List, how_many_times: int)`` -> List
 - Repeat and shuffle a list: ``repeated_list = dtv.repeate_and_shuffle_list(items: List, how_many_times: int)`` -> List
 
@@ -167,15 +182,11 @@ Enable verbose logging by passing ``verbose=True`` into the ``API`` object decla
 
 #### Channel
 - ``programs``: list of ``Program`` objects
-- ``filler``: list of ``Filler`` objects
+- ``filler_lists``: List of ``FillerList`` objects
 - ``fillerRepeatCooldown``: int
-- ``fallback``: List of ``Filler`` objects
+- ``fallback``: List of ``FillerItem`` objects
 - ``icon``: str(url)
 - ``disableFillerOverlay``: bool
-- ``iconWidth``: int
-- ``iconDuration``: int
-- ``iconPosition``: str(int)
-- ``overlayIcon``: bool
 - ``startTime``: str(datetime)
 - ``offlinePicture``: str(url)
 - ``offlineSoundtrack``: str(url)
@@ -183,7 +194,39 @@ Enable verbose logging by passing ``verbose=True`` into the ``API`` object decla
 - ``number``: int
 - ``name``: str
 - ``duration``: int
+- ``watermark``: ``Watermark`` object
+- ``transcoding``: ``ChannelFFMPEGSettings`` object
+- ``schedule``: ``Schedule`` object
+- ``schedulableItems``: List of ``TimeSlotItem`` objects
 - ``stealth``: bool
+- ``json``: JSON
+
+#### Watermark
+- ``enabled``: bool
+- ``width``: float
+- ``verticalMargin``: float
+- ``horizontalMargin``: float
+- ``duration``: int
+- ``fixedSize``: bool
+- ``position``: str
+- ``url``: str
+- ``animated``: bool
+- ``json``: JSON
+
+#### Schedule
+- ``lateness``: int
+- ``maxDays``: int
+- ``slots``: List of ``TimeSlot`` objects
+- ``pad``: int
+- ``timeZoneOffset``: int
+
+#### TimeSlot
+- ``time``: int
+- ``showId``: str
+- ``order``: str
+
+#### TimeSlotItem
+- ``showId``: str
 
 #### Program
 - ``title``: str
@@ -207,7 +250,15 @@ Enable verbose logging by passing ``verbose=True`` into the ``API`` object decla
 - ``serverKey``: str
 - ``isOffline``: false
 
-#### Filler
+#### FillerList
+- ``id``: str
+- ``name``: str
+- ``count``: int
+- ``details``: JSON
+- ``content``: List of ``FillerItem`` objects
+- ``channels``: List of ``Channel`` objects
+
+#### FillerItem
 - ``title``: str
 - ``key``: str
 - ``ratingKey``: str(int)
@@ -291,6 +342,13 @@ Enable verbose logging by passing ``verbose=True`` into the ``API`` object decla
 - ``normalizeAudioCodec``: bool
 - ``normalizeResolution``: bool
 - ``normalizeAudio``: bool
+- ``maxFPS``: int
+
+#### ChannelFFMPEGSettings
+- ``targetResolution``: str
+- ``videoBitrate``: int
+- ``videoBufSize``: int
+- ``json``: JSON
 
 #### HDHomeRunSettings
 - ``tunerCount``: int

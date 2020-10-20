@@ -12,6 +12,9 @@ class XMLTVSettings:
         self.file = data.get('file')
         self._id = data.get('_id')
 
+    def __repr__(self):
+        return f"<{self.__class__.__name__}:{self._id}>"
+
     @helpers._check_for_dizque_instance
     def reload(self):
         """
@@ -56,6 +59,9 @@ class HDHomeRunSettings:
         self.tunerCount = data.get('tunerCount')
         self.autoDiscovery = data.get('autoDiscovery')
         self._id = data.get('_id')
+
+    def __repr__(self):
+        return f"<{self.__class__.__name__}:{self._id}>"
 
     @helpers._check_for_dizque_instance
     def refresh(self):
@@ -123,6 +129,9 @@ class FFMPEGSettings:
         self.maxFPS = data.get('maxFPS')
         self._id = data.get('_id')
 
+    def __repr__(self):
+        return f"<{self.__class__.__name__}:{self._id}>"
+
     @helpers._check_for_dizque_instance
     def refresh(self):
         """
@@ -184,6 +193,9 @@ class PlexSettings:
         self.pathReplace = data.get('pathReplace')
         self.pathReplaceWith = data.get('pathReplaceWith')
         self._id = data.get('_id')
+
+    def __repr__(self):
+        return f"<{self.__class__.__name__}:{self._id}>"
 
     @helpers._check_for_dizque_instance
     def refresh(self):

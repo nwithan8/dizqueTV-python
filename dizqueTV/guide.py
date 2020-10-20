@@ -16,6 +16,9 @@ class GuideProgram:
         self.icon = data.get('icon')
         self.title = data.get('title')
 
+    def __repr__(self):
+        return f"<{self.__class__.__name__}:{self.title}>"
+
 
 class GuideChannel:
     def __init__(self, data, programs, dizque_instance):
@@ -25,6 +28,9 @@ class GuideChannel:
         self.icon = data.get('icon')
         self.number = data.get('number')
         self.programs = programs
+
+    def __repr__(self):
+        return f"<{self.__class__.__name__}:{self.name}>"
 
     def get_lineup(self, from_date: datetime, to_date: datetime) -> List[GuideProgram]:
         """
@@ -48,6 +54,9 @@ class Guide:
         self._data = data
         self._dizque_instance = dizque_instance
         self.channels = self._create_channels_and_programs()
+
+    def __repr__(self):
+        return f"<{self.__class__.__name__}>"
 
     def _create_channels_and_programs(self):
         channels = []

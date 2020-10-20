@@ -100,7 +100,7 @@ class FillerList:
             kwargs = filler._data
         if helpers._settings_are_complete(new_settings_dict=kwargs,
                                           template_settings_dict=FILLER_ITEM_TEMPLATE,
-                                          ignore_id=True):
+                                          ignore_keys=['_id', 'id']):
             filler_list_data = self._data
             filler_list_data['content'].append(kwargs)
             filler_list_data['duration'] += kwargs['duration']

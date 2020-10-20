@@ -11,15 +11,38 @@ from plexapi.server import PlexServer as PServer
 
 import dizqueTV.requests as requests
 from dizqueTV.settings import XMLTVSettings, PlexSettings, FFMPEGSettings, HDHomeRunSettings
-from dizqueTV.channels import Channel
+from dizqueTV.channels import Channel, TimeSlot, TimeSlotItem, Schedule
 from dizqueTV.guide import Guide
 from dizqueTV.fillers import FillerList
-from dizqueTV.media import FillerItem, Program
+from dizqueTV.media import FillerItem, Program, Redirect
 from dizqueTV.plex_server import PlexServer
 from dizqueTV.templates import PLEX_SERVER_SETTINGS_TEMPLATE, CHANNEL_SETTINGS_TEMPLATE, CHANNEL_SETTINGS_DEFAULT, \
-    FILLER_LIST_SETTINGS_TEMPLATE, FILLER_LIST_SETTINGS_DEFAULT
+    FILLER_LIST_SETTINGS_TEMPLATE, FILLER_LIST_SETTINGS_DEFAULT, WATERMARK_SETTINGS_DEFAULT
 import dizqueTV.helpers as helpers
 from dizqueTV.exceptions import MissingParametersError, ChannelCreationError, ItemCreationError
+
+
+def make_time_slot_from_dizque_program(program: Union[Program, Redirect],
+                                       time: str,
+                                       order: str) -> Union[TimeSlot, None]:
+    """
+    Convert a DizqueTV Program or Redirect into a TimeSlot object for use in scheduling
+    :param program: Program or Redirect object
+    :param time: time for time slot
+    :param order: order ('shuffle' or 'next') for time slot
+    :return: TimeSlot object
+    """
+    if program.type == 'redirect':
+        item = TimeSlotItem(item_type='redirect', item_value=program.channel)
+    elif program.showTitle:
+        if program.type == 'movie':
+            item = TimeSlotItem(item_type='movie', item_value=program.showTitle)
+        else:
+            item = TimeSlotItem(item_type='tv', item_value=program.showTitle)
+    else:
+        return None
+    data = {'time': helpers.convert_24_time_to_milliseconds_past_midnight(time_string=time), 'showId': item.showId, 'order': order}
+    return TimeSlot(data=data, program=item)
 
 
 def convert_plex_item_to_program(plex_item: Union[Video, Movie, Episode], plex_server: PServer) -> Program:
@@ -94,6 +117,9 @@ class API:
         self.verbose = verbose
         logging.basicConfig(format='%(asctime)s %(levelname)s:%(message)s',
                             level=(logging.INFO if verbose else logging.ERROR))
+
+    def __repr__(self):
+        return f"<{self.__class__.__name__}:{self.url}>"
 
     def _get(self, endpoint: str, params: dict = None, headers: dict = None, timeout: int = 2) -> Union[Response, None]:
         if not endpoint.startswith('/'):
@@ -211,7 +237,7 @@ class API:
         """
         if helpers._settings_are_complete(new_settings_dict=kwargs,
                                           template_settings_dict=PLEX_SERVER_SETTINGS_TEMPLATE,
-                                          ignore_id=True) \
+                                          ignore_keys=['_id', 'id']) \
                 and self._put(endpoint='/plex-servers', data=kwargs):
             return self.get_plex_server(server_name=kwargs['name'])
         return None
@@ -249,8 +275,7 @@ class API:
         """
         server = self.get_plex_server(server_name=server_name)
         if server:
-            old_settings = server._data
-            new_settings = helpers._combine_settings(new_settings_dict=kwargs, old_settings_dict=old_settings)
+            new_settings = helpers._combine_settings(new_settings_dict=kwargs, template_dict=server._data)
             if self._post(endpoint='/plex-servers', data=new_settings):
                 return True
         return False
@@ -305,6 +330,25 @@ class API:
             return data
         return []
 
+    def _fill_in_watermark_settings(self, handle_errors: bool = True, **kwargs) -> dict:
+        """
+        Create complete watermark settings
+        :param kwargs: All kwargs, including some related to watermark
+        :return: A complete and valid watermark dict
+        """
+        final_dict = helpers._combine_settings_add_new(new_settings_dict=kwargs,
+                                                       template_dict=WATERMARK_SETTINGS_DEFAULT)
+        if handle_errors and final_dict['enabled'] is True:
+            if not (0 < final_dict['width'] <= 100):
+                raise Exception("Watermark width must greater than 0 and less than 100")
+            if not (final_dict['width'] + final_dict['horizontalMargin'] <= 100):
+                raise Exception("Watermark width + horizontalMargin must not be greater than 100")
+            if not (final_dict['verticalMargin'] <= 100):
+                raise Exception("Watermark verticalMargin must not be greater than 100")
+            if not (final_dict['duration'] and final_dict['duration'] >= 0):
+                raise Exception("Must include a watermark duration. Use 0 for a permanent watermark.")
+        return final_dict
+
     def _fill_in_default_channel_settings(self, settings_dict: dict, handle_errors: bool = False) -> dict:
         """
         Set some dynamic default values, such as channel number, start time and image URLs
@@ -336,10 +380,11 @@ class API:
             settings_dict['offlinePicture'] = f"{self.url}/images/generic-offline-screen.png"
         # override duration regardless of user input
         settings_dict['duration'] = sum(program['duration'] for program in settings_dict['programs'])
-        return helpers._combine_settings(new_settings_dict=settings_dict, old_settings_dict=CHANNEL_SETTINGS_DEFAULT)
+        settings_dict['watermark'] = self._fill_in_watermark_settings(**settings_dict)
+        return helpers._combine_settings(new_settings_dict=settings_dict, template_dict=CHANNEL_SETTINGS_DEFAULT)
 
     def add_channel(self,
-                    programs: List[Union[Program, Video, Movie, Episode]] = None,
+                    programs: List[Union[Program, Redirect, Video, Movie, Episode]] = None,
                     plex_server: PServer = None,
                     handle_errors: bool = True,
                     **kwargs) -> Union[Channel, None]:
@@ -354,7 +399,7 @@ class API:
         """
         kwargs['programs'] = []
         for item in programs:
-            if type(item) == Program:
+            if type(item) in [Program, Redirect]:
                 kwargs['programs'].append(item._data)
             else:
                 if not plex_server:
@@ -367,7 +412,7 @@ class API:
         kwargs = self._fill_in_default_channel_settings(settings_dict=kwargs, handle_errors=handle_errors)
         if helpers._settings_are_complete(new_settings_dict=kwargs,
                                           template_settings_dict=CHANNEL_SETTINGS_TEMPLATE,
-                                          ignore_id=True) \
+                                          ignore_keys=['_id', 'id']) \
                 and self._put(endpoint="/channel", data=kwargs):
             return self.get_channel(channel_number=kwargs['number'])
         return None
@@ -381,10 +426,9 @@ class API:
         """
         channel = self.get_channel(channel_number=channel_number)
         if channel:
-            old_settings = channel._data
             if kwargs.get('iconPosition'):
                 kwargs['iconPosition'] = helpers.convert_icon_position(position_text=kwargs['iconPosition'])
-            new_settings = helpers._combine_settings(new_settings_dict=kwargs, old_settings_dict=old_settings)
+            new_settings = helpers._combine_settings_add_new(new_settings_dict=kwargs, template_dict=channel._data)
             if self._post(endpoint="/channel", data=new_settings):
                 return True
         return False
@@ -396,6 +440,32 @@ class API:
         """
         if self._delete(endpoint="/channel", data={'number': channel_number}):
             return True
+        return False
+
+    def _make_schedule(self, channel: Channel, schedule: Schedule = None, schedule_settings: dict = None) -> json:
+        """
+        Add or update a schedule to a Channel
+        :param channel: Channel object to add schedule to
+        :param schedule: Schedule object to add (Optional)
+        :param schedule_settings: Schedule settings dictionary to use (Optional)
+        :return: True if successful, False if unsuccessful (Channel reloads in-place)
+        """
+        data = {'programs': []}
+        if schedule:
+            data['schedule'] = (schedule._data
+                                if helpers._object_has_attribute(object=schedule, attribute_name="_data")
+                                else {})
+        else:
+            data['schedule'] = schedule_settings
+        for item in channel.programs:
+            if type(item) in [Program, Redirect]:
+                data['programs'].append(item._data)
+        res = self._post(endpoint='/channel-tools/time-slots', data=data)
+        if res:
+            schedule_json = res.json()
+            return channel.update(programs=schedule_json['programs'],
+                                  startTime=schedule_json['startTime'],
+                                  scheduleBackup=data['schedule'])
         return False
 
     # FillerItem List Settings
@@ -417,6 +487,17 @@ class API:
         filler_list_data = self._get_json(endpoint=f'/filler/{filler_list_id}')
         if filler_list_data:
             return FillerList(data=filler_list_data, dizque_instance=self)
+        return None
+
+    def get_filler_list_by_name(self, filler_list_name: str) -> Union[FillerList, None]:
+        """
+        Get a specific dizqueTV filler list
+        :param filler_list_name: name of filler list
+        :return: FillerList object
+        """
+        for filler_list in self.filler_lists:
+            if filler_list.name == filler_list_name:
+                return filler_list
         return None
 
     def get_filler_list_info(self, filler_list_id: str) -> json:
@@ -447,7 +528,7 @@ class API:
                 raise ChannelCreationError("You must include at least one program when creating a filler list.")
         if 'name' not in settings_dict.keys():
             settings_dict['name'] = f"New List {len(self.filler_lists) + 1}"
-        return helpers._combine_settings(new_settings_dict=settings_dict, old_settings_dict=CHANNEL_SETTINGS_DEFAULT)
+        return helpers._combine_settings(new_settings_dict=settings_dict, template_dict=CHANNEL_SETTINGS_DEFAULT)
 
     def add_filler_list(self,
                         content: List[Union[Program, Video, Movie, Episode]],
@@ -477,7 +558,7 @@ class API:
         kwargs = self._fill_in_default_filler_list_settings(settings_dict=kwargs, handle_errors=handle_errors)
         if helpers._settings_are_complete(new_settings_dict=kwargs,
                                           template_settings_dict=FILLER_LIST_SETTINGS_TEMPLATE,
-                                          ignore_id=True):
+                                          ignore_keys=['_id', 'id']):
             response = self._put(endpoint="/filler", data=kwargs)
             if response:
                 return self.get_filler_list(filler_list_id=response.json()['id'])
@@ -492,8 +573,7 @@ class API:
         """
         filler_list = self.get_filler_list(filler_list_id=filler_list_id)
         if filler_list:
-            old_settings = filler_list._data
-            new_settings = helpers._combine_settings(new_settings_dict=kwargs, old_settings_dict=old_settings)
+            new_settings = helpers._combine_settings(new_settings_dict=kwargs, template_dict=filler_list._data)
             if self._post(endpoint=f"/filler/{filler_list_id}", data=new_settings):
                 return True
         return False
@@ -525,8 +605,7 @@ class API:
         :param kwargs: keyword arguments of setting names and values
         :return: True if successful, False if unsuccessful
         """
-        old_settings = self.ffmpeg_settings._data
-        new_settings = helpers._combine_settings(new_settings_dict=kwargs, old_settings_dict=old_settings)
+        new_settings = helpers._combine_settings(new_settings_dict=kwargs, template_dict=self.ffmpeg_settings._data)
         if self._put(endpoint='/ffmpeg-settings', data=new_settings):
             return True
         return False
@@ -559,8 +638,7 @@ class API:
         :param kwargs: keyword arguments of setting names and values
         :return: True if successful, False if unsuccessful
         """
-        old_settings = self.plex_settings._data
-        new_settings = helpers._combine_settings(new_settings_dict=kwargs, old_settings_dict=old_settings)
+        new_settings = helpers._combine_settings(new_settings_dict=kwargs, template_dict=self.plex_settings._data)
         if self._put(endpoint='/plex-settings', data=new_settings):
             return True
         return False
@@ -602,8 +680,7 @@ class API:
         :param kwargs: keyword arguments of setting names and values
         :return: True if successful, False if unsuccessful
         """
-        old_settings = self.xmltv_settings._data
-        new_settings = helpers._combine_settings(new_settings_dict=kwargs, old_settings_dict=old_settings)
+        new_settings = helpers._combine_settings(new_settings_dict=kwargs, template_dict=self.xmltv_settings._data)
         if self._put(endpoint='/xmltv-settings', data=new_settings):
             return True
         return False
@@ -636,8 +713,7 @@ class API:
         :param kwargs: keyword arguments of setting names and values
         :return: True if successful, False if unsuccessful
         """
-        old_settings = self.hdhr_settings._data
-        new_settings = helpers._combine_settings(new_settings_dict=kwargs, old_settings_dict=old_settings)
+        new_settings = helpers._combine_settings(new_settings_dict=kwargs, template_dict=self.hdhr_settings._data)
         if self._put(endpoint='/hdhr-settings', data=new_settings):
             return True
         return False
@@ -774,9 +850,9 @@ class API:
         return True
 
     def add_filler_lists_to_channels(self,
-                                      filler_lists: List[FillerList],
-                                      channels: List[Channel] = None,
-                                      channel_numbers: List[int] = None) -> bool:
+                                     filler_lists: List[FillerList],
+                                     channels: List[Channel] = None,
+                                     channel_numbers: List[int] = None) -> bool:
         """
         Add multiple filler lists to multiple channels
         :param filler_lists: List of FillerList objects
