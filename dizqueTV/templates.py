@@ -46,6 +46,28 @@ CHANNEL_FFMPEG_SETTINGS_DEFAULT = {
     "videoBufSize": None
 }
 
+TIME_SLOT_SETTINGS_TEMPLATE = {
+    "time": int,
+    "showId": str,
+    "order": str
+}
+
+SCHEDULE_SETTINGS_TEMPLATE = {
+    "lateness": int,
+    "maxDays": int,
+    "slots": [],
+    "pad": int,
+    "timeZoneOffset": int
+}
+
+SCHEDULE_SETTINGS_DEFAULT = {
+    "lateness": 0,
+    "maxDays": 365,
+    "slots": [],
+    "pad": 1,
+    "timeZoneOffset": 0
+}
+
 CHANNEL_SETTINGS_TEMPLATE = {
     "programs": List,
     "fillerRepeatCooldown": int,
