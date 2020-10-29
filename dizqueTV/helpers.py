@@ -252,6 +252,28 @@ def _separate_with_and_without(items: List, attribute_name: str) -> Tuple[List, 
     return items_with, items_without
 
 
+def get_items_of_type(item_type: str, items: List) -> List:
+    """
+    Get all items with 'type' = X
+    :param item_type: 'type' to look for
+    :param items: list of items to filter
+    :return: list of items with 'type' = X
+    """
+    return [item for item in items if
+            (_object_has_attribute(object=item, attribute_name='type') and item.type == item_type)]
+
+
+def get_items_of_not_type(item_type: str, items: List) -> List:
+    """
+    Get all items without 'type' = X
+    :param item_type: 'type' to look for
+    :param items: list of items to filter
+    :return: list of items without 'type' = X
+    """
+    return [item for item in items if
+            (_object_has_attribute(object=item, attribute_name='type') and item.type != item_type)]
+
+
 def get_non_shows(media_items: List) -> List:
     """
     Get all non_show items
@@ -873,7 +895,8 @@ def remove_non_programs(media_items: List[Union[Program, Redirect, FillerItem]])
              and item.type != 'redirect')]
 
 
-def remove_duplicate_media_items(media_items: List[Union[Program, Redirect, FillerItem]]) -> List[Union[Program, FillerItem]]:
+def remove_duplicate_media_items(media_items: List[Union[Program, Redirect, FillerItem]]) -> List[
+    Union[Program, FillerItem]]:
     """
     Remove duplicate items from list of media items.
     Check by ratingKey.
