@@ -299,9 +299,11 @@ class Channel:
         self.transcoding = ChannelFFMPEGSettings(data=data.get('transcoding'),
                                                  dizque_instance=dizque_instance,
                                                  channel_instance=self)
-        self.schedule = Schedule(data=data.get('scheduleBackup'),
-                                 dizque_instance=dizque_instance,
-                                 channel_instance=self)
+        self.schedule = None
+        if data.get('scheduleBackup'):
+            self.schedule = Schedule(data=data.get('scheduleBackup'),
+                                     dizque_instance=dizque_instance,
+                                     channel_instance=self)
         self.plex_server = plex_server
         self.scheduledableItems = self._get_schedulable_items()
 
