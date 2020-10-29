@@ -172,6 +172,7 @@ Enable verbose logging by passing ``verbose=True`` into the ``API`` object decla
 - ``plex_servers``: list of ``PlexServer`` objects
 - ``channels``: list of ``Channel`` objects
 - ``channel_numbers``: list of ints
+- ``channel_count``: int
 - ``ffmpeg_settings``: ``FFMPEGSettings`` object
 - ``plex_settings``: ``PlexSettings`` object
 - ``xmltv_settings``: ``XMLTVSettings`` object

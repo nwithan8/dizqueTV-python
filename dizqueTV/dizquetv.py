@@ -330,6 +330,14 @@ class API:
             return data
         return []
 
+    @property
+    def channel_count(self) -> int:
+        """
+        Get the number of dizqueTV channels
+        :return: Int number of channels
+        """
+        return len(self.channels)
+
     def _fill_in_watermark_settings(self, handle_errors: bool = True, **kwargs) -> dict:
         """
         Create complete watermark settings
@@ -381,7 +389,7 @@ class API:
         # override duration regardless of user input
         settings_dict['duration'] = sum(program['duration'] for program in settings_dict['programs'])
         settings_dict['watermark'] = self._fill_in_watermark_settings(**settings_dict)
-        return helpers._combine_settings(new_settings_dict=settings_dict, template_dict=CHANNEL_SETTINGS_DEFAULT)
+        return helpers._combine_settings_add_new(new_settings_dict=settings_dict, template_dict=CHANNEL_SETTINGS_DEFAULT)
 
     def add_channel(self,
                     programs: List[Union[Program, Redirect, Video, Movie, Episode]] = None,
