@@ -330,6 +330,14 @@ class API:
             return data
         return []
 
+    @property
+    def channel_count(self) -> int:
+        """
+        Get the number of dizqueTV channels
+        :return: Int number of channels
+        """
+        return len(self.channels)
+
     def _fill_in_watermark_settings(self, handle_errors: bool = True, **kwargs) -> dict:
         """
         Create complete watermark settings
