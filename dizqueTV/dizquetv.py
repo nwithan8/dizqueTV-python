@@ -394,7 +394,7 @@ class API:
         :param plex_server: plexapi.server.PlexServer (optional, required if adding PlexAPI Video, Movie or Episode)
         :param kwargs: keyword arguments of setting names and values
         :param handle_errors: Suppress error if they arise
-        (ex. alter invalid channel number, add redirect if no program is included)
+        (ex. alter invalid channel number, add Flex Time if no program is included)
         :return: new Channel object or None
         """
         kwargs['programs'] = []
