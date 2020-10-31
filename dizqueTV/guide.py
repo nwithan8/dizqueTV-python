@@ -35,9 +35,11 @@ class GuideChannel:
     def get_lineup(self, from_date: datetime, to_date: datetime) -> List[GuideProgram]:
         """
         Get guide channel lineup for a certain time range
+
         :param from_date: datetime.datetime object to start time frame
         :param to_date: datetime.datetime object to end time frame
         :return: list of GuideProgram objects
+        :rtype: list[GuideProgram]
         """
         params = {
             'dateFrom': helpers.datetime_to_string(datetime_object=from_date),
@@ -70,7 +72,9 @@ class Guide:
     def last_update(self) -> Union[datetime, None]:
         """
         Get the last update time for the guide
+
         :return: datetime.datetime object
+        :rtype: datetime.datetime
         """
         data = self._dizque_instance._get_json(endpoint='/guide/status')
         if data and data.get('lastUpdate'):

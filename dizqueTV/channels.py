@@ -30,10 +30,11 @@ class ChannelFFMPEGSettings:
         return f"<{self.__class__.__name__}:{(self.targetResolution if self.targetResolution else 'Default')}>"
 
     @property
-    def json(self):
+    def json(self) -> dict:
         """
         Get ChannelFFMPEGSettings JSON
         :return: JSON data for ChannelFFMPEGSettings object
+        :rtype: dict
         """
         return self._data
 
@@ -44,10 +45,12 @@ class ChannelFFMPEGSettings:
         """
         Edit this channel's FFMPEG settings on dizqueTV
         Automatically refreshes associated Channel object
+
         :param use_global_settings: Use global dizqueTV FFMPEG settings (default: False)
         :param kwargs: keyword arguments of Channel FFMPEG settings names and values
         :return: True if successful, False if unsuccessful
         (Channel reloads in-place, ChannelFFMPEGSettings object is destroyed)
+        :rtype: bool
         """
         if use_global_settings:
             new_settings = CHANNEL_FFMPEG_SETTINGS_DEFAULT
@@ -84,10 +87,12 @@ class Watermark:
         return f"<{self.__class__.__name__}:{self.enabled}:{(self.url if self.url else 'Empty URL')}>"
 
     @property
-    def json(self):
+    def json(self) -> dict:
         """
         Get watermark JSON
+
         :return: JSON data for watermark object
+        :rtype: dict
         """
         return self._data
 
@@ -97,8 +102,10 @@ class Watermark:
         """
         Edit this Watermark on dizqueTV
         Automatically refreshes associated Channel object
+
         :param kwargs: keyword arguments of Watermark settings names and values
         :return: True if successful, False if unsuccessful (Channel reloads in-place, Watermark object is destroyed)
+        :rtype: bool
         """
         new_watermark_dict = self._dizque_instance._fill_in_watermark_settings(**kwargs)
         if self._dizque_instance.update_channel(channel_number=self._channel_instance.number,
@@ -136,12 +143,14 @@ class TimeSlot:
     def edit(self, time_string: str = None, **kwargs) -> bool:
         """
         Edit this TimeSlot object
+
         :param time_string: time in readable 24-hour format
         (ex. 00:00:00 = 12:00:00 A.M., 05:15:00 = 5:15 A.M., 20:08:12 = 8:08:12 P.M.)
         (Optional if time=<milliseconds_since_midnight> not included in kwargs)
         :param kwargs: Keyword arguments for the edited time slot (time, showId and order)
         :return: True if successful, False if unsuccessful (Channel reloads in-place,
         this TimeSlot and its parent Schedule object are destroyed)
+        :rtype: bool
         """
         if not self._schedule_instance:
             return False
@@ -150,8 +159,10 @@ class TimeSlot:
     def delete(self) -> bool:
         """
         Delete this TimeSlot object from the schedule
+
         :return: True if successful, False if unsuccessful (Channel reloads in-place,
         this TimeSlot and its parent Schedule object are destroyed)
+        :rtype: bool
         """
         if not self._schedule_instance:
             return False
@@ -181,8 +192,10 @@ class Schedule:
         """
         Edit this Schedule on dizqueTV
         Automatically refreshes associated Channel object
+
         :param kwargs: keyword arguments of Schedule settings names and values
         :return: True if successful, False if unsuccessful (Channel reloads in-place, this Schedule object is destroyed)
+        :rtype: bool
         """
         new_settings = helpers._combine_settings_add_new(new_settings_dict=kwargs,
                                                          template_dict=(self._data
@@ -196,12 +209,14 @@ class Schedule:
                       **kwargs) -> bool:
         """
         Add a time slot to this Schedule
+
         :param time_slot: TimeSlot object to add (Optional)
         :param time_string: time in readable 24-hour format
         (ex. 00:00:00 = 12:00:00 A.M., 05:15:00 = 5:15 A.M., 20:08:12 = 8:08:12 P.M.)
         (Optional if time=<milliseconds_since_midnight> not included in kwargs)
         :param kwargs: keyword arguments for a new time slot (time, showId and order)
         :return: True if successful, False if unsuccessful (Channel reloads in-place, this Schedule object is destroyed)
+        :rtype: bool
         """
         if time_slot:
             kwargs = time_slot._data
@@ -227,12 +242,14 @@ class Schedule:
     def edit_time_slot(self, time_slot: TimeSlot, time_string: str = None, **kwargs) -> bool:
         """
         Edit a time slot from this Schedule
+
         :param time_slot: TimeSlot object to edit
         :param time_string: time in readable 24-hour format
         (ex. 00:00:00 = 12:00:00 A.M., 05:15:00 = 5:15 A.M., 20:08:12 = 8:08:12 P.M.)
         (Optional if time=<milliseconds_since_midnight> not included in kwargs)
         :param kwargs: Keyword arguments for the edited time slot (time, showId and order)
         :return: True if successful, False if unsuccessful (Channel reloads in-place, this Schedule object is destroyed)
+        :rtype: bool
         """
         if time_string:
             kwargs['time'] = helpers.convert_24_time_to_milliseconds_past_midnight(time_string=time_string)
@@ -250,8 +267,10 @@ class Schedule:
     def delete_time_slot(self, time_slot: TimeSlot) -> bool:
         """
         Delete a time slot from this Schedule
+
         :param time_slot: TimeSlot object to remove
         :return: True if successful, False if unsuccessful (Channel reloads in-place, this Schedule object is destroyed)
+        :rtype: bool
         """
         slots = self._data.get('slots', [])
         try:
@@ -266,7 +285,9 @@ class Schedule:
         """
         Delete this channel's Schedule
         Removes all duplicate programs, adds random shuffle
+
         :return: True if successful, False if unsuccessful (Channel reloads in-place, this Schedule object is destroyed)
+        :rtype: bool
         """
         return self._channel_instance.delete_schedule()
 
@@ -311,6 +332,12 @@ class Channel:
         return f"<{self.__class__.__name__}:{self.number}:{self.name}>"
 
     def _get_schedulable_items(self) -> List[TimeSlotItem]:
+        """
+        Get all programs able to be scheduled for this channel
+
+        :return: List of TimeSlotItem objects
+        :rtype: list[TimeSlotItem]
+        """
         used_titles = []
         schedulable_items = []
         for program in self.programs:
@@ -329,10 +356,12 @@ class Channel:
     # Create (handled in dizqueTV.py)
     # Read
     @property
-    def programs(self):
+    def programs(self) -> List[Program]:
         """
         Get all programs on this channel
+
         :return: List of MediaItem objects
+        :rtype: list[Programs]
         """
         return [Program(data=program, dizque_instance=self._dizque_instance, channel_instance=self)
                 for program in self._program_data]
@@ -343,9 +372,11 @@ class Channel:
                     redirect_channel_number: int = None) -> Union[Program, None]:
         """
         Get a specific program on this channel
+
         :param program_title: Title of program
         :param redirect_channel_number: Channel number for Redirect object (use if getting Redirect instead of Program)
         :return: Program object or None
+        :rtype: Program | None
         """
         if not program_title and not redirect_channel_number:
             raise MissingParametersError("Please include either a program_title or a redirect_channel_number.")
@@ -356,10 +387,12 @@ class Channel:
         return None
 
     @property
-    def filler_lists(self):
+    def filler_lists(self) -> List[FillerList]:
         """
         Get all filler lists on this channel
+
         :return: List of FillerList objects
+        :rtype: list[FillerList]
         """
         return [FillerList(data=filler_list, dizque_instance=self._dizque_instance)
                 for filler_list in self._fillerCollections_data]
@@ -369,8 +402,10 @@ class Channel:
                         filler_list_title: str) -> Union[FillerList, None]:
         """
         Get a specific filler list on this channel
+
         :param filler_list_title: Title of filler list
         :return: FillerList object or None
+        :rtype: FillerList | None
         """
         for filler_list in self.filler_lists:
             if filler_list.name == filler_list_title:
@@ -378,10 +413,12 @@ class Channel:
         return None
 
     @property
-    def json(self):
+    def json(self) -> dict:
         """
         Get channel JSON
+
         :return: JSON data for channel object
+        :rtype: dict
         """
         return self._data
 
@@ -391,6 +428,8 @@ class Channel:
         """
         Reload current Channel object
         Use to update program and filler data
+
+        :return: None
         """
         temp_channel = self._dizque_instance.get_channel(channel_number=self.number)
         if temp_channel:
@@ -404,8 +443,10 @@ class Channel:
         """
         Edit this Channel on dizqueTV
         Automatically refreshes current Channel object
+
         :param kwargs: keyword arguments of Channel settings names and values
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
+        :rtype: bool
         """
         if self._dizque_instance.update_channel(channel_number=self.number, **kwargs):
             self.refresh()
@@ -417,8 +458,10 @@ class Channel:
              **kwargs) -> bool:
         """
         Alias for channels.update()
+
         :param kwargs: keyword arguments of Channel settings names and values
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
+        :rtype: bool
         """
         return self.update(**kwargs)
 
@@ -430,11 +473,13 @@ class Channel:
                     **kwargs) -> bool:
         """
         Add a program to this channel
+
         :param plex_item: plexapi.video.Video, plexapi.video.Movie or plexapi.video.Episode object (optional)
         :param plex_server: plexapi.server.PlexServer object (optional)
         :param program: Program object (optional)
         :param kwargs: keyword arguments of Program settings names and values
         :return: True if successful, False if unsuccessful (Channel reloads in place)
+        :rtype: bool
         """
         if not plex_item and not program and not kwargs:
             raise MissingParametersError("Please include either a program, a plex_item/plex_server combo, or kwargs")
@@ -467,10 +512,12 @@ class Channel:
                      plex_server: PServer = None) -> bool:
         """
         Add multiple programs to this channel
+
         :param programs: List of Program, plexapi.video.Video, plexapi.video.Movie or plexapi.video.Episode objects
         :param plex_server: plexapi.server.PlexServer object
         (required if adding PlexAPI Video, Movie or Episode objects)
         :return: True if successful, False if unsuccessful (Channel reloads in place)
+        :rtype: bool
         """
         channel_data = self._data
         if not programs:
@@ -494,8 +541,10 @@ class Channel:
                        program: Program) -> bool:
         """
         Delete a program from this channel
+
         :param program: Program object to delete
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
+        :rtype: bool
         """
         channel_data = self._data
         for a_program in channel_data['programs']:
@@ -512,9 +561,11 @@ class Channel:
                     season_number: int = None) -> bool:
         """
         Delete all episodes of a specific show
+
         :param show_name: Name of show to delete
         :param season_number: (Optional) Number of season to delete
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
+        :rtype: bool
         """
         all_programs = self.programs
         programs_to_add = []
@@ -537,10 +588,12 @@ class Channel:
                                       plex_server: PServer = None) -> bool:
         """
         Add the first X number of items from a list of programs to a dizqueTV channel
+
         :param number_of_episodes: number of items to add from the list
         :param list_of_episodes: list of Program or plexapi.media.Episode objects
         :param plex_server: plexapi.server, needed if adding plexapi.media.Episode objects
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
+        :rtype: bool
         """
         channel_data = self._data
         for i in range(0, number_of_episodes):
@@ -565,12 +618,14 @@ class Channel:
                                         allow_overtime: bool = False) -> bool:
         """
         Add an X duration of items from a list of programs to a dizqueTV channel
+
         :param duration_in_milliseconds: length of time to add
         :param list_of_episodes: list of Program or plexapi.media.Episode objects
         :param plex_server: plexapi.server, needed if adding plexapi.media.Episode objects
         :param allow_overtime: Allow adding one more episode, even if total time would go over.
         Otherwise, don't add any more if total time would exceed duration_in_milliseconds (default: False)
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
+        :rtype: bool
         """
         channel_data = self._data
         total_runtime = 0
@@ -603,7 +658,9 @@ class Channel:
     def delete_all_programs(self) -> bool:
         """
         Delete all programs from this channel
+
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
+        :rtype: bool
         """
         channel_data = self._data
         channel_data['duration'] -= sum(program.duration for program in self.programs)
@@ -614,7 +671,9 @@ class Channel:
     def _delete_all_offline_times(self) -> bool:
         """
         Delete all offline program in a channel
+
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
+        :rtype: bool
         """
         programs_to_add = []
         for program in self.programs:
@@ -632,11 +691,13 @@ class Channel:
                         cooldown: int = 0) -> bool:
         """
         Add a filler list to this channel
+
         :param filler_list: FillerList object (optional)
         :param filler_list_id: ID of FillerList (optional)
         :param weight: weight to assign list in channel (default: 300)
         :param cooldown: cooldown to assign list in channel (default: 0)
         :return: True if successful, False if unsuccessful (Channel reloads in place)
+        :rtype: bool
         """
         if not filler_list and not filler_list_id:
             raise MissingParametersError("Please include either a FillerList object or kwargs")
@@ -662,9 +723,11 @@ class Channel:
                            filler_list_id: str = None) -> bool:
         """
         Delete a program from this channel
+
         :param filler_list: FillerList object to delete
         :param filler_list_id: ID of filler list to delete
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
+        :rtype: bool
         """
         if not filler_list and not filler_list_id:
             raise Exception("You must include either a filler_list or a filler_list_id.")
@@ -678,10 +741,12 @@ class Channel:
         return False
 
     @helpers._check_for_dizque_instance
-    def delete_all_filler_lists(self):
+    def delete_all_filler_lists(self) -> bool:
         """
         Delete all filler lists from this channel
+
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
+        :rtype: bool
         """
         channel_data = self._data
         channel_data['fillerCollections'] = []
@@ -692,9 +757,11 @@ class Channel:
     def add_schedule(self, time_slots: List[TimeSlot], **kwargs) -> bool:
         """
         Add a schedule to this channel
+
         :param time_slots: List of TimeSlot objects
         :param kwargs: keyword arguments for schedule settings
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
+        :rtype: bool
         """
         for slot in time_slots:
             kwargs['slots'].append(slot._data)
@@ -710,8 +777,10 @@ class Channel:
     def update_schedule(self, **kwargs) -> bool:
         """
         Update the schedule for this channel
+
         :param kwargs: keyword arguments for schedule settings (slots data included if needed)
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
+        :rtype: bool
         """
         return self.add_schedule(time_slots=[], **kwargs)
 
@@ -720,7 +789,9 @@ class Channel:
         """
         Delete this channel's Schedule
         Removes all offline times, removes duplicate programs (and all redirects), random shuffles remaining items
+
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
+        :rtype: bool
         """
         self._delete_all_offline_times()
         if self.remove_duplicate_programs():  # also removes all redirects
@@ -732,7 +803,9 @@ class Channel:
     def sort_programs_by_release_date(self) -> bool:
         """
         Sort all programs on this channel by release date
+
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
+        :rtype: bool
         """
         sorted_programs = helpers.sort_media_by_release_date(media_items=self.programs)
         if sorted_programs and self.delete_all_programs():
@@ -744,7 +817,9 @@ class Channel:
         """
         Sort all programs on this channel by season order
         Movies are added at the end of the list
+
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
+        :rtype: bool
         """
         sorted_programs = helpers.sort_media_by_season_order(media_items=self.programs)
         if sorted_programs and self.delete_all_programs():
@@ -755,7 +830,9 @@ class Channel:
     def sort_programs_alphabetically(self) -> bool:
         """
         Sort all programs on this channel in alphabetical order
+
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
+        :rtype: bool
         """
         sorted_programs = helpers.sort_media_alphabetically(media_items=self.programs)
         if sorted_programs and self.delete_all_programs():
@@ -766,7 +843,9 @@ class Channel:
     def sort_programs_by_duration(self) -> bool:
         """
         Sort all programs on this channel by duration
+
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
+        :rtype: bool
         """
         sorted_programs = helpers.sort_media_by_duration(media_items=self.programs)
         if sorted_programs and self.delete_all_programs():
@@ -777,7 +856,9 @@ class Channel:
     def sort_programs_randomly(self) -> bool:
         """
         Sort all programs on this channel randomly
+
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
+        :rtype: bool
         """
         sorted_programs = helpers.sort_media_randomly(media_items=self.programs)
         if sorted_programs and self.delete_all_programs():
@@ -788,7 +869,9 @@ class Channel:
     def cyclical_shuffle(self) -> bool:
         """
         Sort TV shows on this channel cyclically
+
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
+        :rtype: bool
         """
         sorted_programs = helpers.sort_media_cyclical_shuffle(media_items=self.programs)
         if sorted_programs and self.delete_all_programs():
@@ -801,9 +884,11 @@ class Channel:
                       randomize: bool = False) -> bool:
         """
         Sort TV shows on this channel cyclically
+
         :param block_length: Length of each block
         :param randomize: Random block lengths between 1 and block_length
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
+        :rtype: bool
         """
         sorted_programs = helpers.sort_media_block_shuffle(media_items=self.programs,
                                                            block_length=block_length,
@@ -819,8 +904,10 @@ class Channel:
         Replicate/repeat the channel lineup x number of times
         Items will remain in the same order.
         Ex. [A, B, C] x3 -> [A, B, C, A, B, C, A, B, C]
+
         :param how_many_times: how many times to repeat the lineup
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
+        :rtype: bool
         """
         programs = self.programs
         final_program_list = []
@@ -838,8 +925,10 @@ class Channel:
         Replicate/repeat the channel lineup, shuffled, x number of times
         Items will be shuffled in each repeat group.
         Ex. [A, B, C] x3 -> [A, B, C, B, A, C, C, A, B]
-        :param how_many_times: how many times to repeat the lineup
+
+        :param int how_many_times: how many times to repeat the lineup
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
+        :rtype: bool
         """
         programs = self.programs
         final_program_list = []
@@ -857,7 +946,9 @@ class Channel:
         """
         Delete duplicate programs on this channel
         NOTE: Removes all redirects
+
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
+        :rtype: bool
         """
         sorted_programs = helpers.remove_duplicate_media_items(media_items=self.programs)
         if sorted_programs and self.delete_all_programs():
@@ -868,7 +959,9 @@ class Channel:
     def remove_duplicate_redirects(self) -> bool:
         """
         Delete duplicate redirects on this channel
+
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
+        :rtype: bool
         """
         sorted_programs = helpers.remove_duplicates_by_attribute(items=self.programs, attribute_name='channel')
         if sorted_programs and self.delete_all_programs():
@@ -879,7 +972,9 @@ class Channel:
     def remove_redirects(self) -> bool:
         """
         Delete all redirects from a channel, preserving offline times, programs and filler items
+
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
+        :rtype: bool
         """
         non_redirects = []
         for item in self.programs:
@@ -894,7 +989,9 @@ class Channel:
         """
         Delete all specials from this channel
         Note: Removes all redirects
+
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
+        :rtype: bool
         """
         non_redirects = [item for item in self.programs if
                          (helpers._object_has_attribute(object=item, attribute_name='type')
@@ -911,6 +1008,7 @@ class Channel:
                   start_every_x_minutes: int) -> bool:
         """
         Add padding between programs on a channel, so programs start at specific intervals
+
         :param start_every_x_minutes: Programs start every X minutes past the hour
         (ex.
         10 for :00, :10, :20, :30, :40 & :50
@@ -919,6 +1017,7 @@ class Channel:
         30 for :00 & :30
         60 or 0 for :00)
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
+        :rtype: bool
         """
         programs_and_pads = []
         if self._delete_all_offline_times():
@@ -941,10 +1040,12 @@ class Channel:
                    times_to_repeat: int) -> bool:
         """
         Add a block of reruns to a dizqueTV channel
+
         :param start_time: datetime.datetime object, what time the reruns start
         :param length_hours: how long the block of reruns should be
         :param times_to_repeat: how many times to repeat the block of reruns
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
+        :rtype: bool
         """
         if start_time > datetime.utcnow():
             raise Exception("You cannot use a start time in the future.")
@@ -973,10 +1074,12 @@ class Channel:
                              end_hour: int) -> bool:
         """
         Add a Channel at Night to a dizqueTV channel
+
         :param night_channel_number: number of the channel to redirect to
         :param start_hour: hour (in 24-hour time) to start the redirect
         :param end_hour: hour (in 24-hour time) to end the redirect
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
+        :rtype: bool
         """
         if start_hour > 23 or start_hour < 0:
             raise Exception("start_hour must be between 0 and 23.")
@@ -1114,10 +1217,12 @@ class Channel:
                          margin_of_error: float = 0.1) -> bool:
         """
         Balance shows to the shortest show length. Movies unaffected.
+
         :param margin_of_error: (Optional) Specify margin of error when deciding whether to add another episode.
         Ex. margin_of_error = 0.1 -> If adding a new episode would eclipse the shortest show length by 10% or less,
         add the episode.
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
+        :rtype: bool
         """
         sorted_programs = helpers.balance_shows(media_items=self.programs, margin_of_correction=margin_of_error)
         if sorted_programs and self.delete_all_programs():
@@ -1134,6 +1239,7 @@ class Channel:
                      years: int = 0) -> bool:
         """
         Fast forward the channel start time by an amount of time
+
         :param seconds: how many seconds
         :param minutes: how many minutes
         :param hours: how many hours
@@ -1141,6 +1247,7 @@ class Channel:
         :param months: how many months (assume 30 days in month)
         :param years: how many years (assume 365 days in year)
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
+        :rtype: bool
         """
         current_start_time = helpers.string_to_datetime(date_string=self.startTime)
         shifted_start_time = helpers.shift_time(starting_time=current_start_time,
@@ -1165,6 +1272,7 @@ class Channel:
                years: int = 0) -> bool:
         """
         Fast forward the channel start time by an amount of time
+
         :param seconds: how many seconds
         :param minutes: how many minutes
         :param hours: how many hours
@@ -1172,6 +1280,7 @@ class Channel:
         :param months: how many months (assume 30 days in month)
         :param years: how many years (assume 365 days in year)
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
+        :rtype: bool
         """
         return self.fast_forward(seconds=seconds * -1,
                                  minutes=minutes * -1,
@@ -1185,6 +1294,8 @@ class Channel:
     def delete(self) -> bool:
         """
         Delete this channel
+
         :return: True if successful, False if unsuccessful
+        :rtype: bool
         """
         return self._dizque_instance.delete_channel(channel_number=self.number)

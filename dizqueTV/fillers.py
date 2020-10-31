@@ -30,6 +30,9 @@ class FillerList:
         """
         Reload current FillerList object
         Use to update filler data
+
+        :return: None
+        :rtype: None
         """
         temp_filler_list = self._dizque_instance.get_filler_list(filler_list_id=self.id)
         if temp_filler_list:
@@ -47,7 +50,9 @@ class FillerList:
     def content(self) -> List[FillerItem]:
         """
         Get all filler items on this list
+
         :return: List of FillerItem objects
+        :rtype: list[FillerItem]
         """
         if not self._filler_data:
             self.refresh()
@@ -59,7 +64,9 @@ class FillerList:
     def channels(self) -> List:
         """
         Get all channels this filler list is used on
+
         :return: List of Channel objects
+        :rtype: list[Channel]
         """
         return self._dizque_instance.get_filler_list_channels(filler_list_id=self.id)
 
@@ -69,8 +76,10 @@ class FillerList:
         """
         Edit this FillerList on dizqueTV
         Automatically refreshes current FillerList object
+
         :param kwargs: keyword arguments of FillerList settings names and values
         :return: True if successful, False if unsuccessful (FillerList reloads in-place)
+        :rtype: bool
         """
         if self._dizque_instance.update_filler_list(filler_list_id=self.id, **kwargs):
             self.refresh()
@@ -84,11 +93,13 @@ class FillerList:
                    filler: FillerItem = None, **kwargs) -> bool:
         """
         Add a filler item to this filler list
+
         :param plex_item: plexapi.video.Video, plexapi.video.Movie or plexapi.video.Episode object (optional)
         :param plex_server: plexapi.server.PlexServer object (optional)
         :param filler: FillerItem item (optional)
         :param kwargs: keyword arguments of FillerItem settings names and values
         :return: True if successful, False if unsuccessful (FillerList reloads in place)
+        :rtype: bool
         """
         if not plex_item and not filler and not kwargs:
             raise MissingParametersError("Please include either a program, a plex_item/plex_server combo, or kwargs")
@@ -113,10 +124,12 @@ class FillerList:
                     plex_server: PServer = None) -> bool:
         """
         Add multiple programs to this channel
+
         :param fillers: List of FillerItem, plexapi.video.Video, plexapi.video.Movie or plexapi.video.Episode objects
         :param plex_server: plexapi.server.PlexServer object
         (required if adding PlexAPI Video, Movie or Episode objects)
         :return: True if successful, False if unsuccessful (Channel reloads in place)
+        :rtype: bool
         """
         filler_list_data = self._data
         for filler in fillers:
@@ -133,8 +146,10 @@ class FillerList:
     def delete_filler(self, filler: FillerItem) -> bool:
         """
         Delete a filler item from this filler list
+
         :param filler: FillerItem object to delete
         :return: True if successful, False if unsuccessful (FillerList reloads in-place)
+        :rtype: bool
         """
         filler_list_data = self._data
         for a_filler in filler_list_data['content']:
@@ -148,7 +163,9 @@ class FillerList:
     def delete_all_fillers(self) -> bool:
         """
         Delete all filler items from this filler list
+
         :return: True if successful, False if unsuccessful (FillerList reloads in-place)
+        :rtype: bool
         """
         filler_list_data = self._data
         filler_list_data['duration'] -= sum(filler.duration for filler in self.content)
@@ -160,7 +177,9 @@ class FillerList:
     def sort_filler_by_duration(self) -> bool:
         """
         Sort all filler items on this filler list by duration
+
         :return: True if successful, False if unsuccessful (FillerList reloads in-place)
+        :rtype: bool
         """
         sorted_filler = helpers.sort_media_by_duration(media_items=self.content)
         if sorted_filler and self.delete_all_fillers():
@@ -171,7 +190,9 @@ class FillerList:
     def sort_filler_randomly(self) -> bool:
         """
         Sort all filler items on this filler list randomly
+
         :return: True if successful, False if unsuccessful (FillerList reloads in-place)
+        :rtype: bool
         """
         sorted_filler = helpers.sort_media_randomly(media_items=self.content)
         if sorted_filler and self.delete_all_fillers():
@@ -182,7 +203,9 @@ class FillerList:
     def remove_duplicate_fillers(self) -> bool:
         """
         Delete duplicate filler items on this filler list
+
         :return: True if successful, False if unsuccessful (FillerList reloads in-place)
+        :rtype: bool
         """
         sorted_filler = helpers.remove_duplicate_media_items(media_items=self.content)
         if sorted_filler and self.delete_all_fillers():
@@ -194,7 +217,9 @@ class FillerList:
     def delete(self) -> bool:
         """
         Delete this filler list
+
         :return: True if successful, False if unsuccessful
+        :rtype: bool
         """
         # delete from all channels first
         for channel in self.channels:

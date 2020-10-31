@@ -27,10 +27,12 @@ def make_time_slot_from_dizque_program(program: Union[Program, Redirect],
                                        order: str) -> Union[TimeSlot, None]:
     """
     Convert a DizqueTV Program or Redirect into a TimeSlot object for use in scheduling
+
     :param program: Program or Redirect object
     :param time: time for time slot
     :param order: order ('shuffle' or 'next') for time slot
     :return: TimeSlot object
+    :rtype: TimeSlot
     """
     if program.type == 'redirect':
         item = TimeSlotItem(item_type='redirect', item_value=program.channel)
@@ -48,9 +50,11 @@ def make_time_slot_from_dizque_program(program: Union[Program, Redirect],
 def convert_plex_item_to_program(plex_item: Union[Video, Movie, Episode], plex_server: PServer) -> Program:
     """
     Convert a PlexAPI Video, Movie or Episode object into a Program
+
     :param plex_item: plexapi.video.Video, plexapi.video.Movie or plexapi.video.Episode object
     :param plex_server: plexapi.server.PlexServer object
     :return: Program object
+    :rtype: Program
     """
     data = helpers._make_program_dict_from_plex_item(plex_item=plex_item, plex_server=plex_server)
     return Program(data=data, dizque_instance=None, channel_instance=None)
@@ -59,9 +63,11 @@ def convert_plex_item_to_program(plex_item: Union[Video, Movie, Episode], plex_s
 def convert_plex_item_to_filler_item(plex_item: Union[Video, Movie, Episode], plex_server: PServer) -> FillerItem:
     """
     Convert a PlexAPI Video, Movie or Episode object into a FillerItem
+
     :param plex_item: plexapi.video.Video, plexapi.video.Movie or plexapi.video.Episode object
     :param plex_server: plexapi.server.PlexServer object
     :return: Program object
+    :rtype: Program
     """
     data = helpers._make_filler_dict_from_plex_item(plex_item=plex_item, plex_server=plex_server)
     return FillerItem(data=data, dizque_instance=None, filler_list_instance=None)
@@ -70,8 +76,10 @@ def convert_plex_item_to_filler_item(plex_item: Union[Video, Movie, Episode], pl
 def convert_plex_server_to_dizque_plex_server(plex_server: PServer) -> PlexServer:
     """
     Convert a plexapi.PlexServer object to a dizqueTV PlexServer object
+
     :param plex_server: plexapi.PlexServer object to convert
     :return: PlexServer object
+    :rtype: PlexServer
     """
     data = helpers._make_server_dict_from_plex_server(plex_server=plex_server)
     return PlexServer(data=data, dizque_instance=None)
@@ -82,9 +90,11 @@ def repeat_list(items: List, how_many_times: int) -> List:
     Repeat items in a list x number of times.
     Items will remain in the same order.
     Ex. [A, B, C] x3 -> [A, B, C, A, B, C, A, B, C]
+
     :param items: list of items to repeat
     :param how_many_times: how many times the list should repeat
     :return: repeated list
+    :rtype: list
     """
     final_list = []
     for _ in range(0, how_many_times):
@@ -98,9 +108,11 @@ def repeat_and_shuffle_list(items: List, how_many_times: int) -> List:
     Repeat items in a list, shuffled, x number of times.
     Items will be shuffled in each repeat group.
     Ex. [A, B, C] x3 -> [A, B, C, B, A, C, C, A, B]
+
     :param items: list of items to repeat
     :param how_many_times: how many times the list should repeat
     :return: repeated list
+    :rtype: list
     """
     final_list = []
     for _ in range(0, how_many_times):
@@ -176,7 +188,9 @@ class API:
     def dizquetv_version(self) -> str:
         """
         Get dizqueTV version number
+
         :return: dizqueTV version number
+        :rtype: str
         """
         return self._get_json(endpoint='/version').get('dizquetv')
 
@@ -184,7 +198,9 @@ class API:
     def ffmpeg_version(self) -> str:
         """
         Get FFMPEG version number
+
         :return: ffmpeg version number
+        :rtype: str
         """
         return self._get_json(endpoint='/version').get('ffmpeg')
 
@@ -193,7 +209,9 @@ class API:
     def plex_servers(self) -> List[PlexServer]:
         """
         Get the Plex Media Servers connected to dizqueTV
+
         :return: List of PlexServer objects
+        :rtype: list[PlexServer]
         """
         json_data = self._get_json(endpoint='/plex-servers')
         return [PlexServer(data=server, dizque_instance=self) for server in json_data]
@@ -201,8 +219,10 @@ class API:
     def plex_server_status(self, server_name: str) -> bool:
         """
         Check if a Plex Media Server is accessible
+
         :param server_name: Name of Plex Server
         :return: True if active, False if not active
+        :rtype: bool
         """
         if self._post(endpoint='/plex-servers/status', data={'name': server_name}):
             return True
@@ -213,6 +233,7 @@ class API:
 
         :param server_name: Name of Plex Server
         :return: True if active, False if not active
+        :rtype: bool
         """
         if self._post(endpoint='/plex-servers/foreignstatus', data={'name': server_name}):
             return True
@@ -221,8 +242,10 @@ class API:
     def get_plex_server(self, server_name: str) -> Union[PlexServer, None]:
         """
         Get a specific Plex Media Server
+
         :param server_name: Name of Plex Server
         :return: PlexServer object or None
+        :rtype: PlexServer | None
         """
         for server in self.plex_servers:
             if server.name == server_name:
@@ -232,8 +255,10 @@ class API:
     def add_plex_server(self, **kwargs) -> Union[PlexServer, None]:
         """
         Add a Plex Media Server to dizqueTV
+
         :param kwargs: keyword arguments of setting names and values
         :return: PlexServer object or None
+        :rtype: PlexServer | None
         """
         if helpers._settings_are_complete(new_settings_dict=kwargs,
                                           template_settings_dict=PLEX_SERVER_SETTINGS_TEMPLATE,
@@ -245,8 +270,10 @@ class API:
     def add_plex_server_from_plexapi(self, plex_server: PServer) -> Union[PlexServer, None]:
         """
         Convert and add a plexapi.PlexServer as a Plex Media Server to dizqueTV
+
         :param plex_server: plexapi.PlexServer object to add to dizqueTV
         :return: PlexServer object or None
+        :rtype: PlexServer | None
         """
         current_servers = self.plex_servers
         index = 0
@@ -269,9 +296,11 @@ class API:
     def update_plex_server(self, server_name: str, **kwargs) -> bool:
         """
         Edit a Plex Media Server on dizqueTV
+
         :param server_name: name of Plex Media Server to update
         :param kwargs: keyword arguments of setting names and values
         :return: True if successful, False if unsuccessful
+        :rtype: bool
         """
         server = self.get_plex_server(server_name=server_name)
         if server:
@@ -283,8 +312,10 @@ class API:
     def delete_plex_server(self, server_name: str) -> bool:
         """
         Remove a Plex Media Server from dizqueTV
+
         :param server_name: Name of Plex Server
         :return: True if successful, False if unsuccessful
+        :rtype: bool
         """
         if self._delete(endpoint='/plex-servers', data={'name': server_name}):
             return True
@@ -295,7 +326,9 @@ class API:
     def channels(self) -> List[Channel]:
         """
         Get all dizqueTV channels
+
         :return: List of Channel objects
+        :rtype: list[Channel]
         """
         json_data = self._get_json(endpoint='/channels', timeout=5)  # large JSON may take longer, so bigger timeout
         return [Channel(data=channel, dizque_instance=self) for channel in json_data]
@@ -303,8 +336,10 @@ class API:
     def get_channel(self, channel_number: int) -> Union[Channel, None]:
         """
         Get a specific dizqueTV channel
+
         :param channel_number: Number of channel
         :return: Channel object or None
+        :rtype: Channel | None
         """
         channel_data = self._get_json(endpoint=f'/channel/{channel_number}')
         if channel_data:
@@ -314,8 +349,10 @@ class API:
     def get_channel_info(self, channel_number: int) -> json:
         """
         Get the name, number and icon for a dizqueTV channel
+
         :param channel_number: Number of channel
         :return: JSON data with channel name, number and icon path
+        :rtype: dict
         """
         return self._get_json(endpoint=f'/channel/description/{channel_number}')
 
@@ -323,7 +360,9 @@ class API:
     def channel_numbers(self) -> List[int]:
         """
         Get all dizqueTV channel numbers
+
         :return: List of channel numbers
+        :rtype: list[int]
         """
         data = self._get_json(endpoint='/channelNumbers')
         if data:
@@ -334,15 +373,19 @@ class API:
     def channel_count(self) -> int:
         """
         Get the number of dizqueTV channels
+
         :return: Int number of channels
+        :rtype: int
         """
         return len(self.channels)
 
     def _fill_in_watermark_settings(self, handle_errors: bool = True, **kwargs) -> dict:
         """
         Create complete watermark settings
+
         :param kwargs: All kwargs, including some related to watermark
         :return: A complete and valid watermark dict
+        :rtype: dict
         """
         final_dict = helpers._combine_settings_add_new(new_settings_dict=kwargs,
                                                        template_dict=WATERMARK_SETTINGS_DEFAULT)
@@ -360,8 +403,10 @@ class API:
     def _fill_in_default_channel_settings(self, settings_dict: dict, handle_errors: bool = False) -> dict:
         """
         Set some dynamic default values, such as channel number, start time and image URLs
+
         :param settings_dict: Dictionary of new settings for channel
         :return: Dictionary of settings with defaults filled in
+        :rtype: dict
         """
         if not settings_dict.get('programs'):  # empty or doesn't exist
             if handle_errors:
@@ -398,12 +443,14 @@ class API:
                     **kwargs) -> Union[Channel, None]:
         """
         Add a channel to dizqueTV
+
         :param programs: Program or PlexAPI Video, Movie or Episode objects to add to the new channel
         :param plex_server: plexapi.server.PlexServer (optional, required if adding PlexAPI Video, Movie or Episode)
         :param kwargs: keyword arguments of setting names and values
         :param handle_errors: Suppress error if they arise
         (ex. alter invalid channel number, add Flex Time if no program is included)
         :return: new Channel object or None
+        :rtype: Channel | None
         """
         kwargs['programs'] = []
         for item in programs:
@@ -428,9 +475,11 @@ class API:
     def update_channel(self, channel_number: int, **kwargs) -> bool:
         """
         Edit a dizqueTV channel
+
         :param channel_number: Number of channel to update
         :param kwargs: keyword arguments of setting names and values
         :return: True if successful, False if unsuccessful
+        :rtype: bool
         """
         channel = self.get_channel(channel_number=channel_number)
         if channel:
@@ -444,7 +493,9 @@ class API:
     def delete_channel(self, channel_number: int) -> bool:
         """
         Delete a dizqueTV channel
+
         :return: True if successful, False if unsuccessful
+        :rtype: bool
         """
         if self._delete(endpoint="/channel", data={'number': channel_number}):
             return True
@@ -453,10 +504,12 @@ class API:
     def _make_schedule(self, channel: Channel, schedule: Schedule = None, schedule_settings: dict = None) -> json:
         """
         Add or update a schedule to a Channel
+
         :param channel: Channel object to add schedule to
         :param schedule: Schedule object to add (Optional)
         :param schedule_settings: Schedule settings dictionary to use (Optional)
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
+        :rtype: bool
         """
         data = {'programs': []}
         if schedule:
@@ -481,7 +534,9 @@ class API:
     def filler_lists(self) -> List[FillerList]:
         """
         Get all dizqueTV filler lists
+
         :return: List of FillerList objects
+        :rtype: list[FillerList]
         """
         json_data = self._get_json(endpoint='/fillers', timeout=5)  # large JSON may take longer, so bigger timeout
         return [FillerList(data=filler_list, dizque_instance=self) for filler_list in json_data]
@@ -489,8 +544,10 @@ class API:
     def get_filler_list(self, filler_list_id: str) -> Union[FillerList, None]:
         """
         Get a specific dizqueTV filler list
+
         :param filler_list_id: id of filler list
         :return: FillerList object
+        :rtype: FillerList
         """
         filler_list_data = self._get_json(endpoint=f'/filler/{filler_list_id}')
         if filler_list_data:
@@ -500,8 +557,10 @@ class API:
     def get_filler_list_by_name(self, filler_list_name: str) -> Union[FillerList, None]:
         """
         Get a specific dizqueTV filler list
+
         :param filler_list_name: name of filler list
         :return: FillerList object
+        :rtype: FillerList
         """
         for filler_list in self.filler_lists:
             if filler_list.name == filler_list_name:
@@ -511,8 +570,10 @@ class API:
     def get_filler_list_info(self, filler_list_id: str) -> json:
         """
         Get the name, content and id for a dizqueTV filler list
+
         :param filler_list_id: id of filler list
         :return: JSON data with filler list name, content and id
+        :rtype: dict
         """
         return self._get_json(endpoint=f'/filler/{filler_list_id}')
 
@@ -523,8 +584,10 @@ class API:
     def _fill_in_default_filler_list_settings(self, settings_dict: dict, handle_errors: bool = False) -> dict:
         """
         Set some dynamic default values, such as filler list name
+
         :param settings_dict: Dictionary of new settings for filler list
         :return: Dictionary of settings with defaults filled in
+        :rtype: dict
         """
         if not settings_dict.get('content'):  # empty or doesn't exist
             if handle_errors:
@@ -546,12 +609,14 @@ class API:
         """
         Add a filler list to dizqueTV
         Must include at least one program to create
+
         :param content: At least one Program or PlexAPI Video, Movie or Episode to add to the new filler list
         :param plex_server: plexapi.server.PlexServer (optional, required if adding PlexAPI Video, Movie or Episode)
         :param kwargs: keyword arguments of setting names and values
         :param handle_errors: Suppress error if they arise
         (ex. add redirect if no program is included)
         :return: new FillerList object or None
+        :rtype: FillerList | None
         """
         kwargs['content'] = []
         for item in content:
@@ -575,9 +640,11 @@ class API:
     def update_filler_list(self, filler_list_id: str, **kwargs) -> bool:
         """
         Edit a dizqueTV FillerList
+
         :param filler_list_id: ID of FillerList to update
         :param kwargs: keyword arguments of setting names and values
         :return: True if successful, False if unsuccessful
+        :rtype: bool
         """
         filler_list = self.get_filler_list(filler_list_id=filler_list_id)
         if filler_list:
@@ -589,7 +656,9 @@ class API:
     def delete_filler_list(self, filler_list_id: str) -> bool:
         """
         Delete a dizqueTV filler list
+
         :return: True if successful, False if unsuccessful
+        :rtype: bool
         """
         if self._delete(endpoint=f"/filler/{filler_list_id}"):
             return True
@@ -600,7 +669,9 @@ class API:
     def ffmpeg_settings(self) -> Union[FFMPEGSettings, None]:
         """
         Get dizqueTV's FFMPEG settings
+
         :return: FFMPEGSettings object or None
+        :rtype: FFMPEGSettings | None
         """
         json_data = self._get_json(endpoint='/ffmpeg-settings')
         if json_data:
@@ -610,8 +681,10 @@ class API:
     def update_ffmpeg_settings(self, **kwargs) -> bool:
         """
         Edit dizqueTV's FFMPEG settings
+
         :param kwargs: keyword arguments of setting names and values
         :return: True if successful, False if unsuccessful
+        :rtype: bool
         """
         new_settings = helpers._combine_settings(new_settings_dict=kwargs, template_dict=self.ffmpeg_settings._data)
         if self._put(endpoint='/ffmpeg-settings', data=new_settings):
@@ -621,7 +694,9 @@ class API:
     def reset_ffmpeg_settings(self) -> bool:
         """
         Reset dizqueTV's FFMPEG settings to default
+
         :return: True if successful, False if unsuccessful
+        :rtype: bool
         """
         old_settings = self.ffmpeg_settings._data
         if self._post(endpoint='/ffmpeg-settings', data={'_id': old_settings['_id']}):
@@ -633,7 +708,9 @@ class API:
     def plex_settings(self) -> Union[PlexSettings, None]:
         """
         Get dizqueTV's Plex settings
+
         :return: PlexSettings object or None
+        :rtype: PlexSettings | None
         """
         json_data = self._get_json(endpoint='/plex-settings')
         if json_data:
@@ -643,8 +720,10 @@ class API:
     def update_plex_settings(self, **kwargs) -> bool:
         """
         Edit dizqueTV's Plex settings
+
         :param kwargs: keyword arguments of setting names and values
         :return: True if successful, False if unsuccessful
+        :rtype: bool
         """
         new_settings = helpers._combine_settings(new_settings_dict=kwargs, template_dict=self.plex_settings._data)
         if self._put(endpoint='/plex-settings', data=new_settings):
@@ -654,7 +733,9 @@ class API:
     def reset_plex_settings(self) -> bool:
         """
         Reset dizqueTV's Plex settings to default
+
         :return: True if successful, False if unsuccessful
+        :rtype: bool
         """
         old_settings = self.plex_settings._data
         if self._post(endpoint='/plex-settings', data={'_id': old_settings['_id']}):
@@ -666,7 +747,9 @@ class API:
     def last_xmltv_refresh(self) -> str:
         """
         Get the last time the XMLTV file was refreshed
+
         :return: Timestamp of last refresh
+        :rtype: str
         """
         return self._get_json(endpoint='/xmltv-last-refresh')
 
@@ -675,7 +758,9 @@ class API:
     def xmltv_settings(self) -> Union[XMLTVSettings, None]:
         """
         Get dizqueTV's XMLTV settings
+
         :return: XMLTVSettings object or None
+        :rtype: XMLTVSettings | None
         """
         json_data = self._get_json(endpoint='/xmltv-settings')
         if json_data:
@@ -685,8 +770,10 @@ class API:
     def update_xmltv_settings(self, **kwargs) -> bool:
         """
         Edit dizqueTV's XMLTV settings
+
         :param kwargs: keyword arguments of setting names and values
         :return: True if successful, False if unsuccessful
+        :rtype: bool
         """
         new_settings = helpers._combine_settings(new_settings_dict=kwargs, template_dict=self.xmltv_settings._data)
         if self._put(endpoint='/xmltv-settings', data=new_settings):
@@ -696,7 +783,9 @@ class API:
     def reset_xmltv_settings(self) -> bool:
         """
         Reset dizqueTV's XMLTV settings to default
+
         :return: True if successful, False if unsuccessful
+        :rtype: bool
         """
         old_settings = self.xmltv_settings._data
         if self._post(endpoint='/xmltv-settings', data={'_id': old_settings['_id']}):
@@ -708,7 +797,9 @@ class API:
     def hdhr_settings(self) -> Union[HDHomeRunSettings, None]:
         """
         Get dizqueTV's HDHomeRun settings
+
         :return: HDHomeRunSettings object or None
+        :rtype: HDHomeRunSettings | None
         """
         json_data = self._get_json(endpoint='/hdhr-settings')
         if json_data:
@@ -718,8 +809,10 @@ class API:
     def update_hdhr_settings(self, **kwargs) -> bool:
         """
         Edit dizqueTV's HDHomeRun settings
+
         :param kwargs: keyword arguments of setting names and values
         :return: True if successful, False if unsuccessful
+        :rtype: bool
         """
         new_settings = helpers._combine_settings(new_settings_dict=kwargs, template_dict=self.hdhr_settings._data)
         if self._put(endpoint='/hdhr-settings', data=new_settings):
@@ -729,7 +822,9 @@ class API:
     def reset_hdhr_settings(self) -> bool:
         """
         Reset dizqueTV's HDHomeRun settings to default
+
         :return: True if successful, False if unsuccessful
+        :rtype: bool
         """
         old_settings = self.hdhr_settings._data
         if self._post(endpoint='/hdhr-settings', data={'_id': old_settings['_id']}):
@@ -740,7 +835,9 @@ class API:
     def refresh_xml(self) -> bool:
         """
         Force the server to update the xmltv.xml file
+
         :return: True if successful, False if unsuccessful
+        :rtype: bool
         """
         # updating the xmltv_settings causes the server to reload the xmltv.xml file
         return self.update_xmltv_settings()
@@ -749,7 +846,9 @@ class API:
     def xmltv_xml(self) -> Union[ElementTree.Element, None]:
         """
         Get dizqueTV's XMLTV data
+
         :return: xml.etree.ElementTree.Element object or None
+        :rtype: xml.etree.ElementTree.Element | None
         """
         self.refresh_xml()
         response = self._get(endpoint='/xmltv.xml')
@@ -762,7 +861,9 @@ class API:
         """
         Get dizqueTV's m3u playlist
         Without m3u8, this method currently produces an error.
+
         :return: m3u8 object
+        :rtype: m3u8
         """
         return m3u8.load(f"{self.url}/api/channels.m3u")
 
@@ -771,7 +872,9 @@ class API:
         """
         Get dizqueTV's hls.m3u playlist
         Without m3u8, this method currently produces an error.
+
         :return: m3u8 object
+        :rtype: m3u8
         """
         return m3u8.load(f"{self.url}/api/hls.m3u")
 
@@ -780,7 +883,9 @@ class API:
     def guide(self) -> Guide:
         """
         Get the dizqueTV guide
+
         :return: dizqueTV.Guide object
+        :rtype: Guide
         """
         json_data = self._get_json(endpoint='/guide/debug')
         return Guide(data=json_data, dizque_instance=self)
@@ -789,7 +894,9 @@ class API:
     def last_guide_update(self) -> Union[datetime, None]:
         """
         Get the last update time for the guide
+
         :return: datetime.datetime object
+        :rtype: datetime.datetime
         """
         data = self._get_json(endpoint='/guide/status')
         if data and data.get('lastUpdate'):
@@ -800,7 +907,9 @@ class API:
     def guide_channel_numbers(self) -> List[str]:
         """
         Get the list of channel numbers from the guide
+
         :return: List of strings (not ints)
+        :rtype: list[str]
         """
         data = self._get_json(endpoint='/guide/status')
         if data and data.get('channelNumbers'):
@@ -811,7 +920,9 @@ class API:
     def guide_lineup_json(self) -> json:
         """
         Get the raw guide JSON data
+
         :return: JSON data
+        :rtype: dict
         """
         return self._get_json(endpoint='/guide/debug')
 
@@ -819,9 +930,11 @@ class API:
     def convert_plex_item_to_program(self, plex_item: Union[Video, Movie, Episode], plex_server: PServer) -> Program:
         """
         Convert a PlexAPI Video, Movie or Episode object into a Program
+
         :param plex_item: plexapi.video.Video, plexapi.video.Movie or plexapi.video.Episode object
         :param plex_server: plexapi.server.PlexServer object
         :return: Program object
+        :rtype: Program
         """
         return convert_plex_item_to_program(plex_item=plex_item, plex_server=plex_server)
 
@@ -829,9 +942,11 @@ class API:
             FillerItem:
         """
         Convert a PlexAPI Video, Movie or Episode object into a FillerItem
+
         :param plex_item: plexapi.video.Video, plexapi.video.Movie or plexapi.video.Episode object
         :param plex_server: plexapi.server.PlexServer object
         :return: Program object
+        :rtype: Program
         """
         return convert_plex_item_to_filler_item(plex_item=plex_item, plex_server=plex_server)
 
@@ -840,10 +955,12 @@ class API:
                                  channel_numbers: List[int] = None) -> bool:
         """
         Add multiple programs to multiple channels
+
         :param programs: List of Program objects
         :param channels: List of Channel objects (optional)
         :param channel_numbers: List of channel numbers
         :return: True if successful, False if unsuccessful (Channel objects reload in place)
+        :rtype: bool
         """
         if not channels and not channel_numbers:
             raise MissingParametersError(
@@ -863,10 +980,12 @@ class API:
                                      channel_numbers: List[int] = None) -> bool:
         """
         Add multiple filler lists to multiple channels
+
         :param filler_lists: List of FillerList objects
         :param channels: List of Channel objects (optional)
         :param channel_numbers: List of channel numbers
         :return: True if successful, False if unsuccessful (Channel objects reload in place)
+        :rtype: bool
         """
         if not channels and not channel_numbers:
             raise MissingParametersError(

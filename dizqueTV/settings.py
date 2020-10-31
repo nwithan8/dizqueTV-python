@@ -19,6 +19,9 @@ class XMLTVSettings:
     def reload(self):
         """
         Reload current XMLTVSettings object
+
+        :return: None
+        :rtype: None
         """
         temp_settings = self._dizque_instance.xmltv_settings
         if temp_settings:
@@ -31,8 +34,10 @@ class XMLTVSettings:
         """
         Edit these XMLTV settings
         Automatically refreshes current XMLTVSettings object
+
         :param kwargs: keyword arguments of setting names and values
         :return: True if successful, False if unsuccessful
+        :rtype: bool
         """
         if self._dizque_instance.update_xmltv_settings(**kwargs):
             self.reload()
@@ -44,7 +49,9 @@ class XMLTVSettings:
         """
         Reset these XMLTV settings
         Automatically refreshes current XMLTVSettings object
+
         :return: True if successful, False if unsuccessful
+        :rtype: bool
         """
         if self._dizque_instance.reset_xmltv_settings():
             self.reload()
@@ -67,6 +74,9 @@ class HDHomeRunSettings:
     def refresh(self):
         """
         Reload current HDHomeRunSettings object
+
+        :return: None
+        :rtype: None
         """
         temp_settings = self._dizque_instance.hdhr_settings
         if temp_settings:
@@ -79,8 +89,10 @@ class HDHomeRunSettings:
         """
         Edit these HDHomeRun settings
         Automatically refreshes current HDHomeRunSettings object
+
         :param kwargs: keyword arguments of setting names and values
         :return: True if successful, False if unsuccessful
+        :rtype: bool
         """
         if self._dizque_instance.update_hdhr_settings(**kwargs):
             self.refresh()
@@ -92,7 +104,9 @@ class HDHomeRunSettings:
         """
         Reset these HDHomeRun settings
         Automatically refreshes current HDHomeRunSettings object
+
         :return: True if successful, False if unsuccessful
+        :rtype: bool
         """
         if self._dizque_instance.reset_hdhr_settings():
             self.refresh()
@@ -136,6 +150,9 @@ class FFMPEGSettings:
     def refresh(self):
         """
         Reload current FFMPEGSettings object
+
+        :return: None
+        :rtype: None
         """
         temp_settings = self._dizque_instance.ffmpeg_settings
         if temp_settings:
@@ -148,8 +165,10 @@ class FFMPEGSettings:
         """
         Edit these FFMPEG settings
         Automatically refreshes current FFMPEGSettings object
+
         :param kwargs: keyword arguments of setting names and values
         :return: True if successful, False if unsuccessful
+        :rtype: bool
         """
         if self._dizque_instance.update_ffmpeg_settings(**kwargs):
             self.refresh()
@@ -161,7 +180,9 @@ class FFMPEGSettings:
         """
         Reset these FFMPEG settings
         Automatically refreshes current FFMPEGSettings object
+
         :return: True if successful, False if unsuccessful
+        :rtype: bool
         """
         if self._dizque_instance.reset_ffmpeg_settings():
             self.refresh()
@@ -201,6 +222,9 @@ class PlexSettings:
     def refresh(self):
         """
         Reload current PlexSettings object
+
+        :return: None
+        :rtype: None
         """
         temp_settings = self._dizque_instance.plex_settings
         if temp_settings:
@@ -213,8 +237,10 @@ class PlexSettings:
         """
         Edit these Plex settings
         Automatically refreshes current PlexSettings object
+
         :param kwargs: keyword arguments of setting names and values
         :return: True if successful, False if unsuccessful
+        :rtype: bool
         """
         if self._dizque_instance.update_plex_settings(**kwargs):
             self.refresh()
@@ -226,7 +252,9 @@ class PlexSettings:
         """
         Reset these Plex settings
         Automatically refreshes current PlexSettings object
+
         :return: True if successful, False if unsuccessful
+        :rtype: bool
         """
         if self._dizque_instance.reset_plex_settings():
             self.refresh()
