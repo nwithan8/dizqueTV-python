@@ -23,7 +23,9 @@ class PlexServer:
     def status(self) -> bool:
         """
         Check if this Plex Media Server is accessible
+
         :return: True if active, False if not active
+        :rtype: bool
         """
         return self._dizque_instance.plex_server_status(server_name=self.name)
 
@@ -33,6 +35,7 @@ class PlexServer:
         """
 
         :return: True if active, False if not active
+        :rtype: bool
         """
         return self._dizque_instance.plex_server_foreign_status(server_name=self.name)
 
@@ -40,6 +43,9 @@ class PlexServer:
     def refresh(self):
         """
         Reload this Plex Media Server
+
+        :return: None
+        :rtype: None
         """
         if self._dizque_instance:
             temp_server = self._dizque_instance.get_plex_server(server_name=self.name)
@@ -53,8 +59,10 @@ class PlexServer:
         """
         Edit this Plex Media Server on dizqueTV
         Automatically refreshes current PlexServer object
+
         :param kwargs: keyword arguments of setting names and values
         :return: True if successful, False if unsuccessful
+        :rtype: bool
         """
         if self._dizque_instance:
             if self._dizque_instance.update_plex_server(server_name=self.name, **kwargs):
@@ -66,7 +74,9 @@ class PlexServer:
     def delete(self) -> bool:
         """
         Remove this Plex Media Server from dizqueTV
+
         :return: True if successful, False if unsuccessful
+        :rtype: bool
         """
         if self._dizque_instance:
             return self._dizque_instance.delete_plex_server(server_name=self.name)

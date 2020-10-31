@@ -7,6 +7,7 @@ from dizqueTV.exceptions import NotRemoteObjectError
 def _check_for_dizque_instance(func):
     """
     Check if an object has a _dizque_instance attribute before executing function
+
     :param func: Function to execute if object does have a _dizque_instance attribute
     :return: Result of func
     """
@@ -79,7 +80,9 @@ class Program(MediaItem, Redirect):
     def delete(self) -> bool:
         """
         Delete this program
+
         :return: True if successful, False if unsuccessful
+        :rtype: bool
         """
         return self._channel_instance.delete_program(program=self)
 
@@ -96,6 +99,8 @@ class FillerItem(MediaItem):
     def delete(self) -> bool:
         """
         Delete this filler
+
         :return: True if successful, False if unsuccessful
+        :rtype: bool
         """
         return self._filler_list_instance.delete_filler(filler=self)
