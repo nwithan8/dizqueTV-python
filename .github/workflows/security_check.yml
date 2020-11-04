@@ -1,5 +1,8 @@
 on: [push]
 
+- name: PyCharm Python Security Scanner
+  uses: tonybaloney/pycharm-security@1.20.1
+
 jobs:
   security_checks:
     runs-on: ubuntu-latest
