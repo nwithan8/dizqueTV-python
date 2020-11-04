@@ -137,17 +137,17 @@ def convert_icon_position(position_text) -> str:
     return '3'
 
 
-def _object_has_attribute(object, attribute_name: str) -> bool:
+def _object_has_attribute(obj, attribute_name: str) -> bool:
     """
     Check if an object has an attribute (exists and is not None)
 
-    :param object: object to check
+    :param obj: object to check
     :param attribute_name: name of attribute to find
     :return: True if exists and is not None, False otherwise
     :rtype: bool
     """
-    if hasattr(object, attribute_name):
-        if getattr(object, attribute_name) is not None:
+    if hasattr(obj, attribute_name):
+        if getattr(obj, attribute_name) is not None:
             return True
     return False
 
@@ -267,7 +267,7 @@ def _separate_with_and_without(items: List, attribute_name: str) -> Tuple[List, 
     items_with = []
     items_without = []
     for item in items:
-        if _object_has_attribute(object=item, attribute_name=attribute_name):
+        if _object_has_attribute(obj=item, attribute_name=attribute_name):
             items_with.append(item)
         else:
             items_without.append(item)
@@ -284,7 +284,7 @@ def get_items_of_type(item_type: str, items: List) -> List:
     :rtype: list
     """
     return [item for item in items if
-            (_object_has_attribute(object=item, attribute_name='type') and item.type == item_type)]
+            (_object_has_attribute(obj=item, attribute_name='type') and item.type == item_type)]
 
 
 def get_items_of_not_type(item_type: str, items: List) -> List:
@@ -297,7 +297,7 @@ def get_items_of_not_type(item_type: str, items: List) -> List:
     :rtype: list
     """
     return [item for item in items if
-            (_object_has_attribute(object=item, attribute_name='type') and item.type != item_type)]
+            (_object_has_attribute(obj=item, attribute_name='type') and item.type != item_type)]
 
 
 def get_non_shows(media_items: List) -> List:
@@ -309,8 +309,8 @@ def get_non_shows(media_items: List) -> List:
     :rtype: list
     """
     return [item for item in media_items if
-            ((_object_has_attribute(object=item, attribute_name='type') and item.type != 'episode') or
-             (_object_has_attribute(object=item, attribute_name='season') and not item.season))]
+            ((_object_has_attribute(obj=item, attribute_name='type') and item.type != 'episode') or
+             (_object_has_attribute(obj=item, attribute_name='season') and not item.season))]
 
 
 def make_show_dict(media_items: List) -> dict:
@@ -324,7 +324,7 @@ def make_show_dict(media_items: List) -> dict:
     """
     show_dict = {}
     for item in media_items:
-        if _object_has_attribute(object=item, attribute_name='type') and item.type == 'episode' and item.episode:
+        if _object_has_attribute(obj=item, attribute_name='type') and item.type == 'episode' and item.episode:
             if item.showTitle in show_dict.keys():
                 if item.season in show_dict[item.showTitle].keys():
                     show_dict[item.showTitle][item.season][item.episode] = item
@@ -698,8 +698,7 @@ def shuffle(items: List) -> bool:
         random.shuffle(items)
         return True
     except:
-        pass
-    return False
+        return False
 
 
 def rotate_items(items: List, shift_index: int = None) -> List:
@@ -830,8 +829,8 @@ def sort_media_by_duration(media_items: List[Union[Program, FillerItem]]) -> Lis
     :rtype: list[Program | FillerItem]
     """
     non_redirects = [item for item in media_items if
-                     (_object_has_attribute(object=item, attribute_name='duration')
-                      and _object_has_attribute(object=item, attribute_name='type')
+                     (_object_has_attribute(obj=item, attribute_name='duration')
+                      and _object_has_attribute(obj=item, attribute_name='type')
                       and item.type != 'redirect')]
     sorted_media = sorted(non_redirects, key=lambda x: x.duration)
     return sorted_media
@@ -991,12 +990,12 @@ def remove_non_programs(media_items: List[Union[Program, Redirect, FillerItem]])
     :rtype: list[Program | FillerItem]
     """
     return [item for item in media_items if
-            (_object_has_attribute(object=item, attribute_name='type')
+            (_object_has_attribute(obj=item, attribute_name='type')
              and item.type != 'redirect')]
 
 
-def remove_duplicate_media_items(media_items: List[Union[Program, Redirect, FillerItem]]) -> List[
-    Union[Program, FillerItem]]:
+def remove_duplicate_media_items(media_items: List[Union[Program, Redirect, FillerItem]]) -> \
+        List[Union[Program, FillerItem]]:
     """
     Remove duplicate items from list of media items.
     Check by ratingKey.

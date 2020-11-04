@@ -1,3 +1,5 @@
+from dizqueTV import _version
+
 # Configuration file for the Sphinx documentation builder.
 #
 # This file only contains a selection of the most common options. For a full
@@ -18,11 +20,11 @@
 # -- Project information -----------------------------------------------------
 
 project = 'dizqueTV'
-copyright = '2020, Nate Harris'
-author = 'Nate Harris'
+copyright = _version.__copyright__
+author = _version.__author__
 
 # The full version, including alpha/beta/rc tags
-release = '0.0.64'
+release = _version.__version__
 
 
 # -- General configuration ---------------------------------------------------

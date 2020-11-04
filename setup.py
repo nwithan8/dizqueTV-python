@@ -15,7 +15,7 @@ setuptools.setup(
     author=dizqueTV._version.__author__,  # Type in your name
     author_email='n8gr8gbln@gmail.com',  # Type in your E-Mail
     url='https://github.com/nwithan8/dizqueTV-python',  # Provide either the link to your github or to your website
-    download_url=f'https://github.com/nwithan8/dizqueTV-python/archive/{dizqueTV._version.__version__}.tar.gz',  # I explain this later on
+    download_url=f'https://github.com/nwithan8/dizqueTV-python/archive/{dizqueTV._version.__version__}.tar.gz',
     keywords=[
         'dizqueTV',
         'Plex',
