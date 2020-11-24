@@ -218,6 +218,7 @@ Enable verbose logging by passing ``verbose=True`` into the ``API`` object decla
 - ``lateness``: int
 - ``maxDays``: int
 - ``slots``: List of ``TimeSlot`` objects
+- ``flexPreference``: str ("end" or "distribute")
 - ``pad``: int
 - ``timeZoneOffset``: int
 

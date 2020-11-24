@@ -43,7 +43,9 @@ def make_time_slot_from_dizque_program(program: Union[Program, Redirect],
             item = TimeSlotItem(item_type='tv', item_value=program.showTitle)
     else:
         return None
-    data = {'time': helpers.convert_24_time_to_milliseconds_past_midnight(time_string=time), 'showId': item.showId, 'order': order}
+    data = {'time': helpers.convert_24_time_to_milliseconds_past_midnight(time_string=time),
+            'showId': item.showId,
+            'order': order}
     return TimeSlot(data=data, program=item)
 
 
@@ -434,7 +436,8 @@ class API:
         # override duration regardless of user input
         settings_dict['duration'] = sum(program['duration'] for program in settings_dict['programs'])
         settings_dict['watermark'] = self._fill_in_watermark_settings(**settings_dict)
-        return helpers._combine_settings_add_new(new_settings_dict=settings_dict, template_dict=CHANNEL_SETTINGS_DEFAULT)
+        return helpers._combine_settings_add_new(new_settings_dict=settings_dict,
+                                                 template_dict=CHANNEL_SETTINGS_DEFAULT)
 
     def add_channel(self,
                     programs: List[Union[Program, Redirect, Video, Movie, Episode]] = None,
@@ -514,7 +517,7 @@ class API:
         data = {'programs': []}
         if schedule:
             data['schedule'] = (schedule._data
-                                if helpers._object_has_attribute(object=schedule, attribute_name="_data")
+                                if helpers._object_has_attribute(obj=schedule, attribute_name="_data")
                                 else {})
         else:
             data['schedule'] = schedule_settings

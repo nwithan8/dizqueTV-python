@@ -765,8 +765,9 @@ class Channel:
         """
         for slot in time_slots:
             kwargs['slots'].append(slot._data)
-        schedule_settings = helpers._combine_settings(new_settings_dict=kwargs,
-                                                      template_dict=SCHEDULE_SETTINGS_DEFAULT)
+        schedule_settings = helpers._combine_settings_enforce_types(new_settings_dict=kwargs,
+                                                                    template_dict=SCHEDULE_SETTINGS_TEMPLATE,
+                                                                    default_dict=SCHEDULE_SETTINGS_DEFAULT)
         if helpers._settings_are_complete(new_settings_dict=schedule_settings,
                                           template_settings_dict=SCHEDULE_SETTINGS_TEMPLATE):
             schedule = Schedule(data=schedule_settings, dizque_instance=None, channel_instance=self)
@@ -978,7 +979,7 @@ class Channel:
         """
         non_redirects = []
         for item in self.programs:
-            if not helpers._object_has_attribute(object=item, attribute_name='type') or item.type != 'redirect':
+            if not helpers._object_has_attribute(obj=item, attribute_name='type') or item.type != 'redirect':
                 non_redirects.append(item)
         if non_redirects and self.delete_all_programs():
             return self.add_programs(programs=non_redirects)
@@ -994,10 +995,10 @@ class Channel:
         :rtype: bool
         """
         non_redirects = [item for item in self.programs if
-                         (helpers._object_has_attribute(object=item, attribute_name='type')
+                         (helpers._object_has_attribute(obj=item, attribute_name='type')
                           and item.type != 'redirect')]
         non_specials = [item for item in non_redirects if
-                        (helpers._object_has_attribute(object=item, attribute_name='season')
+                        (helpers._object_has_attribute(obj=item, attribute_name='season')
                          and item.season != 0)]
         if non_specials and self.delete_all_programs():
             return self.add_programs(programs=non_specials)
@@ -1149,11 +1150,11 @@ class Channel:
         )
         final_programs_to_add = []
         all_programs = self.programs
-        programs_to_add, total_running_time = helpers._get_first_x_minutes_of_programs(programs=all_programs,
-                                                                                       minutes=int(
-                                                                                           time_until_night_block_start /
-                                                                                           1000 / 60)
-                                                                                       )
+        programs_to_add, total_running_time = helpers._get_first_x_minutes_of_programs(
+            programs=all_programs,
+            minutes=int(
+                time_until_night_block_start / 1000 / 60)
+        )
         if len(programs_to_add) == len(all_programs):  # all programs can play before night channel even starts
             if total_running_time < time_until_night_block_start:  # add flex time between last item and night channel
                 time_needed = time_until_night_block_start - total_running_time
