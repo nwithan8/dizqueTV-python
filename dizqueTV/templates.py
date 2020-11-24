@@ -55,17 +55,19 @@ TIME_SLOT_SETTINGS_TEMPLATE = {
 SCHEDULE_SETTINGS_TEMPLATE = {
     "lateness": int,
     "maxDays": int,
+    "flexPreference": ["end", "distribute"],
     "slots": [],
     "pad": int,
-    "timeZoneOffset": int
+    "timeZoneOffset": int,
 }
 
 SCHEDULE_SETTINGS_DEFAULT = {
     "lateness": 0,
     "maxDays": 365,
+    "flexPreference": "distribute",
     "slots": [],
     "pad": 1,
-    "timeZoneOffset": 0
+    "timeZoneOffset": 0,
 }
 
 CHANNEL_SETTINGS_TEMPLATE = {

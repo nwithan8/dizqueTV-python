@@ -76,6 +76,35 @@ def _combine_settings(new_settings_dict: dict, template_dict: dict, ignore_keys:
                 template_dict[k] = v
     return template_dict
 
+def _combine_settings_enforce_types(new_settings_dict: dict, template_dict: dict, default_dict: dict, ignore_keys: List = None) -> dict:
+    """
+    Build a complete dictionary for new settings, using old settings as a base
+    Do not add new keys to template
+    Enforce default options
+
+
+    :param new_settings_dict: Dictionary of new settings kwargs
+    :param template_dict: settings template
+    :param default_dict: default settings
+    :param ignore_keys: List of keys to ignore when combining dictionaries
+    :return: Dictionary of new settings
+    :rtype: dict
+    """
+    if not ignore_keys:
+        ignore_keys = []
+    for k, v in new_settings_dict.items():
+        if k in template_dict.keys():
+            if k in ignore_keys:
+                pass
+            else:
+                if type(v) == template_dict[k]:
+                    template_dict[k] = v
+                elif v in template_dict[k]:
+                    template_dict[k] = v
+                else:
+                    template_dict[k] = default_dict[k]
+    return template_dict
+
 
 def _filter_dictionary(new_dictionary: dict, template_dict: dict) -> dict:
     """

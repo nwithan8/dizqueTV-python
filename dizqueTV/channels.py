@@ -765,8 +765,9 @@ class Channel:
         """
         for slot in time_slots:
             kwargs['slots'].append(slot._data)
-        schedule_settings = helpers._combine_settings(new_settings_dict=kwargs,
-                                                      template_dict=SCHEDULE_SETTINGS_DEFAULT)
+        schedule_settings = helpers._combine_settings_enforce_types(new_settings_dict=kwargs,
+                                                                    template_dict=SCHEDULE_SETTINGS_TEMPLATE,
+                                                                    default_dict=SCHEDULE_SETTINGS_DEFAULT)
         if helpers._settings_are_complete(new_settings_dict=schedule_settings,
                                           template_settings_dict=SCHEDULE_SETTINGS_TEMPLATE):
             schedule = Schedule(data=schedule_settings, dizque_instance=None, channel_instance=self)
