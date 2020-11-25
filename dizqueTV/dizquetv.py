@@ -431,15 +431,15 @@ class API:
                 settings_dict.pop('number')  # remove 'number' key, will be caught down below
             else:
                 raise ChannelCreationError(f"Channel #{settings_dict.get('number')} already exists.")
-        if 'number' not in settings_dict.keys():
+        if not settings_dict.get('number'):
             settings_dict['number'] = max(self.channel_numbers) + 1
-        if 'name' not in settings_dict.keys():
+        if not settings_dict.get('name'):
             settings_dict['name'] = f"Channel {settings_dict['number']}"
-        if 'startTime' not in settings_dict.keys():
+        if not settings_dict.get('startTime'):
             settings_dict['startTime'] = helpers.get_nearest_30_minute_mark()
-        if 'icon' not in settings_dict.keys():
+        if not settings_dict.get('icon'):
             settings_dict['icon'] = f"{self.url}/images/dizquetv.png"
-        if 'offlinePicture' not in settings_dict.keys():
+        if not settings_dict.get('offlinePicture'):
             settings_dict['offlinePicture'] = f"{self.url}/images/generic-offline-screen.png"
         # override duration regardless of user input
         settings_dict['duration'] = sum(program['duration'] for program in settings_dict['programs'])
@@ -448,7 +448,7 @@ class API:
                                                  template_dict=CHANNEL_SETTINGS_DEFAULT)
 
     def add_channel(self,
-                    programs: List[Union[Program, Redirect, Video, Movie, Episode]] = None,
+                    programs: List[Union[Program, Redirect, Video, Movie, Episode]] = [],
                     plex_server: PServer = None,
                     handle_errors: bool = True,
                     **kwargs) -> Union[Channel, None]:
