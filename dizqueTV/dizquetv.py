@@ -335,17 +335,25 @@ class API:
         json_data = self._get_json(endpoint='/channels', timeout=5)  # large JSON may take longer, so bigger timeout
         return [Channel(data=channel, dizque_instance=self) for channel in json_data]
 
-    def get_channel(self, channel_number: int) -> Union[Channel, None]:
+    def get_channel(self, channel_number: int = None, channel_name: str = None) -> Union[Channel, None]:
         """
-        Get a specific dizqueTV channel
+        Get a specific dizqueTV channel by number or name
 
         :param channel_number: Number of channel
+        :param channel_name: Name of channel
         :return: Channel object or None
         :rtype: Channel | None
         """
-        channel_data = self._get_json(endpoint=f'/channel/{channel_number}')
-        if channel_data:
-            return Channel(data=channel_data, dizque_instance=self)
+        if not channel_number and not channel_name:
+            raise MissingParametersError("Must include either 'channel_number' or 'channel_name'")
+        if channel_number:
+            channel_data = self._get_json(endpoint=f'/channel/{channel_number}')
+            if channel_data:
+                return Channel(data=channel_data, dizque_instance=self)
+        if channel_name:
+            for channel in self.channels:
+                if channel.name == channel_name:
+                    return channel
         return None
 
     def get_channel_info(self, channel_number: int) -> json:
