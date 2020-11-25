@@ -316,10 +316,10 @@ class Channel:
                          for filler_data in data.get('fallback')]
         self.watermark = Watermark(data=data.get('watermark'),
                                    dizque_instance=dizque_instance,
-                                   channel_instance=self)
+                                   channel_instance=self) if data.get('watermark') else None
         self.transcoding = ChannelFFMPEGSettings(data=data.get('transcoding'),
                                                  dizque_instance=dizque_instance,
-                                                 channel_instance=self)
+                                                 channel_instance=self) if data.get('transcoding') else None
         self.schedule = None
         if data.get('scheduleBackup'):
             self.schedule = Schedule(data=data.get('scheduleBackup'),

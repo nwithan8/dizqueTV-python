@@ -38,7 +38,7 @@ Enable verbose logging by passing ``verbose=True`` into the ``API`` object decla
 #### Channels
 - Get all channels: ``channels = dtv.channels`` -> list of ``Channel`` objects
 - Get all channel numbers: ``channel_numbers = dtv.channel_numbers`` -> list of ints
-- Get a specific channel: ``channel = dtv.get_channel(channel_number: int)`` -> ``Channel`` object
+- Get a specific channel: ``channel = dtv.get_channel(channel_number: int, channel_name: str)`` -> ``Channel`` object
 - Get brief info on a specific channel: ``channel_info = dtv.get_channel_info(channel_number: int)`` -> ``{"name": str, "number": int, "icon": str}``
 - Add a channel: ``new_channel = dtv.add_channel(programs: [Program, PlexAPI Video, ...], plex_server: PlexAPI Server [Optional], handle_errors: bool, **kwargs)`` -> ``Channel`` object
 - Update a channel: ``updated = dtv.update_channel(channel_number: int, **kwargs)`` or ``Channel.update(**kwargs)`` -> True/False
