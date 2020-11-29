@@ -20,6 +20,8 @@ from dizqueTV.templates import PLEX_SERVER_SETTINGS_TEMPLATE, CHANNEL_SETTINGS_T
     FILLER_LIST_SETTINGS_TEMPLATE, FILLER_LIST_SETTINGS_DEFAULT, WATERMARK_SETTINGS_DEFAULT
 import dizqueTV.helpers as helpers
 from dizqueTV.exceptions import MissingParametersError, ChannelCreationError, ItemCreationError, GeneralException
+from dizqueTV._analytics import GoogleAnalytics
+from dizqueTV._info import __analytics_id__ as analytics_id
 
 
 def make_time_slot_from_dizque_program(program: Union[Program, Redirect],
@@ -126,9 +128,12 @@ def repeat_and_shuffle_list(items: List, how_many_times: int) -> List:
 
 
 class API:
-    def __init__(self, url: str, verbose: bool = False):
+    def __init__(self, url: str, verbose: bool = False, allow_analytics: bool = True, anonymous_analytics: bool = True):
         self.url = url.rstrip('/')
         self.verbose = verbose
+        self.analytics = GoogleAnalytics(analytics_id=analytics_id,
+                                         anonymous_ip=anonymous_analytics,
+                                         do_not_track=not allow_analytics)
         logging.basicConfig(format='%(asctime)s %(levelname)s:%(message)s',
                             level=(logging.INFO if verbose else logging.ERROR))
 
