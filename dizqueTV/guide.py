@@ -17,7 +17,7 @@ class GuideProgram:
         self.title = data.get('title')
 
     def __repr__(self):
-        return f"<{self.__class__.__name__}:{self.title}>"
+        return f"{self.__class__.__name__}({self.title})"
 
 
 class GuideChannel:
@@ -30,7 +30,7 @@ class GuideChannel:
         self.programs = programs
 
     def __repr__(self):
-        return f"<{self.__class__.__name__}:{self.name}>"
+        return f"{self.__class__.__name__}({self.name})"
 
     def get_lineup(self, from_date: datetime, to_date: datetime) -> List[GuideProgram]:
         """
@@ -58,7 +58,7 @@ class Guide:
         self.channels = self._create_channels_and_programs()
 
     def __repr__(self):
-        return f"<{self.__class__.__name__}>"
+        return f"{self.__class__.__name__})"
 
     def _create_channels_and_programs(self):
         channels = []

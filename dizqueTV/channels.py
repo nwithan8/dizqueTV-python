@@ -27,7 +27,7 @@ class ChannelFFMPEGSettings:
         self.videoBufSize = data.get('videoBufSize')
 
     def __repr__(self):
-        return f"<{self.__class__.__name__}:{(self.targetResolution if self.targetResolution else 'Default')}>"
+        return f"{self.__class__.__name__}({(self.targetResolution if self.targetResolution else 'Default')})"
 
     @property
     def json(self) -> dict:
@@ -84,7 +84,7 @@ class Watermark:
         self.animated = data.get('animated')
 
     def __repr__(self):
-        return f"<{self.__class__.__name__}:{self.enabled}:{(self.url if self.url else 'Empty URL')}>"
+        return f"{self.__class__.__name__}({self.enabled}:{(self.url if self.url else 'Empty URL')})"
 
     @property
     def json(self) -> dict:
@@ -123,7 +123,7 @@ class TimeSlotItem:
         self.showId = f"{item_type}.{item_value}"
 
     def __repr__(self):
-        return f"<{self.__class__.__name__}:{self.showId}>"
+        return f"{self.__class__.__name__}({self.showId})"
 
 
 class TimeSlot:
@@ -138,7 +138,7 @@ class TimeSlot:
         self._schedule_instance = schedule_instance
 
     def __repr__(self):
-        return f"<{self.__class__.__name__}:{self.time}:{self.showId}:{self.order}>"
+        return f"{self.__class__.__name__}({self.time}:{self.showId}:{self.order})"
 
     def edit(self, time_string: str = None, **kwargs) -> bool:
         """
@@ -184,7 +184,7 @@ class Schedule:
         self.timeZoneOffset = data.get('timeZoneOffset')
 
     def __repr__(self):
-        return f"<{self.__class__.__name__}:{self.maxDays} Days:{len(self.slots)} TimeSlots>"
+        return f"{self.__class__.__name__}({self.maxDays} Days:{len(self.slots)} TimeSlots>"
 
     @helpers._check_for_dizque_instance
     def update(self,
@@ -329,7 +329,7 @@ class Channel:
         self.scheduledableItems = self._get_schedulable_items()
 
     def __repr__(self):
-        return f"<{self.__class__.__name__}:{self.number}:{self.name}>"
+        return f"{self.__class__.__name__}({self.number}:{self.name})"
 
     def _get_schedulable_items(self) -> List[TimeSlotItem]:
         """

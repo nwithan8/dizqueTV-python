@@ -1,4 +1,4 @@
-from dizqueTV import _version
+from dizqueTV import _info
 
 # Configuration file for the Sphinx documentation builder.
 #
@@ -20,11 +20,11 @@ from dizqueTV import _version
 # -- Project information -----------------------------------------------------
 
 project = 'dizqueTV'
-copyright = _version.__copyright__
-author = _version.__author__
+copyright = _info.__copyright__
+author = _info.__author__
 
 # The full version, including alpha/beta/rc tags
-release = _version.__version__
+release = _info.__version__
 
 
 # -- General configuration ---------------------------------------------------

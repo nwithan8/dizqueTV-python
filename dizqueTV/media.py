@@ -29,7 +29,7 @@ class BaseMediaItem:
         self.duration = data.get('duration')
 
     def __repr__(self):
-        return f"<{self.__class__.__name__}:{self.type}>"
+        return f"{self.__class__.__name__}({self.type})"
 
 
 class MediaItem(BaseMediaItem):
@@ -55,7 +55,7 @@ class MediaItem(BaseMediaItem):
         self.seasonIcon = data.get('seasonIcon')
 
     def __repr__(self):
-        return f"<{self.__class__.__name__}:{self.title}>"
+        return f"{self.__class__.__name__}({self.title})"
 
 
 class Redirect(BaseMediaItem):
@@ -65,7 +65,7 @@ class Redirect(BaseMediaItem):
         self.channel = data.get('channel')
 
     def __repr__(self):
-        return f"<{self.__class__.__name__}:{self.channel}>"
+        return f"{self.__class__.__name__}({self.channel})"
 
 
 class Program(MediaItem, Redirect):
@@ -74,7 +74,7 @@ class Program(MediaItem, Redirect):
         self.rating = data.get('rating')
 
     def __repr__(self):
-        return f"<{self.__class__.__name__}:{self.title}>"
+        return f"{self.__class__.__name__}({self.title})"
 
     @_check_for_dizque_instance
     def delete(self) -> bool:
@@ -93,7 +93,7 @@ class FillerItem(MediaItem):
         self._filler_list_instance = filler_list_instance
 
     def __repr__(self):
-        return f"<{self.__class__.__name__}:{self.title}>"
+        return f"{self.__class__.__name__}({self.title})"
 
     @_check_for_dizque_instance
     def delete(self) -> bool:

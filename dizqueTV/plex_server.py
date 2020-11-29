@@ -16,7 +16,7 @@ class PlexServer:
         self._id = data.get('_id')
 
     def __repr__(self):
-        return f"<{self.__class__.__name__}:{self.name}>"
+        return f"{self.__class__.__name__}({self.name})"
 
     @property
     @helpers._check_for_dizque_instance

@@ -133,7 +133,7 @@ class API:
                             level=(logging.INFO if verbose else logging.ERROR))
 
     def __repr__(self):
-        return f"<{self.__class__.__name__}:{self.url}>"
+        return f"{self.__class__.__name__}({self.url})"
 
     def _get(self, endpoint: str, params: dict = None, headers: dict = None, timeout: int = 2) -> Union[Response, None]:
         if not endpoint.startswith('/'):
