@@ -1,4 +1,23 @@
 import inspect
+
+@property
+def _errored_func():
+    return inspect.trace()[-1].function
+
+
+class IncludeFunctionName(Exception):
+    def __init__(self, message):
+        super().__init__(f"Error in '{_errored_func()}' function\n{message}")
+
+
+class GeneralException(IncludeFunctionName):
+    def __init__(self, message):
+        super().__init__(message)
+
+
+class MissingSettingsError(IncludeFunctionName):
+    def __init__(self, message):
+import inspect
 import platform
 
 import dizqueTV._analytics as GA
