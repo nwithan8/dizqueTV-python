@@ -1,23 +1,40 @@
-class MissingSettingsError(Exception):
+import inspect
+
+@property
+def _errored_func():
+    return inspect.trace()[-1].function
+
+
+class IncludeFunctionName(Exception):
+    def __init__(self, message):
+        super().__init__(f"Error in '{_errored_func()}' function\n{message}")
+
+
+class GeneralException(IncludeFunctionName):
+    def __init__(self, message):
+        super().__init__(message)
+
+
+class MissingSettingsError(IncludeFunctionName):
     def __init__(self, message):
         super().__init__(f"The provided settings are incomplete. {message}")
 
 
-class MissingParametersError(Exception):
+class MissingParametersError(IncludeFunctionName):
     def __init__(self, message):
         super().__init__(message)
 
 
-class NotRemoteObjectError(Exception):
+class NotRemoteObjectError(IncludeFunctionName):
     def __init__(self, object_type: str):
         super().__init__(f"Local {object_type} object does not exist on dizqueTV.")
 
 
-class ItemCreationError(Exception):
+class ItemCreationError(IncludeFunctionName):
     def __init__(self, message):
         super().__init__(message)
 
 
-class ChannelCreationError(Exception):
+class ChannelCreationError(IncludeFunctionName):
     def __init__(self, message):
         super().__init__(message)

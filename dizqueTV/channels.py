@@ -11,7 +11,7 @@ from dizqueTV.media import Redirect, Program, FillerItem
 from dizqueTV.templates import MOVIE_PROGRAM_TEMPLATE, EPISODE_PROGRAM_TEMPLATE, \
     REDIRECT_PROGRAM_TEMPLATE, FILLER_LIST_SETTINGS_TEMPLATE, FILLER_LIST_CHANNEL_TEMPLATE, \
     CHANNEL_FFMPEG_SETTINGS_DEFAULT, SCHEDULE_SETTINGS_DEFAULT, TIME_SLOT_SETTINGS_TEMPLATE, SCHEDULE_SETTINGS_TEMPLATE
-from dizqueTV.exceptions import MissingParametersError
+from dizqueTV.exceptions import MissingParametersError, GeneralException
 
 
 class ChannelFFMPEGSettings:
@@ -227,15 +227,15 @@ class Schedule:
                                                                template_dict=TIME_SLOT_SETTINGS_TEMPLATE)
             if not helpers._settings_are_complete(new_settings_dict=new_settings_filtered,
                                                   template_settings_dict=TIME_SLOT_SETTINGS_TEMPLATE):
-                raise Exception("Missing settings required to make a time slot.")
+                raise GeneralException("Missing settings required to make a time slot.")
 
             kwargs = new_settings_filtered
         if kwargs['showId'] not in [item.showId for item in self._channel_instance.scheduledableItems]:
-            raise Exception(f"Program {kwargs['showId']} cannot be added to a time slot. "
+            raise GeneralException(f"Program {kwargs['showId']} cannot be added to a time slot. "
                             f"Please make sure the program is added to the channel first.")
         slots = self._data.get('slots', [])
         if kwargs['time'] in [slot['time'] for slot in slots]:
-            raise Exception(f"Time slot {kwargs['time']} is already filled.")
+            raise GeneralException(f"Time slot {kwargs['time']} is already filled.")
         slots.append(kwargs)
         return self.update(slots=slots)
 
@@ -521,7 +521,7 @@ class Channel:
         """
         channel_data = self._data
         if not programs:
-            raise Exception("You must provide at least one program to add to the channel.")
+            raise GeneralException("You must provide at least one program to add to the channel.")
         for program in programs:
             if type(program) not in [Program, Redirect]:
                 if not plex_server and not self.plex_server:
@@ -730,7 +730,7 @@ class Channel:
         :rtype: bool
         """
         if not filler_list and not filler_list_id:
-            raise Exception("You must include either a filler_list or a filler_list_id.")
+            raise GeneralException("You must include either a filler_list or a filler_list_id.")
         if filler_list:
             filler_list_id = filler_list.id
         channel_data = self._data
@@ -1049,7 +1049,7 @@ class Channel:
         :rtype: bool
         """
         if start_time > datetime.utcnow():
-            raise Exception("You cannot use a start time in the future.")
+            raise GeneralException("You cannot use a start time in the future.")
         start_time = start_time.strftime("%Y-%m-%dT%H:%M:%S.000Z")
         self.remove_duplicate_programs()
         programs_to_add, running_time = helpers._get_first_x_minutes_of_programs(programs=self.programs,
@@ -1083,13 +1083,13 @@ class Channel:
         :rtype: bool
         """
         if start_hour > 23 or start_hour < 0:
-            raise Exception("start_hour must be between 0 and 23.")
+            raise GeneralException("start_hour must be between 0 and 23.")
         if end_hour > 23 or end_hour < 0:
-            raise Exception("end_hour must be between 0 and 23.")
+            raise GeneralException("end_hour must be between 0 and 23.")
         if start_hour == end_hour:
-            raise Exception("You cannot add a 24-hour Channel at Night.")
+            raise GeneralException("You cannot add a 24-hour Channel at Night.")
         if night_channel_number not in self._dizque_instance.channel_numbers:
-            raise Exception(f"Channel #{night_channel_number} does not exist.")
+            raise GeneralException(f"Channel #{night_channel_number} does not exist.")
         length_of_night_block = helpers.get_milliseconds_between_two_hours(start_hour=start_hour, end_hour=end_hour)
         length_of_regular_block = (24 * 60 * 60 * 1000) - length_of_night_block
         new_channel_start_time = datetime.now().replace(hour=end_hour, minute=0, second=0, microsecond=0)
@@ -1131,14 +1131,14 @@ class Channel:
                                  start_hour: int,
                                  end_hour: int) -> bool:
         if start_hour > 23 or start_hour < 0:
-            raise Exception("start_hour must be between 0 and 23.")
+            raise GeneralException("start_hour must be between 0 and 23.")
         if end_hour > 23 or end_hour < 0:
-            raise Exception("end_hour must be between 0 and 23.")
+            raise GeneralException("end_hour must be between 0 and 23.")
         if night_channel_number not in self._dizque_instance.channel_numbers:
-            raise Exception(f"Channel #{night_channel_number} does not exist.")
+            raise GeneralException(f"Channel #{night_channel_number} does not exist.")
         length_of_night_block = helpers.get_milliseconds_between_two_hours(start_hour=start_hour, end_hour=end_hour)
         if length_of_night_block == 0:
-            raise Exception("You cannot add a 24-hour Channel at Night.")
+            raise GeneralException("You cannot add a 24-hour Channel at Night.")
         length_of_regular_block = (24 * 60 * 60 * 1000) - length_of_night_block
         channel_start_time_datetime = helpers.string_to_datetime(date_string=self.startTime)
         time_until_night_block_start = helpers.get_milliseconds_between_two_datetimes(

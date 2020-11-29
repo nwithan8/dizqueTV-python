@@ -19,7 +19,7 @@ from dizqueTV.plex_server import PlexServer
 from dizqueTV.templates import PLEX_SERVER_SETTINGS_TEMPLATE, CHANNEL_SETTINGS_TEMPLATE, CHANNEL_SETTINGS_DEFAULT, \
     FILLER_LIST_SETTINGS_TEMPLATE, FILLER_LIST_SETTINGS_DEFAULT, WATERMARK_SETTINGS_DEFAULT
 import dizqueTV.helpers as helpers
-from dizqueTV.exceptions import MissingParametersError, ChannelCreationError, ItemCreationError
+from dizqueTV.exceptions import MissingParametersError, ChannelCreationError, ItemCreationError, GeneralException
 
 
 def make_time_slot_from_dizque_program(program: Union[Program, Redirect],
@@ -401,13 +401,13 @@ class API:
                                                        template_dict=WATERMARK_SETTINGS_DEFAULT)
         if handle_errors and final_dict['enabled'] is True:
             if not (0 < final_dict['width'] <= 100):
-                raise Exception("Watermark width must greater than 0 and less than 100")
+                raise GeneralException("Watermark width must greater than 0 and less than 100")
             if not (final_dict['width'] + final_dict['horizontalMargin'] <= 100):
-                raise Exception("Watermark width + horizontalMargin must not be greater than 100")
+                raise GeneralException("Watermark width + horizontalMargin must not be greater than 100")
             if not (final_dict['verticalMargin'] <= 100):
-                raise Exception("Watermark verticalMargin must not be greater than 100")
+                raise GeneralException("Watermark verticalMargin must not be greater than 100")
             if not (final_dict['duration'] and final_dict['duration'] >= 0):
-                raise Exception("Must include a watermark duration. Use 0 for a permanent watermark.")
+                raise GeneralException("Must include a watermark duration. Use 0 for a permanent watermark.")
         return final_dict
 
     def _fill_in_default_channel_settings(self, settings_dict: dict, handle_errors: bool = False) -> dict:

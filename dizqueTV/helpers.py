@@ -7,7 +7,7 @@ import random
 from plexapi.video import Video, Movie, Episode
 from plexapi.server import PlexServer as PServer
 
-from dizqueTV.exceptions import MissingSettingsError, NotRemoteObjectError
+from dizqueTV.exceptions import MissingSettingsError, NotRemoteObjectError, GeneralException
 import dizqueTV.requests as requests
 from dizqueTV.media import Program, Redirect, FillerItem
 
@@ -579,7 +579,7 @@ def convert_24_time_to_milliseconds_past_midnight(time_string: str) -> int:
     """
     hour_minute_second = time_string.split(':')
     if len(hour_minute_second) < 2 or len(hour_minute_second) > 4:
-        raise Exception("Time string must be in two-digit format hour:minute:second")
+        raise GeneralException("Time string must be in two-digit format hour:minute:second")
     if len(hour_minute_second) == 2:
         time_string += ":00"
     time_in_datetime = string_to_time(time_string=time_string)
