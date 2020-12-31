@@ -32,7 +32,7 @@ release = '1.2.2.2'
 # ones.
 extensions = [
     'sphinx.ext.autodoc',
-    'sphinx_autodoc_typehints'
+    #'sphinx_autodoc_typehints'
 ]
 
 # Autodoc options
