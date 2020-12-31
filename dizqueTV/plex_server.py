@@ -1,6 +1,7 @@
 import json
 
 import dizqueTV.helpers as helpers
+from dizqueTV import decorators
 
 
 class PlexServer:
@@ -19,7 +20,7 @@ class PlexServer:
         return f"<{self.__class__.__name__}:{self.name}>"
 
     @property
-    @helpers._check_for_dizque_instance
+    @decorators._check_for_dizque_instance
     def status(self) -> bool:
         """
         Check if this Plex Media Server is accessible
@@ -30,7 +31,7 @@ class PlexServer:
         return self._dizque_instance.plex_server_status(server_name=self.name)
 
     @property
-    @helpers._check_for_dizque_instance
+    @decorators._check_for_dizque_instance
     def foreign_status(self) -> bool:
         """
 
@@ -39,7 +40,7 @@ class PlexServer:
         """
         return self._dizque_instance.plex_server_foreign_status(server_name=self.name)
 
-    @helpers._check_for_dizque_instance
+    @decorators._check_for_dizque_instance
     def refresh(self):
         """
         Reload this Plex Media Server
@@ -54,7 +55,7 @@ class PlexServer:
                 self.__init__(data=json_data, dizque_instance=self._dizque_instance)
                 del temp_server
 
-    @helpers._check_for_dizque_instance
+    @decorators._check_for_dizque_instance
     def update(self, **kwargs) -> bool:
         """
         Edit this Plex Media Server on dizqueTV
@@ -70,7 +71,7 @@ class PlexServer:
                 return True
         return False
 
-    @helpers._check_for_dizque_instance
+    @decorators._check_for_dizque_instance
     def delete(self) -> bool:
         """
         Remove this Plex Media Server from dizqueTV

@@ -9,31 +9,11 @@ from plexapi.video import Video, Movie, Episode
 from plexapi.server import PlexServer as PServer
 
 from dizqueTV.exceptions import MissingSettingsError, NotRemoteObjectError
-import dizqueTV.requests as requests
+import dizqueTV.dizquetv_requests as requests
 from dizqueTV.media import Program, Redirect, FillerItem
 
 _access_tokens = {}
 _uris = {}
-
-
-# Checks
-def _check_for_dizque_instance(func: object) -> object:
-    """
-    Check if an object has a _dizque_instance attribute before executing function
-
-    :param func: Function to execute if object does have a _dizque_instance attribute
-    :type func: object
-    :return: Result of func
-    :rtype: object
-    """
-
-    @wraps(func)
-    def inner(obj, **kwargs):
-        if obj._dizque_instance:
-            return func(obj, **kwargs)
-        raise NotRemoteObjectError(object_type=type(obj).__name__)
-
-    return inner
 
 
 # Internal Helpers
