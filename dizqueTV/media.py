@@ -1,23 +1,7 @@
 import json
+from functools import wraps
 
-import dizqueTV.helpers as helpers
-from dizqueTV.exceptions import NotRemoteObjectError
-
-
-def _check_for_dizque_instance(func):
-    """
-    Check if an object has a _dizque_instance attribute before executing function
-
-    :param func: Function to execute if object does have a _dizque_instance attribute
-    :return: Result of func
-    """
-
-    def inner(obj, **kwargs):
-        if obj._dizque_instance:
-            return func(obj, **kwargs)
-        raise NotRemoteObjectError(object_type=type(obj).__name__)
-
-    return inner
+import dizqueTV.decorators as decorators
 
 
 class BaseMediaItem:
@@ -76,7 +60,7 @@ class Program(MediaItem, Redirect):
     def __repr__(self):
         return f"{self.__class__.__name__}({self.title})"
 
-    @_check_for_dizque_instance
+    @decorators._check_for_dizque_instance
     def delete(self) -> bool:
         """
         Delete this program
@@ -95,7 +79,7 @@ class FillerItem(MediaItem):
     def __repr__(self):
         return f"{self.__class__.__name__}({self.title})"
 
-    @_check_for_dizque_instance
+    @decorators._check_for_dizque_instance
     def delete(self) -> bool:
         """
         Delete this filler

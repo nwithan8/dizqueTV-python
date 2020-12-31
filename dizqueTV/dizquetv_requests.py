@@ -3,7 +3,7 @@ from typing import Union
 
 import requests
 
-import dizqueTV.logging as logs
+import dizqueTV.dizquetv_logging as logs
 
 
 def get(url: str,

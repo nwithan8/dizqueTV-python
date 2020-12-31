@@ -1,6 +1,6 @@
 import json
 
-import dizqueTV.helpers as helpers
+from dizqueTV import decorators
 
 
 class XMLTVSettings:
@@ -15,7 +15,7 @@ class XMLTVSettings:
     def __repr__(self):
         return f"{self.__class__.__name__}({self._id})"
 
-    @helpers._check_for_dizque_instance
+    @decorators._check_for_dizque_instance
     def reload(self):
         """
         Reload current XMLTVSettings object
@@ -29,7 +29,7 @@ class XMLTVSettings:
             self.__init__(data=json_data, dizque_instance=self._dizque_instance)
             del temp_settings
 
-    @helpers._check_for_dizque_instance
+    @decorators._check_for_dizque_instance
     def update(self, **kwargs) -> bool:
         """
         Edit these XMLTV settings
@@ -44,7 +44,7 @@ class XMLTVSettings:
             return True
         return False
 
-    @helpers._check_for_dizque_instance
+    @decorators._check_for_dizque_instance
     def reset(self) -> bool:
         """
         Reset these XMLTV settings
@@ -70,7 +70,7 @@ class HDHomeRunSettings:
     def __repr__(self):
         return f"{self.__class__.__name__}({self._id})"
 
-    @helpers._check_for_dizque_instance
+    @decorators._check_for_dizque_instance
     def refresh(self):
         """
         Reload current HDHomeRunSettings object
@@ -84,7 +84,7 @@ class HDHomeRunSettings:
             self.__init__(data=json_data, dizque_instance=self._dizque_instance)
             del temp_settings
 
-    @helpers._check_for_dizque_instance
+    @decorators._check_for_dizque_instance
     def update(self, **kwargs) -> bool:
         """
         Edit these HDHomeRun settings
@@ -99,7 +99,7 @@ class HDHomeRunSettings:
             return True
         return False
 
-    @helpers._check_for_dizque_instance
+    @decorators._check_for_dizque_instance
     def reset(self) -> bool:
         """
         Reset these HDHomeRun settings
@@ -146,7 +146,7 @@ class FFMPEGSettings:
     def __repr__(self):
         return f"{self.__class__.__name__}({self._id})"
 
-    @helpers._check_for_dizque_instance
+    @decorators._check_for_dizque_instance
     def refresh(self):
         """
         Reload current FFMPEGSettings object
@@ -160,7 +160,7 @@ class FFMPEGSettings:
             self.__init__(data=json_data, dizque_instance=self._dizque_instance)
             del temp_settings
 
-    @helpers._check_for_dizque_instance
+    @decorators._check_for_dizque_instance
     def update(self, **kwargs) -> bool:
         """
         Edit these FFMPEG settings
@@ -175,7 +175,7 @@ class FFMPEGSettings:
             return True
         return False
 
-    @helpers._check_for_dizque_instance
+    @decorators._check_for_dizque_instance
     def reset(self) -> bool:
         """
         Reset these FFMPEG settings
@@ -218,7 +218,7 @@ class PlexSettings:
     def __repr__(self):
         return f"{self.__class__.__name__}({self._id})"
 
-    @helpers._check_for_dizque_instance
+    @decorators._check_for_dizque_instance
     def refresh(self):
         """
         Reload current PlexSettings object
@@ -232,7 +232,7 @@ class PlexSettings:
             self.__init__(data=json_data, dizque_instance=self._dizque_instance)
             del temp_settings
 
-    @helpers._check_for_dizque_instance
+    @decorators._check_for_dizque_instance
     def update(self, **kwargs) -> bool:
         """
         Edit these Plex settings
@@ -247,7 +247,7 @@ class PlexSettings:
             return True
         return False
 
-    @helpers._check_for_dizque_instance
+    @decorators._check_for_dizque_instance
     def reset(self) -> bool:
         """
         Reset these Plex settings
