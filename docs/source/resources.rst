@@ -13,6 +13,9 @@ Submit an issue, contribute or just see source code on GitHub: https://github.co
 Main dizqueTV project on GitHub: https://github.com/vexorian/dizquetv
 Wiki: https://github.com/vexorian/dizquetv/wiki
 
+Maybe even buy me a slice of pizza (I don't drink coffee, lol). Your support is greatly appreciated!
+https://www.buymeacoffee.com/nwithan8
+
 
 Contact
 ============
