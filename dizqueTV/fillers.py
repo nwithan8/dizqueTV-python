@@ -126,8 +126,7 @@ class FillerList:
         Add multiple programs to this channel
 
         :param fillers: List of FillerItem, plexapi.video.Video, plexapi.video.Movie or plexapi.video.Episode objects
-        :param plex_server: plexapi.server.PlexServer object
-        (required if adding PlexAPI Video, Movie or Episode objects)
+        :param plex_server: plexapi.server.PlexServer object (required if adding PlexAPI Video, Movie or Episode objects)
         :return: True if successful, False if unsuccessful (Channel reloads in place)
         :rtype: bool
         """

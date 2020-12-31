@@ -1,5 +1,6 @@
 import json
 from datetime import datetime, timedelta
+from functools import wraps
 from typing import List, Union, Tuple
 import collections
 import random
@@ -21,10 +22,12 @@ def _check_for_dizque_instance(func: object) -> object:
     Check if an object has a _dizque_instance attribute before executing function
 
     :param func: Function to execute if object does have a _dizque_instance attribute
+    :type func: object
     :return: Result of func
     :rtype: object
     """
 
+    @wraps(func)
     def inner(obj, **kwargs):
         if obj._dizque_instance:
             return func(obj, **kwargs)
@@ -34,14 +37,19 @@ def _check_for_dizque_instance(func: object) -> object:
 
 
 # Internal Helpers
-def _combine_settings_add_new(new_settings_dict: dict, template_dict: dict, ignore_keys: List = None) -> dict:
+def _combine_settings_add_new(new_settings_dict: dict,
+                              template_dict: dict,
+                              ignore_keys: List = None) -> dict:
     """
     Build a complete dictionary for new settings, using old settings as a base
     Add new keys to template.
 
     :param new_settings_dict: Dictionary of new settings kwargs
+    :type new_settings_dict: dict
     :param template_dict: Current settings
+    :type template_dict: dict
     :param ignore_keys: List of keys to ignore when combining dictionaries
+    :type ignore_keys: list, optional
     :return: Dictionary of new settings
     :rtype: dict
     """
@@ -55,14 +63,19 @@ def _combine_settings_add_new(new_settings_dict: dict, template_dict: dict, igno
     return template_dict
 
 
-def _combine_settings(new_settings_dict: dict, template_dict: dict, ignore_keys: List = None) -> dict:
+def _combine_settings(new_settings_dict: dict,
+                      template_dict: dict,
+                      ignore_keys: List = None) -> dict:
     """
     Build a complete dictionary for new settings, using old settings as a base
     Do not add new keys to template.
 
     :param new_settings_dict: Dictionary of new settings kwargs
+    :type new_settings_dict: dict
     :param template_dict: settings template
+    :type template_dict: dict
     :param ignore_keys: List of keys to ignore when combining dictionaries
+    :type ignore_keys: list, optional
     :return: Dictionary of new settings
     :rtype: dict
     """
@@ -76,17 +89,24 @@ def _combine_settings(new_settings_dict: dict, template_dict: dict, ignore_keys:
                 template_dict[k] = v
     return template_dict
 
-def _combine_settings_enforce_types(new_settings_dict: dict, template_dict: dict, default_dict: dict, ignore_keys: List = None) -> dict:
+
+def _combine_settings_enforce_types(new_settings_dict: dict,
+                                    template_dict: dict,
+                                    default_dict: dict,
+                                    ignore_keys: List = None) -> dict:
     """
     Build a complete dictionary for new settings, using old settings as a base
     Do not add new keys to template
     Enforce default options
 
-
     :param new_settings_dict: Dictionary of new settings kwargs
+    :type new_settings_dict: dict
     :param template_dict: settings template
+    :type template_dict: dict
     :param default_dict: default settings
+    :type default_dict: dict
     :param ignore_keys: List of keys to ignore when combining dictionaries
+    :type ignore_keys: list, optional
     :return: Dictionary of new settings
     :rtype: dict
     """
@@ -111,7 +131,9 @@ def _filter_dictionary(new_dictionary: dict, template_dict: dict) -> dict:
     Remove key-value pairs from new_dictionary that are not present in template_dict
 
     :param new_dictionary: Dictionary of key-value pairs
+    :type new_dictionary: dict
     :param template_dict: Dictionary of accepted key-value pairs
+    :type template_dict: dict
     :return: Dictionary with only accepted key-value pairs
     :rtype: dict
     """
@@ -127,8 +149,11 @@ def _settings_are_complete(new_settings_dict: json, template_settings_dict: json
     Check that all elements from the settings template are present in the new settings
 
     :param new_settings_dict: Dictionary of new settings kwargs
+    :type new_settings_dict: dict
     :param template_settings_dict: Template of settings
+    :type template_settings_dict: dict
     :param ignore_keys: List of keys to ignore when analyzing completeness
+    :type ignore_keys: list, optional
     :return: True if valid, raise dizqueTV.exceptions.IncompleteSettingsError if not valid
     :rtype: bool
     """
@@ -144,11 +169,12 @@ def _settings_are_complete(new_settings_dict: json, template_settings_dict: json
     return True
 
 
-def convert_icon_position(position_text) -> str:
+def convert_icon_position(position_text: str) -> str:
     """
     Convert ex. Top Left -> 0
 
     :param position_text: position
+    :type position_text: str
     :return: String of an int
     :rtype: str
     """
@@ -166,12 +192,14 @@ def convert_icon_position(position_text) -> str:
     return '3'
 
 
-def _object_has_attribute(obj, attribute_name: str) -> bool:
+def _object_has_attribute(obj: object, attribute_name: str) -> bool:
     """
     Check if an object has an attribute (exists and is not None)
 
     :param obj: object to check
+    :type obj: object
     :param attribute_name: name of attribute to find
+    :type attribute_name: str
     :return: True if exists and is not None, False otherwise
     :rtype: bool
     """
@@ -186,7 +214,9 @@ def _make_program_dict_from_plex_item(plex_item: Union[Video, Movie, Episode], p
     Build a dictionary for a Program using a PlexAPI Video, Movie or Episode object
 
     :param plex_item: plexapi.video.Video, plexapi.video.Movie or plexapi.video.Episode object
+    :type plex_item: Union[plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode]
     :param plex_server: plexapi.server.PlexServer object
+    :type plex_server: plexapi.server.PlexServer
     :return: dict of Plex item information
     :rtype: dict
     """
@@ -228,7 +258,9 @@ def _make_filler_dict_from_plex_item(plex_item: Union[Video, Movie, Episode], pl
     Build a dictionary for a FillerItem using a PlexAPI Video, Movie or Episode object
 
     :param plex_item: plexapi.video.Video, plexapi.video.Movie or plexapi.video.Episode object
+    :type plex_item: Union[plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode]
     :param plex_server: plexapi.server.PlexServer object
+    :type plex_server: plexapi.server.PlexServer
     :return: dict of Plex item information
     :rtype: dict
     """
@@ -269,8 +301,11 @@ def _make_server_dict_from_plex_server(plex_server: PServer,
     Build a dictionary for a PlexServer using a PlexAPI server
 
     :param plex_server: plexapi.server.PlexServer object
+    :type plex_server: plexapi.server.PlexServer
     :param auto_reload_guide: Auto-update guide
+    :type auto_reload_guide: bool, optional
     :param auto_reload_channels: Auto-update channels
+    :type auto_reload_channels: bool, optional
     :return: dict of PlexServer item information
     :rtype: dict
     """
@@ -289,7 +324,9 @@ def _separate_with_and_without(items: List, attribute_name: str) -> Tuple[List, 
     Split a list of items into those with a specific attribute and those without
 
     :param items: List of items
+    :type items: list
     :param attribute_name: Name of attribute to look for
+    :type attribute_name: str
     :return: list_with, list_without
     :rtype: [list, list]
     """
@@ -308,7 +345,9 @@ def get_items_of_type(item_type: str, items: List) -> List:
     Get all items with 'type' = X
 
     :param item_type: 'type' to look for
+    :type item_type: str
     :param items: list of items to filter
+    :type items: list
     :return: list of items with 'type' = X
     :rtype: list
     """
@@ -321,7 +360,9 @@ def get_items_of_not_type(item_type: str, items: List) -> List:
     Get all items without 'type' = X
 
     :param item_type: 'type' to look for
+    :type item_type: str
     :param items: list of items to filter
+    :type items: list
     :return: list of items without 'type' = X
     :rtype: list
     """
@@ -334,6 +375,7 @@ def get_non_shows(media_items: List) -> List:
     Get all non_show items
 
     :param media_items: list of MediaItem objects
+    :type media_items: List[MediaItem]
     :return: list of non-show MediaItem objects
     :rtype: list
     """
@@ -348,6 +390,7 @@ def make_show_dict(media_items: List) -> dict:
     Disregards any non-episode media items
 
     :param media_items: list of MediaItem objects
+    :type media_items: List[MediaItem]
     :return: dict object with all episodes arranged by show-season-episode
     :rtype: dict
     """
@@ -369,6 +412,7 @@ def order_show_dict(show_dict: dict) -> dict:
     Sort a show dictionary in show-season-episode order
 
     :param show_dict: dictionary of shows in show-season-episode structure
+    :type show_dict: dict
     :return: dict object with all episodes arranged in order by show-season-episode
     :rtype: dict
     """
@@ -392,6 +436,7 @@ def add_durations_to_show_dict(show_dict: dict) -> dict:
     Add episode, season and show duration to show_dict
 
     :param show_dict: dictionary of shows in show-season-episode structure
+    :type show_dict: dict
     :return: dict object with duration included for each episode, season and show
     :rtype: dict
     """
@@ -415,6 +460,7 @@ def condense_show_dict(show_dict: dict) -> dict:
     DO NOT PASS IN A SHOW_DICT WITH DURATIONS
 
     :param show_dict: dictionary of shows in show-season-episode structure
+    :type show_dict: dict
     :return: dict object with all episodes arranged by show-episode
     :rtype: dict
     """
@@ -435,6 +481,7 @@ def remove_time_from_date(date_string: Union[datetime, str]) -> str:
     Remove time, i.e. 00:00:00, from a datetime.datetime or string
 
     :param date_string: datetime.datetime object or string to convert
+    :type date_string: Union[datetime.datetime, str]
     :return: str without time, i.e. 2020-08-29
     :rtype: str
     """
@@ -448,6 +495,7 @@ def get_year_from_date(date_string: Union[datetime, str]) -> int:
     Extract year from a datetime.datetime or string
 
     :param date_string: datetime.datetime object or string
+    :type date_string: Union[datetime.datetime, str]
     :return: int of year, i.e. 2020
     :rtype: int
     """
@@ -461,7 +509,9 @@ def string_to_datetime(date_string: str, template: str = "%Y-%m-%dT%H:%M:%S") ->
     Convert a datetime string to a datetime.datetime object
 
     :param date_string: datetime string to convert
+    :type date_string: str
     :param template: (Optional) datetime template to use when parsing string
+    :type template: str, optional
     :return: datetime.datetime object
     :rtype: datetime.datetime
     """
@@ -475,7 +525,9 @@ def datetime_to_string(datetime_object: datetime, template: str = "%Y-%m-%dT%H:%
     Convert a datetime.datetime object to a string
 
     :param datetime_object: datetime.datetime object to convert
+    :type datetime_object: datetime.datetime
     :param template: (Optional) datetime template to use when parsing string
+    :type template: str, optional
     :return: str representation of datetime
     :rtype: str
     """
@@ -487,7 +539,9 @@ def string_to_time(time_string: str, template: str = "%H:%M:%S") -> datetime:
     Convert a time string to a datetime.datetime object
 
     :param time_string: datetime string to convert
+    :type time_string: str
     :param template: (Optional) datetime template to use when parsing string
+    :type template: str, optional
     :return: datetime.datetime object
     :rtype: datetime.datetime
     """
@@ -501,7 +555,9 @@ def time_to_string(datetime_object: datetime, template: str = "%H:%M:%S") -> str
     Convert a datetime.datetime object to a string
 
     :param datetime_object: datetime.datetime object to convert
+    :type datetime_object: datetime.datetime
     :param template: (Optional) datetime template to use when parsing string
+    :type template: str, optional
     :return: str representation of datetime
     :rtype: str
     """
@@ -513,6 +569,7 @@ def adjust_datetime_for_timezone(local_time: datetime) -> datetime:
     Shift datetime.datetime in regards to UTC time
 
     :param local_time: local time datetime.datetime object
+    :type local_time: datetime.datetime
     :return: Shifted datetime.datetime object
     :rtype: datetime.datetime
     """
@@ -541,12 +598,19 @@ def shift_time(starting_time: datetime,
     Shift a time forward or backwards
 
     :param starting_time: datetime.datetime object
+    :type starting_time: datetime.datetime
     :param seconds: how many seconds
+    :type seconds: int, optional
     :param minutes: how many minutes
+    :type minutes: int, optional
     :param hours: how many hours
+    :type hours: int, optional
     :param days: how many days
+    :type days: int, optional
     :param months: how many months (assume 30 days in month)
+    :type months: int, optional
     :param years: how many years (assume 365 days in year)
+    :type years: int, optional
     :return: shifted datetime.datetime object
     :rtype: datetime.datetime
     """
@@ -574,6 +638,7 @@ def convert_24_time_to_milliseconds_past_midnight(time_string: str) -> int:
     Get milliseconds between time_string and midnight
 
     :param time_string: readable 24-hour time (ex. 00:00:00, 05:30:15, 20:08:30)
+    :type time_string: str
     :return: int of milliseconds since midnight
     :rtype: int
     """
@@ -592,7 +657,9 @@ def get_milliseconds_between_two_hours(start_hour: int, end_hour: int) -> int:
     Get how many milliseconds between two 24-hour hours
 
     :param start_hour: starting hour (in 24-hour time)
+    :type start_hour: int
     :param end_hour: ending hour (in 24-hour time)
+    :type end_hour: int
     :return: int of milliseconds between the two hours
     :rtype: int
     """
@@ -609,7 +676,9 @@ def get_milliseconds_between_two_datetimes(start_datetime: datetime, end_datetim
     Get how many milliseconds between two datetime.datetime objects
 
     :param start_datetime: starting datetime.datetime object
+    :type start_datetime: datetime.datetime
     :param end_datetime: ending datetime.datetime object
+    :type end_datetime: datetime.datetime
     :return: int of milliseconds between the two datetime.datetime objects
     :rtype: int
     """
@@ -621,7 +690,9 @@ def get_needed_flex_time(item_time_milliseconds: int, allowed_minutes_time_frame
     Get how many milliseconds needed to stretch an item's runtime to a specific interval length
 
     :param item_time_milliseconds: how long the item is in milliseconds
+    :type item_time_milliseconds: int
     :param allowed_minutes_time_frame: how long an interval the item is supposed to be, in minutes
+    :type allowed_minutes_time_frame: int
     :return: int of milliseconds needed to stretch item
     :rtype: int
     """
@@ -640,7 +711,9 @@ def get_plex_indirect_uri(plex_server: PServer, force_update: bool = False) -> U
     Get the indirect URI (ex. http://192.168.1.1-xxxxxxxxxxxxxxxx.plex.direct) for a Plex server
 
     :param plex_server: plexapi.server.PlexServer to get URI from
+    :type plex_server: plexapi.server.PlexServer
     :param force_update: ignore cached results, force an update
+    :type force_update: bool, optional
     :return: URI string or None
     :rtype: str | None
     """
@@ -669,7 +742,9 @@ def get_plex_access_token(plex_server: PServer, force_update: bool = False) -> U
     Get the access token for a Plex server
 
     :param plex_server: plexapi.server.PlexServer to get access token from
+    :type plex_server: plexapi.server.PlexServer
     :param force_update: ignore cached results, force an update
+    :type force_update: bool, optional
     :return: Access token string or None
     :rtype: str | None
     """
@@ -697,6 +772,7 @@ def dict_to_json(dictionary: dict) -> json:
     Convert a dictionary to valid JSON
 
     :param dictionary: Dictionary to convert
+    :type dictionary: dict
     :return: JSON representation of dictionary
     :rtype: str
     """
@@ -709,6 +785,7 @@ def random_choice(items: List):
     Get a random item from a list
 
     :param items: list of items
+    :type items: list
     :return: random item
     :rtype: object
     """
@@ -720,6 +797,7 @@ def shuffle(items: List) -> bool:
     Randomize the order of the items in a list in-place
 
     :param items: list of items to shuffle
+    :type items: list
     :return: True if successful, False if unsuccessful
     :rtype: bool
     """
@@ -735,7 +813,9 @@ def rotate_items(items: List, shift_index: int = None) -> List:
     Rotate items in a list by a specific number of steps
 
     :param items: list of items
+    :type items: list
     :param shift_index: Optional index to shift list by. Otherwise random
+    :type shift_index: int, optional
     :return: rotated list of items
     :rtype: list[object]
     """
@@ -752,6 +832,7 @@ def remove_duplicates(items: List) -> List:
     "Duplicate" objects must be exactly the same (all attributes)
 
     :param items: list of items to parse
+    :type items: list
     :return: list of filtered items
     :rtpye: list[object]
     """
@@ -763,7 +844,9 @@ def remove_duplicates_by_attribute(items: List, attribute_name: str) -> List:
     Remove duplicate items from a list, comparing on a specific attribute
 
     :param items: list of items to parse
+    :type items: list
     :param attribute_name: name of attribute to check by
+    :type attribute_name: str
     :return: list of filtered items
     :rtype: list[object]
     """
@@ -785,8 +868,9 @@ def sort_media_alphabetically(media_items: List[Union[Program, FillerItem]]) -> 
     Note: Shows will be grouped and sorted by series title, but episodes may be out of order
 
     :param media_items: List of Program and FillerItem objects
+    :type media_items: List[Union[Program, FillerItem]]
     :return: List of Program and FillerItem objects
-    :rtype: list[Program | FillerItem]
+    :rtype: List[Union[Program, FillerItem]]
     """
     items_with_titles, items_without_titles = _separate_with_and_without(items=media_items,
                                                                          attribute_name='title')
@@ -801,8 +885,9 @@ def sort_media_by_release_date(media_items: List[Union[Program, FillerItem]]) ->
     Note: Items without release dates are appended (alphabetically) at the end of the list
 
     :param media_items: List of Program and FillerItem objects
+    :type media_items: List[Union[Program, FillerItem]]
     :return: List of Program and FillerItem objects
-    :rtype: list[Program | FillerItem]
+    :rtype: List[Union[Program, FillerItem]]
     """
     items_with_dates, items_without_dates = _separate_with_and_without(items=media_items,
                                                                        attribute_name='date')
@@ -817,8 +902,9 @@ def _sort_shows_by_season_order(shows_dict: dict) -> List[Union[Program, FillerI
     Series are ordered alphabetically
 
     :param shows_dict: Series-season-episode dictionary
+    :type shows_dict: dict
     :return: List of Program and FillerItem objects
-    :rtype: list[Program | FillerItem]
+    :rtype: List[Union[Program, FillerList]]
     """
     sorted_list = []
     sorted_shows = sorted(shows_dict.items(), key=lambda show_name: show_name)
@@ -837,8 +923,9 @@ def sort_media_by_season_order(media_items: List[Union[Program, FillerItem]]) ->
     Note: Series are ordered alphabetically, movies appended (alphabetically) at the end of the list.
 
     :param media_items: List of Program and FillerItem objects
+    :type media_items: List[Union[Program, FillerItem]]
     :return: List of Program and FillerItem objects
-    :rtype: list[Program | FillerItem]
+    :rtype: List[Union[Program, FillerList]]
     """
     non_shows = get_non_shows(media_items=media_items)
     show_dict = make_show_dict(media_items=media_items)
@@ -854,8 +941,9 @@ def sort_media_by_duration(media_items: List[Union[Program, FillerItem]]) -> Lis
     Note: Automatically removes redirect items
 
     :param media_items: List of Program and FillerItem objects
+    :type media_items: List[Union[Program, FillerList]]
     :return: List of Program and FillerItem objects
-    :rtype: list[Program | FillerItem]
+    :rtype: List[Union[Program, FillerList]]
     """
     non_redirects = [item for item in media_items if
                      (_object_has_attribute(obj=item, attribute_name='duration')
@@ -870,8 +958,9 @@ def sort_media_randomly(media_items: List[Union[Program, FillerItem]]) -> List[U
     Sort media randomly.
 
     :param media_items: List of Program and FillerItem objects
+    :type media_items: List[Union[Program, FillerList]]
     :return: List of Program and FillerItem objects
-    :rtype: list[Program | FillerItem]
+    :rtype: List[Union[Program, FillerList]]
     """
     shuffle(items=media_items)
     return media_items
@@ -883,8 +972,9 @@ def sort_media_cyclical_shuffle(media_items: List[Union[Program, FillerItem]]) -
     Note: Automatically removes FillerItem objects
 
     :param media_items: List of Program and FillerItem objects
+    :type media_items: List[Union[Program, FillerList]]
     :return: List of Program objects, FillerItem objects removed
-    :rtype: list[Program | FillerItem]
+    :rtype: List[Union[Program, FillerList]]
     """
     total_item_count = len(media_items)
     non_shows = get_non_shows(media_items=media_items)
@@ -938,10 +1028,13 @@ def sort_media_block_shuffle(media_items: List[Union[Program, FillerItem]],
     Note: Automatically removes FillerItem objects
 
     :param media_items: List of Program and FillerItem objects
+    :type media_items: List[Union[Program, FillerList]]
     :param block_length: length of each block of programming
+    :type block_length: int, optional
     :param randomize: random length (up to block_length) and random order
+    :type randomize: bool, optional
     :return: List of Program objects, FillerItem objects removed
-    :rtype: list[Program | FillerItem]
+    :rtype: List[Union[Program, FillerList]]
     """
     non_shows = get_non_shows(media_items=media_items)
     show_dict = make_show_dict(media_items=media_items)
@@ -976,9 +1069,11 @@ def balance_shows(media_items: List[Union[Program, FillerItem]], margin_of_corre
     Balance weights of the shows. Movies are untouched.
 
     :param media_items: List of Program and FillerItem objects
+    :type media_items: List[Union[Program, FillerList]]
     :param margin_of_correction: Percentage over shortest time to use when assessing whether to add a new episode
+    :type margin_of_correction: float, optional
     :return: List of Program and FillerItem objects
-    :rtype: list[Program | FillerItem]
+    :rtype: List[Union[Program, FillerList]]
     """
     non_shows = get_non_shows(media_items=media_items)
     show_dict = make_show_dict(media_items=media_items)
@@ -1015,8 +1110,9 @@ def remove_non_programs(media_items: List[Union[Program, Redirect, FillerItem]])
     Remove all non-programs from list of media items.
 
     :param media_items: List of Program, Redirect and FillerItem objects
+    :type media_items: List[Union[Program, FillerList]]
     :return: List of Program and FillerItem objects
-    :rtype: list[Program | FillerItem]
+    :rtype: List[Union[Program, FillerList]]
     """
     return [item for item in media_items if
             (_object_has_attribute(obj=item, attribute_name='type')
@@ -1029,8 +1125,11 @@ def remove_duplicate_media_items(media_items: List[Union[Program, Redirect, Fill
     Remove duplicate items from list of media items.
     Check by ratingKey.
     Note: Automatically removes redirect items
+
     :param media_items: List of Program and FillerItem objects
+    :type media_items: List[Union[Program, FillerList]]
     :return: List of Program and FillerItem objects
+    :rtype: List[Union[Program, FillerList]]
     """
     non_redirects = remove_non_programs(media_items=media_items)
     return remove_duplicates_by_attribute(items=non_redirects, attribute_name='ratingKey')
@@ -1042,9 +1141,11 @@ def _get_first_x_minutes_of_programs(programs: List[Union[Program, Redirect, Fil
     Keep building a list of programs in order until a duration limit is met.
 
     :param programs: list of Program objects to pull from
+    :type programs: List[Union[Program, Redirect, FillerList]]
     :param minutes: threshold, in minutes
+    :type minutes: int
     :return: list of Program objects, total running time in milliseconds
-    :rtype: [list[Program | Redirect | FillerItem], int]
+    :rtype: Tuple[List[Union[Program, Redirect, FillerList]], int]
     """
     milliseconds = minutes * 60 * 1000
     running_total = 0
@@ -1066,9 +1167,11 @@ def _get_first_x_minutes_of_programs_return_unused(programs: List[Union[Program,
     Keep building a list of programs in order until a duration limit is met.
 
     :param programs: list of Program objects to pull from
+    :type programs: List[Union[Program, Redirect, FillerList]]
     :param minutes: threshold, in minutes
+    :type minutes: int
     :return: list of Program objects, total running time in milliseconds, unused Programs
-    :rtype: [list[Program | Redirect | FillerItem], int, list[Program | Redirect | FillerItem]]
+    :rtype: Tuple[List[Union[Program, Redirect, FillerList]], int, List[Union[Program, Redirect, FillerList]]]
     """
     milliseconds = minutes * 60 * 1000
     running_total = 0

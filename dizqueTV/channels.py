@@ -33,6 +33,7 @@ class ChannelFFMPEGSettings:
     def json(self) -> dict:
         """
         Get ChannelFFMPEGSettings JSON
+
         :return: JSON data for ChannelFFMPEGSettings object
         :rtype: dict
         """
@@ -48,8 +49,7 @@ class ChannelFFMPEGSettings:
 
         :param use_global_settings: Use global dizqueTV FFMPEG settings (default: False)
         :param kwargs: keyword arguments of Channel FFMPEG settings names and values
-        :return: True if successful, False if unsuccessful
-        (Channel reloads in-place, ChannelFFMPEGSettings object is destroyed)
+        :return: True if successful, False if unsuccessful (Channel reloads in-place, ChannelFFMPEGSettings object is destroyed)
         :rtype: bool
         """
         if use_global_settings:
@@ -144,12 +144,9 @@ class TimeSlot:
         """
         Edit this TimeSlot object
 
-        :param time_string: time in readable 24-hour format
-        (ex. 00:00:00 = 12:00:00 A.M., 05:15:00 = 5:15 A.M., 20:08:12 = 8:08:12 P.M.)
-        (Optional if time=<milliseconds_since_midnight> not included in kwargs)
+        :param time_string: time in readable 24-hour format (ex. 00:00:00 = 12:00:00 A.M., 05:15:00 = 5:15 A.M., 20:08:12 = 8:08:12 P.M.) (Optional if time=<milliseconds_since_midnight> not included in kwargs)
         :param kwargs: Keyword arguments for the edited time slot (time, showId and order)
-        :return: True if successful, False if unsuccessful (Channel reloads in-place,
-        this TimeSlot and its parent Schedule object are destroyed)
+        :return: True if successful, False if unsuccessful (Channel reloads in-place, this TimeSlot and its parent Schedule object are destroyed)
         :rtype: bool
         """
         if not self._schedule_instance:
@@ -160,8 +157,7 @@ class TimeSlot:
         """
         Delete this TimeSlot object from the schedule
 
-        :return: True if successful, False if unsuccessful (Channel reloads in-place,
-        this TimeSlot and its parent Schedule object are destroyed)
+        :return: True if successful, False if unsuccessful (Channel reloads in-place, this TimeSlot and its parent Schedule object are destroyed)
         :rtype: bool
         """
         if not self._schedule_instance:
@@ -211,9 +207,7 @@ class Schedule:
         Add a time slot to this Schedule
 
         :param time_slot: TimeSlot object to add (Optional)
-        :param time_string: time in readable 24-hour format
-        (ex. 00:00:00 = 12:00:00 A.M., 05:15:00 = 5:15 A.M., 20:08:12 = 8:08:12 P.M.)
-        (Optional if time=<milliseconds_since_midnight> not included in kwargs)
+        :param time_string: time in readable 24-hour format (ex. 00:00:00 = 12:00:00 A.M., 05:15:00 = 5:15 A.M., 20:08:12 = 8:08:12 P.M.) (Optional if time=<milliseconds_since_midnight> not included in kwargs)
         :param kwargs: keyword arguments for a new time slot (time, showId and order)
         :return: True if successful, False if unsuccessful (Channel reloads in-place, this Schedule object is destroyed)
         :rtype: bool
@@ -244,9 +238,7 @@ class Schedule:
         Edit a time slot from this Schedule
 
         :param time_slot: TimeSlot object to edit
-        :param time_string: time in readable 24-hour format
-        (ex. 00:00:00 = 12:00:00 A.M., 05:15:00 = 5:15 A.M., 20:08:12 = 8:08:12 P.M.)
-        (Optional if time=<milliseconds_since_midnight> not included in kwargs)
+        :param time_string: time in readable 24-hour format (ex. 00:00:00 = 12:00:00 A.M., 05:15:00 = 5:15 A.M., 20:08:12 = 8:08:12 P.M.) (Optional if time=<milliseconds_since_midnight> not included in kwargs)
         :param kwargs: Keyword arguments for the edited time slot (time, showId and order)
         :return: True if successful, False if unsuccessful (Channel reloads in-place, this Schedule object is destroyed)
         :rtype: bool
@@ -514,8 +506,7 @@ class Channel:
         Add multiple programs to this channel
 
         :param programs: List of Program, plexapi.video.Video, plexapi.video.Movie or plexapi.video.Episode objects
-        :param plex_server: plexapi.server.PlexServer object
-        (required if adding PlexAPI Video, Movie or Episode objects)
+        :param plex_server: plexapi.server.PlexServer object (required if adding PlexAPI Video, Movie or Episode objects)
         :return: True if successful, False if unsuccessful (Channel reloads in place)
         :rtype: bool
         """
@@ -622,8 +613,7 @@ class Channel:
         :param duration_in_milliseconds: length of time to add
         :param list_of_episodes: list of Program or plexapi.media.Episode objects
         :param plex_server: plexapi.server, needed if adding plexapi.media.Episode objects
-        :param allow_overtime: Allow adding one more episode, even if total time would go over.
-        Otherwise, don't add any more if total time would exceed duration_in_milliseconds (default: False)
+        :param allow_overtime: Allow adding one more episode, even if total time would go over. Otherwise, don't add any more if total time would exceed duration_in_milliseconds (default: False)
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
         :rtype: bool
         """
@@ -1010,13 +1000,7 @@ class Channel:
         """
         Add padding between programs on a channel, so programs start at specific intervals
 
-        :param start_every_x_minutes: Programs start every X minutes past the hour
-        (ex.
-        10 for :00, :10, :20, :30, :40 & :50
-        15 for :00, :15, :30 & :45
-        20 for :00, :20 & :40
-        30 for :00 & :30
-        60 or 0 for :00)
+        :param start_every_x_minutes: Programs start every X minutes past the hour (ex. 10 for :00, :10, :20, :30, :40 & :50; 15 for :00, :15, :30 & :45; 20 for :00, :20 & :40; 30 for :00 & :30; 60 or 0 for :00)
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
         :rtype: bool
         """
@@ -1219,9 +1203,7 @@ class Channel:
         """
         Balance shows to the shortest show length. Movies unaffected.
 
-        :param margin_of_error: (Optional) Specify margin of error when deciding whether to add another episode.
-        Ex. margin_of_error = 0.1 -> If adding a new episode would eclipse the shortest show length by 10% or less,
-        add the episode.
+        :param margin_of_error: (Optional) Specify margin of error when deciding whether to add another episode. Ex. margin_of_error = 0.1 -> If adding a new episode would eclipse the shortest show length by 10% or less, add the episode.
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
         :rtype: bool
         """

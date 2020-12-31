@@ -29,8 +29,11 @@ def make_time_slot_from_dizque_program(program: Union[Program, Redirect],
     Convert a DizqueTV Program or Redirect into a TimeSlot object for use in scheduling
 
     :param program: Program or Redirect object
+    :type program: Union[Program, Redirect]
     :param time: time for time slot
+    :type time: str
     :param order: order ('shuffle' or 'next') for time slot
+    :type order: str
     :return: TimeSlot object
     :rtype: TimeSlot
     """
@@ -49,12 +52,15 @@ def make_time_slot_from_dizque_program(program: Union[Program, Redirect],
     return TimeSlot(data=data, program=item)
 
 
-def convert_plex_item_to_program(plex_item: Union[Video, Movie, Episode], plex_server: PServer) -> Program:
+def convert_plex_item_to_program(plex_item: Union[Video, Movie, Episode],
+                                 plex_server: PServer) -> Program:
     """
     Convert a PlexAPI Video, Movie or Episode object into a Program
 
     :param plex_item: plexapi.video.Video, plexapi.video.Movie or plexapi.video.Episode object
+    :type plex_item: Union[plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode]
     :param plex_server: plexapi.server.PlexServer object
+    :type plex_server: plexapi.server.PlexServer
     :return: Program object
     :rtype: Program
     """
@@ -62,12 +68,15 @@ def convert_plex_item_to_program(plex_item: Union[Video, Movie, Episode], plex_s
     return Program(data=data, dizque_instance=None, channel_instance=None)
 
 
-def convert_plex_item_to_filler_item(plex_item: Union[Video, Movie, Episode], plex_server: PServer) -> FillerItem:
+def convert_plex_item_to_filler_item(plex_item: Union[Video, Movie, Episode],
+                                     plex_server: PServer) -> FillerItem:
     """
     Convert a PlexAPI Video, Movie or Episode object into a FillerItem
 
     :param plex_item: plexapi.video.Video, plexapi.video.Movie or plexapi.video.Episode object
+    :type plex_item: Union[plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode]
     :param plex_server: plexapi.server.PlexServer object
+    :type plex_server: plexapi.server.PlexServer
     :return: Program object
     :rtype: Program
     """
@@ -80,6 +89,7 @@ def convert_plex_server_to_dizque_plex_server(plex_server: PServer) -> PlexServe
     Convert a plexapi.PlexServer object to a dizqueTV PlexServer object
 
     :param plex_server: plexapi.PlexServer object to convert
+    :type plex_server: plexapi.server.PlexServer
     :return: PlexServer object
     :rtype: PlexServer
     """
@@ -94,7 +104,9 @@ def repeat_list(items: List, how_many_times: int) -> List:
     Ex. [A, B, C] x3 -> [A, B, C, A, B, C, A, B, C]
 
     :param items: list of items to repeat
+    :type items: list
     :param how_many_times: how many times the list should repeat
+    :type how_many_times: int
     :return: repeated list
     :rtype: list
     """
@@ -112,7 +124,9 @@ def repeat_and_shuffle_list(items: List, how_many_times: int) -> List:
     Ex. [A, B, C] x3 -> [A, B, C, B, A, C, C, A, B]
 
     :param items: list of items to repeat
+    :type items: list
     :param how_many_times: how many times the list should repeat
+    :type how_many_times: int
     :return: repeated list
     :rtype: list
     """
@@ -213,7 +227,7 @@ class API:
         Get the Plex Media Servers connected to dizqueTV
 
         :return: List of PlexServer objects
-        :rtype: list[PlexServer]
+        :rtype: List[PlexServer]
         """
         json_data = self._get_json(endpoint='/plex-servers')
         return [PlexServer(data=server, dizque_instance=self) for server in json_data]
@@ -223,6 +237,7 @@ class API:
         Check if a Plex Media Server is accessible
 
         :param server_name: Name of Plex Server
+        :type server_name: str
         :return: True if active, False if not active
         :rtype: bool
         """
@@ -234,6 +249,7 @@ class API:
         """
 
         :param server_name: Name of Plex Server
+        :type server_name: str
         :return: True if active, False if not active
         :rtype: bool
         """
@@ -246,8 +262,9 @@ class API:
         Get a specific Plex Media Server
 
         :param server_name: Name of Plex Server
+        :type server_name: str
         :return: PlexServer object or None
-        :rtype: PlexServer | None
+        :rtype: PlexServer
         """
         for server in self.plex_servers:
             if server.name == server_name:
@@ -260,7 +277,7 @@ class API:
 
         :param kwargs: keyword arguments of setting names and values
         :return: PlexServer object or None
-        :rtype: PlexServer | None
+        :rtype: PlexServer
         """
         if helpers._settings_are_complete(new_settings_dict=kwargs,
                                           template_settings_dict=PLEX_SERVER_SETTINGS_TEMPLATE,
@@ -274,8 +291,9 @@ class API:
         Convert and add a plexapi.PlexServer as a Plex Media Server to dizqueTV
 
         :param plex_server: plexapi.PlexServer object to add to dizqueTV
+        :type plex_server: plexapi.server.PlexServer
         :return: PlexServer object or None
-        :rtype: PlexServer | None
+        :rtype: PlexServer
         """
         current_servers = self.plex_servers
         index = 0
@@ -300,6 +318,7 @@ class API:
         Edit a Plex Media Server on dizqueTV
 
         :param server_name: name of Plex Media Server to update
+        :type server_name: str
         :param kwargs: keyword arguments of setting names and values
         :return: True if successful, False if unsuccessful
         :rtype: bool
@@ -316,6 +335,7 @@ class API:
         Remove a Plex Media Server from dizqueTV
 
         :param server_name: Name of Plex Server
+        :type server_name: str
         :return: True if successful, False if unsuccessful
         :rtype: bool
         """
@@ -330,7 +350,7 @@ class API:
         Get all dizqueTV channels
 
         :return: List of Channel objects
-        :rtype: list[Channel]
+        :rtype: List[Channel]
         """
         json_data = self._get_json(endpoint='/channels', timeout=5)  # large JSON may take longer, so bigger timeout
         return [Channel(data=channel, dizque_instance=self) for channel in json_data]
@@ -340,9 +360,11 @@ class API:
         Get a specific dizqueTV channel by number or name
 
         :param channel_number: Number of channel
+        :type channel_number: int, optional
         :param channel_name: Name of channel
+        :type channel_name: str, optional
         :return: Channel object or None
-        :rtype: Channel | None
+        :rtype: Channel
         """
         if not channel_number and not channel_name:
             raise MissingParametersError("Must include either 'channel_number' or 'channel_name'")
@@ -361,6 +383,7 @@ class API:
         Get the name, number and icon for a dizqueTV channel
 
         :param channel_number: Number of channel
+        :type channel_number: int
         :return: JSON data with channel name, number and icon path
         :rtype: dict
         """
@@ -372,7 +395,7 @@ class API:
         Get all dizqueTV channel numbers
 
         :return: List of channel numbers
-        :rtype: list[int]
+        :rtype: List[int]
         """
         data = self._get_json(endpoint='/channelNumbers')
         if data:
@@ -415,6 +438,9 @@ class API:
         Set some dynamic default values, such as channel number, start time and image URLs
 
         :param settings_dict: Dictionary of new settings for channel
+        :type settings_dict: dict
+        :param handle_errors: Whether to internally handle errors
+        :type handle_errors: bool, optional
         :return: Dictionary of settings with defaults filled in
         :rtype: dict
         """
@@ -455,13 +481,15 @@ class API:
         """
         Add a channel to dizqueTV
 
-        :param programs: Program or PlexAPI Video, Movie or Episode objects to add to the new channel
+        :param programs: Program, Redirect or PlexAPI Video, Movie or Episode objects to add to the new channel
+        :type programs: List[Union[Program, Redirect, plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode]], optional
         :param plex_server: plexapi.server.PlexServer (optional, required if adding PlexAPI Video, Movie or Episode)
+        :type plex_server: plexapi.server.PlexServer, optional
         :param kwargs: keyword arguments of setting names and values
-        :param handle_errors: Suppress error if they arise
-        (ex. alter invalid channel number, add Flex Time if no program is included)
+        :param handle_errors: Suppress error if they arise (ex. alter invalid channel number, add Flex Time if no program is included)
+        :type handle_errors: bool, optional
         :return: new Channel object or None
-        :rtype: Channel | None
+        :rtype: Channel
         """
         kwargs['programs'] = []
         for item in programs:
@@ -488,6 +516,7 @@ class API:
         Edit a dizqueTV channel
 
         :param channel_number: Number of channel to update
+        :type channel_number: int
         :param kwargs: keyword arguments of setting names and values
         :return: True if successful, False if unsuccessful
         :rtype: bool
@@ -505,6 +534,8 @@ class API:
         """
         Delete a dizqueTV channel
 
+        :param channel_number: Number of channel to delete
+        :type channel_number: int
         :return: True if successful, False if unsuccessful
         :rtype: bool
         """
@@ -512,13 +543,16 @@ class API:
             return True
         return False
 
-    def _make_schedule(self, channel: Channel, schedule: Schedule = None, schedule_settings: dict = None) -> json:
+    def _make_schedule(self, channel: Channel, schedule: Schedule = None, schedule_settings: dict = None) -> bool:
         """
         Add or update a schedule to a Channel
 
         :param channel: Channel object to add schedule to
+        :type channel: Channel
         :param schedule: Schedule object to add (Optional)
+        :type schedule: Schedule, optional
         :param schedule_settings: Schedule settings dictionary to use (Optional)
+        :type schedule_settings: dict, optional
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
         :rtype: bool
         """
@@ -547,7 +581,7 @@ class API:
         Get all dizqueTV filler lists
 
         :return: List of FillerList objects
-        :rtype: list[FillerList]
+        :rtype: List[FillerList]
         """
         json_data = self._get_json(endpoint='/fillers', timeout=5)  # large JSON may take longer, so bigger timeout
         return [FillerList(data=filler_list, dizque_instance=self) for filler_list in json_data]
@@ -557,6 +591,7 @@ class API:
         Get a specific dizqueTV filler list
 
         :param filler_list_id: id of filler list
+        :type filler_list_id: str
         :return: FillerList object
         :rtype: FillerList
         """
@@ -570,6 +605,7 @@ class API:
         Get a specific dizqueTV filler list
 
         :param filler_list_name: name of filler list
+        :type filler_list_name: str
         :return: FillerList object
         :rtype: FillerList
         """
@@ -583,6 +619,7 @@ class API:
         Get the name, content and id for a dizqueTV filler list
 
         :param filler_list_id: id of filler list
+        :type filler_list_id: str
         :return: JSON data with filler list name, content and id
         :rtype: dict
         """
@@ -597,6 +634,9 @@ class API:
         Set some dynamic default values, such as filler list name
 
         :param settings_dict: Dictionary of new settings for filler list
+        :type settings_dict: dict
+        :param handle_errors: Whether to handle internal errors
+        :type handle_errors: bool, optional
         :return: Dictionary of settings with defaults filled in
         :rtype: dict
         """
@@ -622,10 +662,12 @@ class API:
         Must include at least one program to create
 
         :param content: At least one Program or PlexAPI Video, Movie or Episode to add to the new filler list
+        :type content: List[Union[Program, Video, Movie, Episode]]
         :param plex_server: plexapi.server.PlexServer (optional, required if adding PlexAPI Video, Movie or Episode)
+        :type plex_server: plexapi.server.PlexServer, optional
         :param kwargs: keyword arguments of setting names and values
-        :param handle_errors: Suppress error if they arise
-        (ex. add redirect if no program is included)
+        :param handle_errors: Suppress error if they arise (ex. add redirect if no program is included)
+        :type handle_errors: bool, optional
         :return: new FillerList object or None
         :rtype: FillerList | None
         """
@@ -653,6 +695,7 @@ class API:
         Edit a dizqueTV FillerList
 
         :param filler_list_id: ID of FillerList to update
+        :type filler_list_id: str
         :param kwargs: keyword arguments of setting names and values
         :return: True if successful, False if unsuccessful
         :rtype: bool
@@ -668,6 +711,8 @@ class API:
         """
         Delete a dizqueTV filler list
 
+        :param filler_list_id: ID of FillerList to delete
+        :type filler_list_id: str
         :return: True if successful, False if unsuccessful
         :rtype: bool
         """
@@ -682,7 +727,7 @@ class API:
         Get dizqueTV's FFMPEG settings
 
         :return: FFMPEGSettings object or None
-        :rtype: FFMPEGSettings | None
+        :rtype: FFMPEGSettings
         """
         json_data = self._get_json(endpoint='/ffmpeg-settings')
         if json_data:
@@ -721,7 +766,7 @@ class API:
         Get dizqueTV's Plex settings
 
         :return: PlexSettings object or None
-        :rtype: PlexSettings | None
+        :rtype: PlexSettings
         """
         json_data = self._get_json(endpoint='/plex-settings')
         if json_data:
@@ -771,7 +816,7 @@ class API:
         Get dizqueTV's XMLTV settings
 
         :return: XMLTVSettings object or None
-        :rtype: XMLTVSettings | None
+        :rtype: XMLTVSettings
         """
         json_data = self._get_json(endpoint='/xmltv-settings')
         if json_data:
@@ -810,7 +855,7 @@ class API:
         Get dizqueTV's HDHomeRun settings
 
         :return: HDHomeRunSettings object or None
-        :rtype: HDHomeRunSettings | None
+        :rtype: HDHomeRunSettings
         """
         json_data = self._get_json(endpoint='/hdhr-settings')
         if json_data:
@@ -859,7 +904,7 @@ class API:
         Get dizqueTV's XMLTV data
 
         :return: xml.etree.ElementTree.Element object or None
-        :rtype: xml.etree.ElementTree.Element | None
+        :rtype: ElementTree.Element
         """
         self.refresh_xml()
         response = self._get(endpoint='/xmltv.xml')
@@ -907,7 +952,7 @@ class API:
         Get the last update time for the guide
 
         :return: datetime.datetime object
-        :rtype: datetime.datetime
+        :rtype: datetime
         """
         data = self._get_json(endpoint='/guide/status')
         if data and data.get('lastUpdate'):
@@ -920,7 +965,7 @@ class API:
         Get the list of channel numbers from the guide
 
         :return: List of strings (not ints)
-        :rtype: list[str]
+        :rtype: List[str]
         """
         data = self._get_json(endpoint='/guide/status')
         if data and data.get('channelNumbers'):
@@ -943,7 +988,9 @@ class API:
         Convert a PlexAPI Video, Movie or Episode object into a Program
 
         :param plex_item: plexapi.video.Video, plexapi.video.Movie or plexapi.video.Episode object
+        :type plex_item: Union[plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode]
         :param plex_server: plexapi.server.PlexServer object
+        :type plex_server: plexapi.server.PlexServer
         :return: Program object
         :rtype: Program
         """
@@ -955,21 +1002,27 @@ class API:
         Convert a PlexAPI Video, Movie or Episode object into a FillerItem
 
         :param plex_item: plexapi.video.Video, plexapi.video.Movie or plexapi.video.Episode object
+        :type plex_item: Union[plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode]
         :param plex_server: plexapi.server.PlexServer object
+        :type plex_server: plexapi.server.PlexServer
         :return: Program object
         :rtype: Program
         """
         return convert_plex_item_to_filler_item(plex_item=plex_item, plex_server=plex_server)
 
-    def add_programs_to_channels(self, programs: List[Program],
+    def add_programs_to_channels(self,
+                                 programs: List[Program],
                                  channels: List[Channel] = None,
                                  channel_numbers: List[int] = None) -> bool:
         """
         Add multiple programs to multiple channels
 
         :param programs: List of Program objects
+        :type programs: List[Program]
         :param channels: List of Channel objects (optional)
+        :type channels: List[Channel], optional
         :param channel_numbers: List of channel numbers
+        :type channel_numbers: List[int], optional
         :return: True if successful, False if unsuccessful (Channel objects reload in place)
         :rtype: bool
         """
@@ -993,8 +1046,11 @@ class API:
         Add multiple filler lists to multiple channels
 
         :param filler_lists: List of FillerList objects
+        :type filler_lists: List[FillerList]
         :param channels: List of Channel objects (optional)
+        :type channels: List[Channel], optional
         :param channel_numbers: List of channel numbers
+        :type channel_numbers: List[int], optional
         :return: True if successful, False if unsuccessful (Channel objects reload in place)
         :rtype: bool
         """
