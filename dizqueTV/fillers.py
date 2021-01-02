@@ -59,7 +59,7 @@ class FillerList:
         Get all filler items on this list
 
         :return: List of FillerItem objects
-        :rtype: list[FillerItem]
+        :rtype: List[FillerItem]
         """
         if not self._filler_data:
             self.refresh()
@@ -73,7 +73,7 @@ class FillerList:
         Get all channels this filler list is used on
 
         :return: List of Channel objects
-        :rtype: list[Channel]
+        :rtype: List[Channel]
         """
         return self._dizque_instance.get_filler_list_channels(filler_list_id=self.id)
 
@@ -102,8 +102,11 @@ class FillerList:
         Add a filler item to this filler list
 
         :param plex_item: plexapi.video.Video, plexapi.video.Movie or plexapi.video.Episode object (optional)
+        :type plex_item: Union[plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode], optional
         :param plex_server: plexapi.server.PlexServer object (optional)
+        :type plex_server: plexapi.server.PlexServer, optional
         :param filler: FillerItem item (optional)
+        :type filler: FillerItem, optional
         :param kwargs: keyword arguments of FillerItem settings names and values
         :return: True if successful, False if unsuccessful (FillerList reloads in place)
         :rtype: bool
