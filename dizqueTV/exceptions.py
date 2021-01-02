@@ -1,27 +1,9 @@
 import inspect
-
-@property
-def _errored_func():
-    return inspect.trace()[-1].function
-
-
-class IncludeFunctionName(Exception):
-    def __init__(self, message):
-        super().__init__(f"Error in '{_errored_func()}' function\n{message}")
-
-
-class GeneralException(IncludeFunctionName):
-    def __init__(self, message):
-        super().__init__(message)
-
-
-class MissingSettingsError(IncludeFunctionName):
-    def __init__(self, message):
-import inspect
 import platform
 
 import dizqueTV._analytics as GA
 from dizqueTV._info import __version__ as version
+
 
 @property
 def _errored_func():
@@ -54,13 +36,13 @@ class ReportedException(IncludeFunctionName):
     def __init__(self,
                  message: str,
                  send_analytics: bool = True,
-                 dtv_api_object = None,
+                 dtv_api_object=None,
                  analytics: GA.GoogleAnalytics = None):
         errored_function = str(_errored_func)
         if send_analytics:
             _send_error_to_analytics(dtv_api=dtv_api_object,
-                                    analytics=analytics,
-                                    function_name=errored_function)
+                                     analytics=analytics,
+                                     function_name=errored_function)
         super().__init__(message,
                          errored_function=errored_function)
 
@@ -69,6 +51,11 @@ class GeneralException(IncludeFunctionName):
     def __init__(self,
                  message: str):
         super().__init__(message)
+
+
+class IncludeFunctionName(Exception):
+    def __init__(self, message):
+        super().__init__(f"Error in '{_errored_func()}' function\n{message}")
 
 
 class MissingSettingsError(IncludeFunctionName):

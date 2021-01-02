@@ -286,8 +286,8 @@ class API:
         :rtype: PlexServer
         """
         if decorators._settings_are_complete(new_settings_dict=kwargs,
-                                          template_settings_dict=PLEX_SERVER_SETTINGS_TEMPLATE,
-                                          ignore_keys=['_id', 'id']) \
+                                             template_settings_dict=PLEX_SERVER_SETTINGS_TEMPLATE,
+                                             ignore_keys=['_id', 'id']) \
                 and self._put(endpoint='/plex-servers', data=kwargs):
             return self.get_plex_server(server_name=kwargs['name'])
         return None
@@ -427,7 +427,7 @@ class API:
         :rtype: dict
         """
         final_dict = decorators._combine_settings_add_new(new_settings_dict=kwargs,
-                                                       template_dict=WATERMARK_SETTINGS_DEFAULT)
+                                                          template_dict=WATERMARK_SETTINGS_DEFAULT)
         if handle_errors and final_dict['enabled'] is True:
             if not (0 < final_dict['width'] <= 100):
                 raise GeneralException("Watermark width must greater than 0 and less than 100")
@@ -477,7 +477,7 @@ class API:
         settings_dict['duration'] = sum(program['duration'] for program in settings_dict['programs'])
         settings_dict['watermark'] = self._fill_in_watermark_settings(**settings_dict)
         return decorators._combine_settings_add_new(new_settings_dict=settings_dict,
-                                                 template_dict=CHANNEL_SETTINGS_DEFAULT)
+                                                    template_dict=CHANNEL_SETTINGS_DEFAULT)
 
     def add_channel(self,
                     programs: List[Union[Program, Redirect, Video, Movie, Episode]] = [],
@@ -511,8 +511,8 @@ class API:
             kwargs['iconPosition'] = helpers.convert_icon_position(position_text=kwargs['iconPosition'])
         kwargs = self._fill_in_default_channel_settings(settings_dict=kwargs, handle_errors=handle_errors)
         if decorators._settings_are_complete(new_settings_dict=kwargs,
-                                          template_settings_dict=CHANNEL_SETTINGS_TEMPLATE,
-                                          ignore_keys=['_id', 'id']) \
+                                             template_settings_dict=CHANNEL_SETTINGS_TEMPLATE,
+                                             ignore_keys=['_id', 'id']) \
                 and self._put(endpoint="/channel", data=kwargs):
             return self.get_channel(channel_number=kwargs['number'])
         return None
@@ -689,8 +689,8 @@ class API:
                     convert_plex_item_to_filler_item(plex_item=item, plex_server=plex_server)._data)
         kwargs = self._fill_in_default_filler_list_settings(settings_dict=kwargs, handle_errors=handle_errors)
         if decorators._settings_are_complete(new_settings_dict=kwargs,
-                                          template_settings_dict=FILLER_LIST_SETTINGS_TEMPLATE,
-                                          ignore_keys=['_id', 'id']):
+                                             template_settings_dict=FILLER_LIST_SETTINGS_TEMPLATE,
+                                             ignore_keys=['_id', 'id']):
             response = self._put(endpoint="/filler", data=kwargs)
             if response:
                 return self.get_filler_list(filler_list_id=response.json()['id'])
