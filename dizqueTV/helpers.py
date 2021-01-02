@@ -230,6 +230,7 @@ def _make_program_dict_from_plex_item(plex_item: Union[Video, Movie, Episode], p
         data['episodeIcon'] = f"{plex_uri}{plex_item.thumb}?X-Plex-Token={plex_token}"
         data['seasonIcon'] = f"{plex_uri}{plex_item.parentThumb}?X-Plex-Token={plex_token}"
         data['showIcon'] = f"{plex_uri}{plex_item.grandparentThumb}?X-Plex-Token={plex_token}"
+        data['icon'] = data['showIcon']
     return data
 
 
