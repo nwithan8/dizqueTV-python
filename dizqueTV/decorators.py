@@ -3,7 +3,7 @@ from functools import wraps
 from dizqueTV.exceptions import NotRemoteObjectError
 
 
-def _check_for_dizque_instance(func: object) -> object:
+def _check_for_dizque_instance(func: object):
     """
     Check if an object has a _dizque_instance attribute before executing function
 
@@ -18,5 +18,4 @@ def _check_for_dizque_instance(func: object) -> object:
         if obj._dizque_instance:
             return func(obj, **kwargs)
         raise NotRemoteObjectError(object_type=type(obj).__name__)
-
     return inner

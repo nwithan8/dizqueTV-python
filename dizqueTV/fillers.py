@@ -120,8 +120,8 @@ class FillerList:
         if filler:
             kwargs = filler._data
         if decorators._settings_are_complete(new_settings_dict=kwargs,
-                                          template_settings_dict=FILLER_ITEM_TEMPLATE,
-                                          ignore_keys=['_id', 'id']):
+                                             template_settings_dict=FILLER_ITEM_TEMPLATE,
+                                             ignore_keys=['_id', 'id']):
             filler_list_data = self._data
             filler_list_data['content'].append(kwargs)
             filler_list_data['duration'] += kwargs['duration']
@@ -136,7 +136,9 @@ class FillerList:
         Add multiple programs to this channel
 
         :param fillers: List of FillerItem, plexapi.video.Video, plexapi.video.Movie or plexapi.video.Episode objects
+        :type fillers: List[Union[FillerItem, plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode]]
         :param plex_server: plexapi.server.PlexServer object (required if adding PlexAPI Video, Movie or Episode objects)
+        :type plex_server: plexapi.server.PlexServer, optional
         :return: True if successful, False if unsuccessful (Channel reloads in place)
         :rtype: bool
         """
@@ -157,6 +159,7 @@ class FillerList:
         Delete a filler item from this filler list
 
         :param filler: FillerItem object to delete
+        :type filler: FillerItem
         :return: True if successful, False if unsuccessful (FillerList reloads in-place)
         :rtype: bool
         """
@@ -234,4 +237,3 @@ class FillerList:
         for channel in self.channels:
             channel.delete_filler_list(filler_list=self)
         return self._dizque_instance.delete_filler_list(filler_list_id=self.id)
-

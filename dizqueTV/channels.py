@@ -49,6 +49,7 @@ class ChannelFFMPEGSettings:
         Automatically refreshes associated Channel object
 
         :param use_global_settings: Use global dizqueTV FFMPEG settings (default: False)
+        :type use_global_settings: bool, optional
         :param kwargs: keyword arguments of Channel FFMPEG settings names and values
         :return: True if successful, False if unsuccessful (Channel reloads in-place, ChannelFFMPEGSettings object is destroyed)
         :rtype: bool
@@ -146,6 +147,7 @@ class TimeSlot:
         Edit this TimeSlot object
 
         :param time_string: time in readable 24-hour format (ex. 00:00:00 = 12:00:00 A.M., 05:15:00 = 5:15 A.M., 20:08:12 = 8:08:12 P.M.) (Optional if time=<milliseconds_since_midnight> not included in kwargs)
+        :type time_string: str, optional
         :param kwargs: Keyword arguments for the edited time slot (time, showId and order)
         :return: True if successful, False if unsuccessful (Channel reloads in-place, this TimeSlot and its parent Schedule object are destroyed)
         :rtype: bool
@@ -208,7 +210,9 @@ class Schedule:
         Add a time slot to this Schedule
 
         :param time_slot: TimeSlot object to add (Optional)
+        :type time_slot: TimeSlot, optional
         :param time_string: time in readable 24-hour format (ex. 00:00:00 = 12:00:00 A.M., 05:15:00 = 5:15 A.M., 20:08:12 = 8:08:12 P.M.) (Optional if time=<milliseconds_since_midnight> not included in kwargs)
+        :type time_string: str, optional
         :param kwargs: keyword arguments for a new time slot (time, showId and order)
         :return: True if successful, False if unsuccessful (Channel reloads in-place, this Schedule object is destroyed)
         :rtype: bool
@@ -239,7 +243,9 @@ class Schedule:
         Edit a time slot from this Schedule
 
         :param time_slot: TimeSlot object to edit
+        :type time_slot: TimeSlot
         :param time_string: time in readable 24-hour format (ex. 00:00:00 = 12:00:00 A.M., 05:15:00 = 5:15 A.M., 20:08:12 = 8:08:12 P.M.) (Optional if time=<milliseconds_since_midnight> not included in kwargs)
+        :type time_string: str optional
         :param kwargs: Keyword arguments for the edited time slot (time, showId and order)
         :return: True if successful, False if unsuccessful (Channel reloads in-place, this Schedule object is destroyed)
         :rtype: bool
@@ -262,6 +268,7 @@ class Schedule:
         Delete a time slot from this Schedule
 
         :param time_slot: TimeSlot object to remove
+        :type time_slot: TimeSlot
         :return: True if successful, False if unsuccessful (Channel reloads in-place, this Schedule object is destroyed)
         :rtype: bool
         """
@@ -329,7 +336,7 @@ class Channel:
         Get all programs able to be scheduled for this channel
 
         :return: List of TimeSlotItem objects
-        :rtype: list[TimeSlotItem]
+        :rtype: List[TimeSlotItem]
         """
         used_titles = []
         schedulable_items = []
@@ -354,7 +361,7 @@ class Channel:
         Get all programs on this channel
 
         :return: List of MediaItem objects
-        :rtype: list[Programs]
+        :rtype: List[Programs]
         """
         return [Program(data=program, dizque_instance=self._dizque_instance, channel_instance=self)
                 for program in self._program_data]
@@ -367,9 +374,11 @@ class Channel:
         Get a specific program on this channel
 
         :param program_title: Title of program
+        :type program_title: str, optional
         :param redirect_channel_number: Channel number for Redirect object (use if getting Redirect instead of Program)
+        :type redirect_channel_number: int, optional
         :return: Program object or None
-        :rtype: Program | None
+        :rtype: Program
         """
         if not program_title and not redirect_channel_number:
             raise MissingParametersError("Please include either a program_title or a redirect_channel_number.")
@@ -385,7 +394,7 @@ class Channel:
         Get all filler lists on this channel
 
         :return: List of FillerList objects
-        :rtype: list[FillerList]
+        :rtype: List[FillerList]
         """
         return [FillerList(data=filler_list, dizque_instance=self._dizque_instance)
                 for filler_list in self._fillerCollections_data]
@@ -397,8 +406,9 @@ class Channel:
         Get a specific filler list on this channel
 
         :param filler_list_title: Title of filler list
+        :type filler_list_title: str
         :return: FillerList object or None
-        :rtype: FillerList | None
+        :rtype: FillerList
         """
         for filler_list in self.filler_lists:
             if filler_list.name == filler_list_title:
@@ -468,8 +478,11 @@ class Channel:
         Add a program to this channel
 
         :param plex_item: plexapi.video.Video, plexapi.video.Movie or plexapi.video.Episode object (optional)
+        :type plex_item: Union[plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode], optional
         :param plex_server: plexapi.server.PlexServer object (optional)
+        :type plex_server: plexapi.server.PlexServer, optional
         :param program: Program object (optional)
+        :type program: Program, optional
         :param kwargs: keyword arguments of Program settings names and values
         :return: True if successful, False if unsuccessful (Channel reloads in place)
         :rtype: bool
@@ -507,7 +520,9 @@ class Channel:
         Add multiple programs to this channel
 
         :param programs: List of Program, plexapi.video.Video, plexapi.video.Movie or plexapi.video.Episode objects
+        :type programs: List[Union[Program, plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode]]
         :param plex_server: plexapi.server.PlexServer object (required if adding PlexAPI Video, Movie or Episode objects)
+        :type plex_server: plexapi.server.PlexServer, optional
         :return: True if successful, False if unsuccessful (Channel reloads in place)
         :rtype: bool
         """
@@ -535,6 +550,7 @@ class Channel:
         Delete a program from this channel
 
         :param program: Program object to delete
+        :type program: Program
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
         :rtype: bool
         """
@@ -555,7 +571,9 @@ class Channel:
         Delete all episodes of a specific show
 
         :param show_name: Name of show to delete
+        :type show_name: str
         :param season_number: (Optional) Number of season to delete
+        :type season_number: int, optional
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
         :rtype: bool
         """
@@ -582,8 +600,11 @@ class Channel:
         Add the first X number of items from a list of programs to a dizqueTV channel
 
         :param number_of_episodes: number of items to add from the list
+        :type number_of_episodes: int
         :param list_of_episodes: list of Program or plexapi.media.Episode objects
-        :param plex_server: plexapi.server, needed if adding plexapi.media.Episode objects
+        :type list_of_episodes: List[Union[Program, plexapi.video.Episode]]
+        :param plex_server: plexapi.server.PlexServer, needed if adding plexapi.media.Episode objects
+        :type plex_server: plexapi.server.PlexServer, optional
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
         :rtype: bool
         """
@@ -612,9 +633,13 @@ class Channel:
         Add an X duration of items from a list of programs to a dizqueTV channel
 
         :param duration_in_milliseconds: length of time to add
+        :type duration_in_milliseconds: int
         :param list_of_episodes: list of Program or plexapi.media.Episode objects
-        :param plex_server: plexapi.server, needed if adding plexapi.media.Episode objects
+        :type list_of_episodes: List[Union[Program, plexapi.video.Episode]]
+        :param plex_server: plexapi.server.PlexServer, needed if adding plexapi.media.Episode objects
+        :type plex_server: plexapi.server.PlexServer, optional
         :param allow_overtime: Allow adding one more episode, even if total time would go over. Otherwise, don't add any more if total time would exceed duration_in_milliseconds (default: False)
+        :type allow_overtime: bool, optional
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
         :rtype: bool
         """
@@ -684,9 +709,13 @@ class Channel:
         Add a filler list to this channel
 
         :param filler_list: FillerList object (optional)
+        :type filler_list: FillerList, optional
         :param filler_list_id: ID of FillerList (optional)
+        :type filler_list_id: str, optional
         :param weight: weight to assign list in channel (default: 300)
+        :type weight: int, optional
         :param cooldown: cooldown to assign list in channel (default: 0)
+        :type cooldown: int, optional
         :return: True if successful, False if unsuccessful (Channel reloads in place)
         :rtype: bool
         """
@@ -716,7 +745,9 @@ class Channel:
         Delete a program from this channel
 
         :param filler_list: FillerList object to delete
+        :type filler_list: FillerList, optional
         :param filler_list_id: ID of filler list to delete
+        :type filler_list_id: str, optional
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
         :rtype: bool
         """
@@ -750,6 +781,7 @@ class Channel:
         Add a schedule to this channel
 
         :param time_slots: List of TimeSlot objects
+        :type time_slots: List[TimeSlot]
         :param kwargs: keyword arguments for schedule settings
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
         :rtype: bool
@@ -878,7 +910,9 @@ class Channel:
         Sort TV shows on this channel cyclically
 
         :param block_length: Length of each block
+        :type block_length: int
         :param randomize: Random block lengths between 1 and block_length
+        :type randomize: bool, optional
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
         :rtype: bool
         """
@@ -898,6 +932,7 @@ class Channel:
         Ex. [A, B, C] x3 -> [A, B, C, A, B, C, A, B, C]
 
         :param how_many_times: how many times to repeat the lineup
+        :type how_many_times: int
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
         :rtype: bool
         """
@@ -919,6 +954,7 @@ class Channel:
         Ex. [A, B, C] x3 -> [A, B, C, B, A, C, C, A, B]
 
         :param int how_many_times: how many times to repeat the lineup
+        :type how_many_times: int
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
         :rtype: bool
         """
@@ -1002,6 +1038,7 @@ class Channel:
         Add padding between programs on a channel, so programs start at specific intervals
 
         :param start_every_x_minutes: Programs start every X minutes past the hour (ex. 10 for :00, :10, :20, :30, :40 & :50; 15 for :00, :15, :30 & :45; 20 for :00, :20 & :40; 30 for :00 & :30; 60 or 0 for :00)
+        :type start_every_x_minutes: int
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
         :rtype: bool
         """
@@ -1028,8 +1065,11 @@ class Channel:
         Add a block of reruns to a dizqueTV channel
 
         :param start_time: datetime.datetime object, what time the reruns start
+        :type start_time: datetime.datetime
         :param length_hours: how long the block of reruns should be
+        :type length_hours: int
         :param times_to_repeat: how many times to repeat the block of reruns
+        :type times_to_repeat: int
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
         :rtype: bool
         """
@@ -1062,8 +1102,11 @@ class Channel:
         Add a Channel at Night to a dizqueTV channel
 
         :param night_channel_number: number of the channel to redirect to
+        :type night_channel_number: int
         :param start_hour: hour (in 24-hour time) to start the redirect
+        :type start_hour: int
         :param end_hour: hour (in 24-hour time) to end the redirect
+        :type end_hour: int
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
         :rtype: bool
         """
@@ -1115,6 +1158,18 @@ class Channel:
                                  night_channel_number: int,
                                  start_hour: int,
                                  end_hour: int) -> bool:
+        """
+        Add a Channel at Night to a dizqueTV channel
+
+        :param night_channel_number: number of the channel to redirect to
+        :type night_channel_number: int
+        :param start_hour: hour (in 24-hour time) to start the redirect
+        :type start_hour: int
+        :param end_hour: hour (in 24-hour time) to end the redirect
+        :type end_hour: int
+        :return: True if successful, False if unsuccessful (Channel reloads in-place)
+        :rtype: bool
+        """
         if start_hour > 23 or start_hour < 0:
             raise GeneralException("start_hour must be between 0 and 23.")
         if end_hour > 23 or end_hour < 0:
@@ -1205,6 +1260,7 @@ class Channel:
         Balance shows to the shortest show length. Movies unaffected.
 
         :param margin_of_error: (Optional) Specify margin of error when deciding whether to add another episode. Ex. margin_of_error = 0.1 -> If adding a new episode would eclipse the shortest show length by 10% or less, add the episode.
+        :type margin_of_error: float, optional
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
         :rtype: bool
         """
@@ -1225,11 +1281,17 @@ class Channel:
         Fast forward the channel start time by an amount of time
 
         :param seconds: how many seconds
+        :type seconds: int, optional
         :param minutes: how many minutes
+        :type minutes: int, optional
         :param hours: how many hours
+        :type hours: int, optional
         :param days: how many days
+        :type days: int, optional
         :param months: how many months (assume 30 days in month)
+        :type months: int, optional
         :param years: how many years (assume 365 days in year)
+        :type years: int, optional
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
         :rtype: bool
         """
@@ -1258,11 +1320,17 @@ class Channel:
         Fast forward the channel start time by an amount of time
 
         :param seconds: how many seconds
+        :type seconds: int, optional
         :param minutes: how many minutes
+        :type minutes: int, optional
         :param hours: how many hours
+        :type hours: int, optional
         :param days: how many days
+        :type days: int, optional
         :param months: how many months (assume 30 days in month)
+        :type months: int, optional
         :param years: how many years (assume 365 days in year)
+        :type years: int, optional
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
         :rtype: bool
         """
