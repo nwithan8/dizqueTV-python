@@ -5,7 +5,7 @@ from dizqueTV import decorators
 
 
 class PlexServer:
-    def __init__(self, data: json, dizque_instance):
+    def __init__(self, data: dict, dizque_instance):
         self._data = data
         self._dizque_instance = dizque_instance
         self.name = data.get('name')

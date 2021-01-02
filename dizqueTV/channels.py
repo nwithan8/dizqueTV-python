@@ -294,7 +294,7 @@ class Schedule:
 
 class Channel:
     def __init__(self,
-                 data: json,
+                 data: dict,
                  dizque_instance,
                  plex_server: PServer = None):
         self._data = data

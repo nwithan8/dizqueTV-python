@@ -124,7 +124,7 @@ def _filter_dictionary(new_dictionary: dict, template_dict: dict) -> dict:
     return final_dict
 
 
-def _settings_are_complete(new_settings_dict: json, template_settings_dict: json, ignore_keys: List = None) -> bool:
+def _settings_are_complete(new_settings_dict: dict, template_settings_dict: json, ignore_keys: List = None) -> bool:
     """
     Check that all elements from the settings template are present in the new settings
 
