@@ -124,7 +124,7 @@ def _filter_dictionary(new_dictionary: dict, template_dict: dict) -> dict:
     return final_dict
 
 
-def _settings_are_complete(new_settings_dict: dict, template_settings_dict: dict, ignore_keys: List = None) -> bool:
+def _settings_are_complete(new_settings_dict: dict, template_settings_dict: json, ignore_keys: List = None) -> bool:
     """
     Check that all elements from the settings template are present in the new settings
 
@@ -747,7 +747,7 @@ def get_plex_access_token(plex_server: PServer, force_update: bool = False) -> U
     return None
 
 
-def dict_to_json(dictionary: dict) -> str:
+def dict_to_json(dictionary: dict) -> json:
     """
     Convert a dictionary to valid JSON
 
