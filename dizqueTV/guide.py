@@ -37,7 +37,9 @@ class GuideChannel:
         Get guide channel lineup for a certain time range
 
         :param from_date: datetime.datetime object to start time frame
+        :type from_date: datetime.datetime
         :param to_date: datetime.datetime object to end time frame
+        :type to_date: datetime.datetime
         :return: list of GuideProgram objects
         :rtype: list[GuideProgram]
         """
@@ -60,7 +62,13 @@ class Guide:
     def __repr__(self):
         return f"<{self.__class__.__name__}>"
 
-    def _create_channels_and_programs(self):
+    def _create_channels_and_programs(self) -> List[GuideChannel]:
+        """
+        Make a list of channels and programs
+
+        :return: List of GuideChannel objects
+        :rtype: List[GuideChannel]
+        """
         channels = []
         for channel_number, data in self._data.items():
             programs = [GuideProgram(data=program_data) for program_data in data['programs']]
