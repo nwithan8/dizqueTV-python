@@ -4,7 +4,7 @@ from dizqueTV import decorators
 
 
 class XMLTVSettings:
-    def __init__(self, data: json, dizque_instance):
+    def __init__(self, data: dict, dizque_instance):
         self._data = data
         self._dizque_instance = dizque_instance
         self.cache = data.get('cache')
@@ -60,7 +60,7 @@ class XMLTVSettings:
 
 
 class HDHomeRunSettings:
-    def __init__(self, data: json, dizque_instance):
+    def __init__(self, data: dict, dizque_instance):
         self._data = data
         self._dizque_instance = dizque_instance
         self.tunerCount = data.get('tunerCount')
@@ -115,7 +115,7 @@ class HDHomeRunSettings:
 
 
 class FFMPEGSettings:
-    def __init__(self, data: json, dizque_instance):
+    def __init__(self, data: dict, dizque_instance):
         self._data = data
         self._dizque_instance = dizque_instance
         self.configVersion = data.get('configVersion')
@@ -191,7 +191,7 @@ class FFMPEGSettings:
 
 
 class PlexSettings:
-    def __init__(self, data: json, dizque_instance):
+    def __init__(self, data: dict, dizque_instance):
         self._data = data
         self._dizque_instance = dizque_instance
         self.streamPath = data.get('streamPath')

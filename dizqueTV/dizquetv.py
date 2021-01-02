@@ -675,7 +675,7 @@ class API:
         :param handle_errors: Suppress error if they arise (ex. add redirect if no program is included)
         :type handle_errors: bool, optional
         :return: new FillerList object or None
-        :rtype: FillerList | None
+        :rtype: FillerList
         """
         kwargs['content'] = []
         for item in content:

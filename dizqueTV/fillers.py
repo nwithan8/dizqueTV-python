@@ -13,7 +13,7 @@ from dizqueTV.exceptions import MissingParametersError
 
 
 class FillerList:
-    def __init__(self, data: json, dizque_instance):
+    def __init__(self, data: dict, dizque_instance):
         self._data = data
         self._dizque_instance = dizque_instance
         self.id = data.get('id')
