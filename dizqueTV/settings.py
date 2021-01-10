@@ -141,6 +141,7 @@ class FFMPEGSettings:
         self.normalizeResolution = data.get('normalizeResolution')
         self.normalizeAudio = data.get('normalizeAudio')
         self.maxFPS = data.get('maxFPS')
+        self.scalingAlgorithm = data.get('scalingAlgorithm')
         self._id = data.get('_id')
 
     def __repr__(self):
