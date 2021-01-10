@@ -57,7 +57,7 @@ class ChannelFFMPEGSettings:
         if use_global_settings:
             new_settings = CHANNEL_FFMPEG_SETTINGS_DEFAULT
         else:
-            new_settings = decorators._combine_settings(new_settings_dict=kwargs,
+            new_settings = helpers._combine_settings(new_settings_dict=kwargs,
                                                      template_dict=self._data)
         if self._dizque_instance.update_channel(channel_number=self._channel_instance.number,
                                                 transcoding=new_settings):
@@ -196,7 +196,7 @@ class Schedule:
         :return: True if successful, False if unsuccessful (Channel reloads in-place, this Schedule object is destroyed)
         :rtype: bool
         """
-        new_settings = decorators._combine_settings_add_new(new_settings_dict=kwargs,
+        new_settings = helpers._combine_settings_add_new(new_settings_dict=kwargs,
                                                          template_dict=(self._data
                                                                         if self._data else SCHEDULE_SETTINGS_DEFAULT)
                                                          )
@@ -222,9 +222,9 @@ class Schedule:
         else:
             if time_string:
                 kwargs['time'] = helpers.convert_24_time_to_milliseconds_past_midnight(time_string=time_string)
-            new_settings_filtered = decorators._filter_dictionary(new_dictionary=kwargs,
+            new_settings_filtered = helpers._filter_dictionary(new_dictionary=kwargs,
                                                                template_dict=TIME_SLOT_SETTINGS_TEMPLATE)
-            if not decorators._settings_are_complete(new_settings_dict=new_settings_filtered,
+            if not helpers._settings_are_complete(new_settings_dict=new_settings_filtered,
                                                   template_settings_dict=TIME_SLOT_SETTINGS_TEMPLATE):
                 raise GeneralException("Missing settings required to make a time slot.")
 
@@ -258,7 +258,7 @@ class Schedule:
             if slot['time'] != time_slot.time:
                 new_slots.append(slot)
             else:
-                new_slot_data = decorators._combine_settings(new_settings_dict=kwargs, template_dict=slot)
+                new_slot_data = helpers._combine_settings(new_settings_dict=kwargs, template_dict=slot)
                 new_slots.append(new_slot_data)
         return self.update(slots=new_slots)
 
@@ -503,7 +503,7 @@ class Channel:
             template = EPISODE_PROGRAM_TEMPLATE
         elif kwargs['type'] == 'redirect':
             template = REDIRECT_PROGRAM_TEMPLATE
-        if decorators._settings_are_complete(new_settings_dict=kwargs,
+        if helpers._settings_are_complete(new_settings_dict=kwargs,
                                           template_settings_dict=template,
                                           ignore_keys=['_id', 'id']):
             channel_data = self._data
@@ -728,7 +728,7 @@ class Channel:
             'weight': weight,
             'cooldown': cooldown
         }
-        if decorators._settings_are_complete(new_settings_dict=new_settings_dict,
+        if helpers._settings_are_complete(new_settings_dict=new_settings_dict,
                                           template_settings_dict=FILLER_LIST_CHANNEL_TEMPLATE,
                                           ignore_keys=['_id', 'id']):
             channel_data = self._data
@@ -788,10 +788,10 @@ class Channel:
         """
         for slot in time_slots:
             kwargs['slots'].append(slot._data)
-        schedule_settings = decorators._combine_settings_enforce_types(new_settings_dict=kwargs,
+        schedule_settings = helpers._combine_settings_enforce_types(new_settings_dict=kwargs,
                                                                     template_dict=SCHEDULE_SETTINGS_TEMPLATE,
                                                                     default_dict=SCHEDULE_SETTINGS_DEFAULT)
-        if decorators._settings_are_complete(new_settings_dict=schedule_settings,
+        if helpers._settings_are_complete(new_settings_dict=schedule_settings,
                                           template_settings_dict=SCHEDULE_SETTINGS_TEMPLATE):
             schedule = Schedule(data=schedule_settings, dizque_instance=None, channel_instance=self)
             return self._dizque_instance._make_schedule(channel=self, schedule=schedule)
@@ -1077,7 +1077,7 @@ class Channel:
             raise GeneralException("You cannot use a start time in the future.")
         start_time = start_time.strftime("%Y-%m-%dT%H:%M:%S.000Z")
         self.remove_duplicate_programs()
-        programs_to_add, running_time = decorators._get_first_x_minutes_of_programs(programs=self.programs,
+        programs_to_add, running_time = helpers._get_first_x_minutes_of_programs(programs=self.programs,
                                                                                  minutes=length_hours * 60)
         if running_time < (length_hours * 60 * 60 * 1000):
             time_needed = (length_hours * 60 * 60 * 1000) - running_time
@@ -1129,7 +1129,7 @@ class Channel:
         programs_left = self.programs
         while programs_left:  # loop until you get done with all the programs
             programs_to_add, total_running_time, programs_left = \
-                decorators._get_first_x_minutes_of_programs_return_unused(programs=programs_left,
+                helpers._get_first_x_minutes_of_programs_return_unused(programs=programs_left,
                                                                        minutes=int(
                                                                            length_of_regular_block / 1000 / 60)
                                                                        )
@@ -1190,7 +1190,7 @@ class Channel:
         )
         final_programs_to_add = []
         all_programs = self.programs
-        programs_to_add, total_running_time = decorators._get_first_x_minutes_of_programs(
+        programs_to_add, total_running_time = helpers._get_first_x_minutes_of_programs(
             programs=all_programs,
             minutes=int(
                 time_until_night_block_start / 1000 / 60)
@@ -1212,7 +1212,7 @@ class Channel:
         else:  # need to interlace programs and night channels
             programs_left = all_programs
             programs_to_add, total_running_time, programs_left = \
-                decorators._get_first_x_minutes_of_programs_return_unused(programs=programs_left,
+                helpers._get_first_x_minutes_of_programs_return_unused(programs=programs_left,
                                                                        minutes=int(
                                                                            time_until_night_block_start / 1000 / 60)
                                                                        )
@@ -1231,7 +1231,7 @@ class Channel:
             final_programs_to_add = programs_to_add
             while programs_left:  # loop until you get done with all the programs
                 programs_to_add, total_running_time, programs_left = \
-                    decorators._get_first_x_minutes_of_programs_return_unused(programs=programs_left,
+                    helpers._get_first_x_minutes_of_programs_return_unused(programs=programs_left,
                                                                            minutes=int(
                                                                                length_of_regular_block / 1000 / 60)
                                                                            )
