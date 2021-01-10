@@ -20,7 +20,9 @@ from dizqueTV.plex_server import PlexServer
 from dizqueTV.templates import PLEX_SERVER_SETTINGS_TEMPLATE, CHANNEL_SETTINGS_TEMPLATE, CHANNEL_SETTINGS_DEFAULT, \
     FILLER_LIST_SETTINGS_TEMPLATE, FILLER_LIST_SETTINGS_DEFAULT, WATERMARK_SETTINGS_DEFAULT
 import dizqueTV.helpers as helpers
-from dizqueTV.exceptions import MissingParametersError, ChannelCreationError, ItemCreationError
+from dizqueTV.exceptions import MissingParametersError, ChannelCreationError, ItemCreationError, GeneralException
+from dizqueTV._analytics import GoogleAnalytics
+from dizqueTV._info import __analytics_id__ as analytics_id
 
 
 def make_time_slot_from_dizque_program(program: Union[Program, Redirect],
@@ -141,14 +143,17 @@ def repeat_and_shuffle_list(items: List, how_many_times: int) -> List:
 
 
 class API:
-    def __init__(self, url: str, verbose: bool = False):
+    def __init__(self, url: str, verbose: bool = False, allow_analytics: bool = True, anonymous_analytics: bool = True):
         self.url = url.rstrip('/')
         self.verbose = verbose
+        self.analytics = GoogleAnalytics(analytics_id=analytics_id,
+                                         anonymous_ip=anonymous_analytics,
+                                         do_not_track=not allow_analytics)
         logging.basicConfig(format='%(asctime)s %(levelname)s:%(message)s',
                             level=(logging.INFO if verbose else logging.ERROR))
 
     def __repr__(self):
-        return f"<{self.__class__.__name__}:{self.url}>"
+        return f"{self.__class__.__name__}({self.url})"
 
     def _get(self, endpoint: str, params: dict = None, headers: dict = None, timeout: int = 2) -> Union[Response, None]:
         if not endpoint.startswith('/'):
@@ -425,13 +430,13 @@ class API:
                                                        template_dict=WATERMARK_SETTINGS_DEFAULT)
         if handle_errors and final_dict['enabled'] is True:
             if not (0 < final_dict['width'] <= 100):
-                raise Exception("Watermark width must greater than 0 and less than 100")
+                raise GeneralException("Watermark width must greater than 0 and less than 100")
             if not (final_dict['width'] + final_dict['horizontalMargin'] <= 100):
-                raise Exception("Watermark width + horizontalMargin must not be greater than 100")
+                raise GeneralException("Watermark width + horizontalMargin must not be greater than 100")
             if not (final_dict['verticalMargin'] <= 100):
-                raise Exception("Watermark verticalMargin must not be greater than 100")
+                raise GeneralException("Watermark verticalMargin must not be greater than 100")
             if not (final_dict['duration'] and final_dict['duration'] >= 0):
-                raise Exception("Must include a watermark duration. Use 0 for a permanent watermark.")
+                raise GeneralException("Must include a watermark duration. Use 0 for a permanent watermark.")
         return final_dict
 
     def _fill_in_default_channel_settings(self, settings_dict: dict, handle_errors: bool = False) -> dict:
@@ -458,15 +463,15 @@ class API:
                 settings_dict.pop('number')  # remove 'number' key, will be caught down below
             else:
                 raise ChannelCreationError(f"Channel #{settings_dict.get('number')} already exists.")
-        if 'number' not in settings_dict.keys():
+        if not settings_dict.get('number'):
             settings_dict['number'] = max(self.channel_numbers) + 1
-        if 'name' not in settings_dict.keys():
+        if not settings_dict.get('name'):
             settings_dict['name'] = f"Channel {settings_dict['number']}"
-        if 'startTime' not in settings_dict.keys():
+        if not settings_dict.get('startTime'):
             settings_dict['startTime'] = helpers.get_nearest_30_minute_mark()
-        if 'icon' not in settings_dict.keys():
+        if not settings_dict.get('icon'):
             settings_dict['icon'] = f"{self.url}/images/dizquetv.png"
-        if 'offlinePicture' not in settings_dict.keys():
+        if not settings_dict.get('offlinePicture'):
             settings_dict['offlinePicture'] = f"{self.url}/images/generic-offline-screen.png"
         # override duration regardless of user input
         settings_dict['duration'] = sum(program['duration'] for program in settings_dict['programs'])
@@ -475,7 +480,7 @@ class API:
                                                  template_dict=CHANNEL_SETTINGS_DEFAULT)
 
     def add_channel(self,
-                    programs: List[Union[Program, Redirect, Video, Movie, Episode]] = None,
+                    programs: List[Union[Program, Redirect, Video, Movie, Episode]] = [],
                     plex_server: PServer = None,
                     handle_errors: bool = True,
                     **kwargs) -> Union[Channel, None]:

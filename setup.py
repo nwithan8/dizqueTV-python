@@ -1,21 +1,24 @@
 import setuptools
-import dizqueTV._version
+import dizqueTV._info as package_info
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
+with open("requirements.txt", 'r') as fh:
+    requirements = fh.read().splitlines()
+
 setuptools.setup(
-    name='dizqueTV',  # How you named your package folder (MyLib)
-    packages=['dizqueTV'],  # Chose the same as "name"
-    version=dizqueTV._version.__version__,  # Start with a small number and increase it with every change you make
-    license='GNU General Public License v3 (GPLv3)',
+    name=package_info.__title__,  # How you named your package folder (MyLib)
+    packages=['dizqueTV'],  # Choose the same as "name"
+    version=package_info.__version__,  # Start with a small number and increase it with every change you make
+    license=package_info.__license__,
     description="Interact with a dizqueTV instance's API",  # Give a short description about your library
     long_description=long_description,
     long_description_content_type="text/markdown",
-    author=dizqueTV._version.__author__,  # Type in your name
-    author_email='n8gr8gbln@gmail.com',  # Type in your E-Mail
+    author=package_info.__author__,  # Type in your name
+    author_email=package_info.__author_email__,  # Type in your E-Mail
     url='https://github.com/nwithan8/dizqueTV-python',  # Provide either the link to your github or to your website
-    download_url=f'https://github.com/nwithan8/dizqueTV-python/archive/{dizqueTV._version.__version__}.tar.gz',
+    download_url=f'https://github.com/nwithan8/dizqueTV-python/archive/{package_info.__version__}.tar.gz',
     keywords=[
         'dizqueTV',
         'Plex',
@@ -29,11 +32,7 @@ setuptools.setup(
         'television',
         'streaming'
     ],  # Keywords that define your package best
-    install_requires=[
-        'requests',
-        'm3u8',
-        'plexapi'
-    ],
+    install_requires=requirements,
     classifiers=[
         'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
         'Development Status :: 4 - Beta',

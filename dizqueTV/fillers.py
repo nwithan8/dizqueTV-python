@@ -119,7 +119,7 @@ class FillerList:
             kwargs = temp_filler._data
         if filler:
             kwargs = filler._data
-        if decorators._settings_are_complete(new_settings_dict=kwargs,
+        if helpers._settings_are_complete(new_settings_dict=kwargs,
                                              template_settings_dict=FILLER_ITEM_TEMPLATE,
                                              ignore_keys=['_id', 'id']):
             filler_list_data = self._data

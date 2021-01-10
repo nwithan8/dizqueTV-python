@@ -13,7 +13,7 @@ class XMLTVSettings:
         self._id = data.get('_id')
 
     def __repr__(self):
-        return f"<{self.__class__.__name__}:{self._id}>"
+        return f"{self.__class__.__name__}({self._id})"
 
     @decorators._check_for_dizque_instance
     def reload(self):
@@ -68,7 +68,7 @@ class HDHomeRunSettings:
         self._id = data.get('_id')
 
     def __repr__(self):
-        return f"<{self.__class__.__name__}:{self._id}>"
+        return f"{self.__class__.__name__}({self._id})"
 
     @decorators._check_for_dizque_instance
     def refresh(self):
@@ -141,10 +141,11 @@ class FFMPEGSettings:
         self.normalizeResolution = data.get('normalizeResolution')
         self.normalizeAudio = data.get('normalizeAudio')
         self.maxFPS = data.get('maxFPS')
+        self.scalingAlgorithm = data.get('scalingAlgorithm')
         self._id = data.get('_id')
 
     def __repr__(self):
-        return f"<{self.__class__.__name__}:{self._id}>"
+        return f"{self.__class__.__name__}({self._id})"
 
     @decorators._check_for_dizque_instance
     def refresh(self):
@@ -216,7 +217,7 @@ class PlexSettings:
         self._id = data.get('_id')
 
     def __repr__(self):
-        return f"<{self.__class__.__name__}:{self._id}>"
+        return f"{self.__class__.__name__}({self._id})"
 
     @decorators._check_for_dizque_instance
     def refresh(self):
