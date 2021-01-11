@@ -67,7 +67,7 @@ def convert_plex_item_to_program(plex_item: Union[Video, Movie, Episode],
     :return: Program object
     :rtype: Program
     """
-    data = decorators._make_program_dict_from_plex_item(plex_item=plex_item, plex_server=plex_server)
+    data = helpers._make_program_dict_from_plex_item(plex_item=plex_item, plex_server=plex_server)
     return Program(data=data, dizque_instance=None, channel_instance=None)
 
 
@@ -83,7 +83,7 @@ def convert_plex_item_to_filler_item(plex_item: Union[Video, Movie, Episode],
     :return: Program object
     :rtype: Program
     """
-    data = decorators._make_filler_dict_from_plex_item(plex_item=plex_item, plex_server=plex_server)
+    data = helpers._make_filler_dict_from_plex_item(plex_item=plex_item, plex_server=plex_server)
     return FillerItem(data=data, dizque_instance=None, filler_list_instance=None)
 
 
@@ -96,7 +96,7 @@ def convert_plex_server_to_dizque_plex_server(plex_server: PServer) -> PlexServe
     :return: PlexServer object
     :rtype: PlexServer
     """
-    data = decorators._make_server_dict_from_plex_server(plex_server=plex_server)
+    data = helpers._make_server_dict_from_plex_server(plex_server=plex_server)
     return PlexServer(data=data, dizque_instance=None)
 
 
@@ -285,7 +285,7 @@ class API:
         :return: PlexServer object or None
         :rtype: PlexServer
         """
-        if decorators._settings_are_complete(new_settings_dict=kwargs,
+        if helpers._settings_are_complete(new_settings_dict=kwargs,
                                           template_settings_dict=PLEX_SERVER_SETTINGS_TEMPLATE,
                                           ignore_keys=['_id', 'id']) \
                 and self._put(endpoint='/plex-servers', data=kwargs):
@@ -331,7 +331,7 @@ class API:
         """
         server = self.get_plex_server(server_name=server_name)
         if server:
-            new_settings = decorators._combine_settings(new_settings_dict=kwargs, template_dict=server._data)
+            new_settings = helpers._combine_settings(new_settings_dict=kwargs, template_dict=server._data)
             if self._post(endpoint='/plex-servers', data=new_settings):
                 return True
         return False
@@ -426,7 +426,7 @@ class API:
         :return: A complete and valid watermark dict
         :rtype: dict
         """
-        final_dict = decorators._combine_settings_add_new(new_settings_dict=kwargs,
+        final_dict = helpers._combine_settings_add_new(new_settings_dict=kwargs,
                                                        template_dict=WATERMARK_SETTINGS_DEFAULT)
         if handle_errors and final_dict['enabled'] is True:
             if not (0 < final_dict['width'] <= 100):
@@ -476,7 +476,7 @@ class API:
         # override duration regardless of user input
         settings_dict['duration'] = sum(program['duration'] for program in settings_dict['programs'])
         settings_dict['watermark'] = self._fill_in_watermark_settings(**settings_dict)
-        return decorators._combine_settings_add_new(new_settings_dict=settings_dict,
+        return helpers._combine_settings_add_new(new_settings_dict=settings_dict,
                                                  template_dict=CHANNEL_SETTINGS_DEFAULT)
 
     def add_channel(self,
@@ -510,7 +510,7 @@ class API:
         if kwargs.get('iconPosition'):
             kwargs['iconPosition'] = helpers.convert_icon_position(position_text=kwargs['iconPosition'])
         kwargs = self._fill_in_default_channel_settings(settings_dict=kwargs, handle_errors=handle_errors)
-        if decorators._settings_are_complete(new_settings_dict=kwargs,
+        if helpers._settings_are_complete(new_settings_dict=kwargs,
                                           template_settings_dict=CHANNEL_SETTINGS_TEMPLATE,
                                           ignore_keys=['_id', 'id']) \
                 and self._put(endpoint="/channel", data=kwargs):
@@ -531,7 +531,7 @@ class API:
         if channel:
             if kwargs.get('iconPosition'):
                 kwargs['iconPosition'] = helpers.convert_icon_position(position_text=kwargs['iconPosition'])
-            new_settings = decorators._combine_settings_add_new(new_settings_dict=kwargs, template_dict=channel._data)
+            new_settings = helpers._combine_settings_add_new(new_settings_dict=kwargs, template_dict=channel._data)
             if self._post(endpoint="/channel", data=new_settings):
                 return True
         return False
@@ -565,7 +565,7 @@ class API:
         data = {'programs': []}
         if schedule:
             data['schedule'] = (schedule._data
-                                if decorators._object_has_attribute(obj=schedule, attribute_name="_data")
+                                if helpers._object_has_attribute(obj=schedule, attribute_name="_data")
                                 else {})
         else:
             data['schedule'] = schedule_settings
@@ -656,7 +656,7 @@ class API:
                 raise ChannelCreationError("You must include at least one program when creating a filler list.")
         if 'name' not in settings_dict.keys():
             settings_dict['name'] = f"New List {len(self.filler_lists) + 1}"
-        return decorators._combine_settings(new_settings_dict=settings_dict, template_dict=CHANNEL_SETTINGS_DEFAULT)
+        return helpers._combine_settings(new_settings_dict=settings_dict, template_dict=CHANNEL_SETTINGS_DEFAULT)
 
     def add_filler_list(self,
                         content: List[Union[Program, Video, Movie, Episode]],
@@ -688,7 +688,7 @@ class API:
                 kwargs['content'].append(
                     convert_plex_item_to_filler_item(plex_item=item, plex_server=plex_server)._data)
         kwargs = self._fill_in_default_filler_list_settings(settings_dict=kwargs, handle_errors=handle_errors)
-        if decorators._settings_are_complete(new_settings_dict=kwargs,
+        if helpers._settings_are_complete(new_settings_dict=kwargs,
                                           template_settings_dict=FILLER_LIST_SETTINGS_TEMPLATE,
                                           ignore_keys=['_id', 'id']):
             response = self._put(endpoint="/filler", data=kwargs)
@@ -708,7 +708,7 @@ class API:
         """
         filler_list = self.get_filler_list(filler_list_id=filler_list_id)
         if filler_list:
-            new_settings = decorators._combine_settings(new_settings_dict=kwargs, template_dict=filler_list._data)
+            new_settings = helpers._combine_settings(new_settings_dict=kwargs, template_dict=filler_list._data)
             if self._post(endpoint=f"/filler/{filler_list_id}", data=new_settings):
                 return True
         return False
@@ -748,7 +748,7 @@ class API:
         :return: True if successful, False if unsuccessful
         :rtype: bool
         """
-        new_settings = decorators._combine_settings(new_settings_dict=kwargs, template_dict=self.ffmpeg_settings._data)
+        new_settings = helpers._combine_settings(new_settings_dict=kwargs, template_dict=self.ffmpeg_settings._data)
         if self._put(endpoint='/ffmpeg-settings', data=new_settings):
             return True
         return False
@@ -787,7 +787,7 @@ class API:
         :return: True if successful, False if unsuccessful
         :rtype: bool
         """
-        new_settings = decorators._combine_settings(new_settings_dict=kwargs, template_dict=self.plex_settings._data)
+        new_settings = helpers._combine_settings(new_settings_dict=kwargs, template_dict=self.plex_settings._data)
         if self._put(endpoint='/plex-settings', data=new_settings):
             return True
         return False
@@ -837,7 +837,7 @@ class API:
         :return: True if successful, False if unsuccessful
         :rtype: bool
         """
-        new_settings = decorators._combine_settings(new_settings_dict=kwargs, template_dict=self.xmltv_settings._data)
+        new_settings = helpers._combine_settings(new_settings_dict=kwargs, template_dict=self.xmltv_settings._data)
         if self._put(endpoint='/xmltv-settings', data=new_settings):
             return True
         return False
@@ -876,7 +876,7 @@ class API:
         :return: True if successful, False if unsuccessful
         :rtype: bool
         """
-        new_settings = decorators._combine_settings(new_settings_dict=kwargs, template_dict=self.hdhr_settings._data)
+        new_settings = helpers._combine_settings(new_settings_dict=kwargs, template_dict=self.hdhr_settings._data)
         if self._put(endpoint='/hdhr-settings', data=new_settings):
             return True
         return False
