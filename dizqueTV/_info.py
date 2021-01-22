@@ -1,4 +1,4 @@
-__version__ = '1.2.3.2'
+__version__ = '1.3.0.0'
 
 __title__ = "dizqueTV"
 __author__ = 'Nate Harris'
