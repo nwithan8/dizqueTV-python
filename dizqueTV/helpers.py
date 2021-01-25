@@ -1,4 +1,5 @@
 import json
+import os
 from datetime import datetime, timedelta
 from functools import wraps
 from typing import List, Union, Tuple
@@ -171,6 +172,28 @@ def convert_icon_position(position_text: str) -> str:
             return '2'
     return '3'
 
+
+def file_exists(file_path: str) -> bool:
+    """
+    Check if provided file_path exists
+
+    :param file_path: path to a file
+    :type file_path: str
+    :return: Whether file exists or not
+    :rtype: bool
+    """
+    return os.path.exists(file_path)
+
+def read_file_bytes(file_path: str):
+    """
+    Read a file as bytes
+
+    :param file_path: path to file
+    :type file_path: str
+    :return:
+    :rtype:
+    """
+    return open(file_path, 'rb')
 
 def _object_has_attribute(obj: object, attribute_name: str) -> bool:
     """

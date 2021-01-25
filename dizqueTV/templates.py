@@ -195,3 +195,10 @@ FILLER_ITEM_TEMPLATE = {
     "season": int,
     "serverKey": str
 }
+
+IMAGE_UPLOAD_RESPONSE_TEMPLATE = {
+    "name": str,
+    "mimetype": str,
+    "size": int,
+    "fileUrl": str
+}

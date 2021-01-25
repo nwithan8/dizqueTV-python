@@ -27,12 +27,13 @@ def post(url: str,
          params: dict = None,
          headers: dict = None,
          data: dict = None,
+         files: dict = None,
          timeout: int = 2,
          log: str = None) -> Union[requests.Response, None]:
     if params:
         url += f"?{urlencode(params)}"
     try:
-        res = requests.post(url=url, json=data, headers=headers, timeout=timeout)
+        res = requests.post(url=url, json=data, files=files, headers=headers, timeout=timeout)
         if log:
             logs.log(message=f"POST {url}, Body: {data}", level=log)
             logs.log(message=f"Response: {res}", level=("error" if not res else log))

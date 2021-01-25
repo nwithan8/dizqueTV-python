@@ -11,6 +11,7 @@ from plexapi.server import PlexServer as PServer
 
 import dizqueTV.dizquetv_requests as requests
 from dizqueTV import decorators
+from dizqueTV.general_classes import UploadImageResponse
 from dizqueTV.settings import XMLTVSettings, PlexSettings, FFMPEGSettings, HDHomeRunSettings
 from dizqueTV.channels import Channel, TimeSlot, TimeSlotItem, Schedule
 from dizqueTV.guide import Guide
@@ -165,14 +166,15 @@ class API:
                             timeout=timeout,
                             log='info')
 
-    def _post(self, endpoint: str, params: dict = None, headers: dict = None, data: dict = None, timeout: int = 2) -> \
-            Union[Response, None]:
+    def _post(self, endpoint: str, params: dict = None, headers: dict = None, data: dict = None, files: dict = None,
+              timeout: int = 2) -> Union[Response, None]:
         if not endpoint.startswith('/'):
             endpoint = f"/{endpoint}"
         url = f"{self.url}/api{endpoint}"
         return requests.post(url=url,
                              params=params,
                              data=data,
+                             files=files,
                              headers=headers,
                              timeout=timeout,
                              log='info')
@@ -725,6 +727,23 @@ class API:
         if self._delete(endpoint=f"/filler/{filler_list_id}"):
             return True
         return False
+
+    # Images
+    def upload_image(self, image_file_path: str) -> Union[UploadImageResponse, None]:
+        """
+
+        :param image_file_path:
+        :type image_file_path:
+        :return:
+        :rtype:
+        """
+        if not helpers.file_exists(image_file_path):
+            raise GeneralException("Invalid image_file_path provided.")
+        file_data = {'image': helpers.read_file_bytes(file_path=image_file_path)}
+        res = self._post(endpoint=f"/upload/image", files=file_data)
+        if not res:
+            return None
+        return UploadImageResponse(data=res.json())
 
     # FFMPEG Settings
     @property
