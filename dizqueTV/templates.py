@@ -90,7 +90,8 @@ CHANNEL_SETTINGS_TEMPLATE = {
     "guideMinimumDurationSeconds": int,
     "guideFlexPlaceholder": str,
     "stealth": bool,
-    "enabled": bool
+    "enabled": bool,
+    "groupTitle": str
 }
 
 CHANNEL_SETTINGS_DEFAULT = {
@@ -105,7 +106,8 @@ CHANNEL_SETTINGS_DEFAULT = {
     "guideMinimumDurationSeconds": 300,
     "guideFlexPlaceholder": "",
     "enabled": True,
-    "stealth": False
+    "stealth": False,
+    "groupTitle": "dizqueTV"
 }
 
 FILLER_LIST_SETTINGS_TEMPLATE = {
