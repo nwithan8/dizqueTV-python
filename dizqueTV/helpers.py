@@ -184,6 +184,7 @@ def file_exists(file_path: str) -> bool:
     """
     return os.path.exists(file_path)
 
+
 def read_file_bytes(file_path: str):
     """
     Read a file as bytes
@@ -194,6 +195,7 @@ def read_file_bytes(file_path: str):
     :rtype:
     """
     return open(file_path, 'rb')
+
 
 def _object_has_attribute(obj: object, attribute_name: str) -> bool:
     """
@@ -869,7 +871,8 @@ def remove_duplicates_by_attribute(items: List, attribute_name: str) -> List:
 def sort_media_alphabetically(media_items: List[Union[Program, FillerItem]]) -> List[Union[Program, FillerItem]]:
     """
     Sort media items alphabetically.
-    Note: Shows will be grouped and sorted by series title, but episodes may be out of order
+    Note: Shows will be grouped and sorted by series title, but episodes may be out of order.
+    Items without titles will be appended at the end of the list
 
     :param media_items: List of Program and FillerItem objects
     :type media_items: List[Union[Program, FillerItem]]
