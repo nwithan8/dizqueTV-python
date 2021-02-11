@@ -124,7 +124,8 @@ class FillerList:
                                              ignore_keys=['_id', 'id']):
             filler_list_data = self._data
             filler_list_data['content'].append(kwargs)
-            filler_list_data['duration'] += kwargs['duration']
+            if 'duration' in filler_list_data:
+                filler_list_data['duration'] += kwargs['duration']
             return self.update(**filler_list_data)
         return False
 
@@ -150,7 +151,8 @@ class FillerList:
                                                  "Movie, or Episode items.")
                 filler = self._dizque_instance.convert_plex_item_to_filler(plex_item=filler, plex_server=plex_server)
             filler_list_data['content'].append(filler._data)
-            filler_list_data['duration'] += filler.duration
+            if 'duration' in filler_list_data:
+                filler_list_data['duration'] += filler.duration
         return self.update(**filler_list_data)
 
     @decorators._check_for_dizque_instance
@@ -166,7 +168,8 @@ class FillerList:
         filler_list_data = self._data
         for a_filler in filler_list_data['content']:
             if a_filler['title'] == filler.title:
-                filler_list_data['duration'] -= a_filler['duration']
+                if 'duration' in filler_list_data:
+                    filler_list_data['duration'] -= a_filler['duration']
                 filler_list_data['content'].remove(a_filler)
                 return self.update(**filler_list_data)
         return False
@@ -180,7 +183,8 @@ class FillerList:
         :rtype: bool
         """
         filler_list_data = self._data
-        filler_list_data['duration'] -= sum(filler.duration for filler in self.content)
+        if 'duration' in filler_list_data:
+            filler_list_data['duration'] -= sum(filler.duration for filler in self.content)
         filler_list_data['content'] = []
         return self.update(**filler_list_data)
 
