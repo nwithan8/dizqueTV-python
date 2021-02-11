@@ -4,6 +4,7 @@ This library is used in the following projects:
 
     - ``dizqueTV-scripts``: https://github.com/nwithan8/dizqueTV-scripts
 
+Documentation of the REST API is available on SwaggerHub: https://app.swaggerhub.com/apis/nwithan8/DizqueTV
 
 Contribute
 ============
