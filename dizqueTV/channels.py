@@ -544,6 +544,30 @@ class Channel:
         return self.update(**channel_data)
 
     @decorators._check_for_dizque_instance
+    def update_program(self,
+                       program: Program,
+                       **kwargs) -> bool:
+        """
+        Update a program from this channel
+
+        :param program: Program object to update
+        :type program: Program
+        :return: True if successful, False if unsuccessful (Channel reloads in-place)
+        :rtype: bool
+        """
+        channel_data = self._data
+        for a_program in channel_data['programs']:
+            if (program.type == 'redirect' and a_program['type'] == 'redirect') \
+                    or (a_program['title'] == program.title):
+                if kwargs.get('duration'):
+                    channel_data['duration'] -= a_program['duration']
+                    channel_data['duration'] += kwargs['duration']
+                new_data = helpers._combine_settings(new_settings_dict=kwargs, template_dict=a_program)
+                a_program.update(new_data)
+                return self.update(**channel_data)
+        return False
+
+    @decorators._check_for_dizque_instance
     def delete_program(self,
                        program: Program) -> bool:
         """
