@@ -552,6 +552,7 @@ class Channel:
 
         :param program: Program object to update
         :type program: Program
+        :param kwargs: Keyword arguments of new Program settings names and values
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
         :rtype: bool
         """

@@ -116,6 +116,38 @@ class FillerItem(MediaItem):
         return f"{self.__class__.__name__}({self.title})"
 
     @decorators._check_for_dizque_instance
+    def refresh(self, data: dict = None, filler_item_title: str = None):
+        """
+        Reload current FillerItem object
+        Use to update data
+
+        :return: None
+        """
+        if not data and not filler_item_title:
+            raise MissingParametersError(
+                "Please include either a JSON array or a filler_item_title.")
+        if filler_item_title:
+            temp_item = self._filler_list_instance.get_filler_item(filler_item_title=filler_item_title)
+            if not temp_item:
+                raise Exception("Could not find filler item.")
+            else:
+                data = temp_item._data
+                self._filler_list_instance = temp_item._filler_list_instance,
+                self._dizque_instance = temp_item._dizque_instance
+                del temp_item
+        self.__init__(data=data, filler_list_instance=self._filler_list_instance, dizque_instance=self._dizque_instance)
+
+    @decorators._check_for_dizque_instance
+    def update(self, **kwargs) -> bool:
+        """
+        Update this filler
+
+        :return: True if successful, False if unsuccessful
+        :rtype: bool
+        """
+        return self._filler_list_instance.update_filler(program=self, **kwargs)
+
+    @decorators._check_for_dizque_instance
     def delete(self) -> bool:
         """
         Delete this filler
