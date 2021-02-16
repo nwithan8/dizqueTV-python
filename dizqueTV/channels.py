@@ -604,14 +604,20 @@ class Channel:
         all_programs = self.programs
         programs_to_add = []
         for program in all_programs:
-            if program.type == 'episode' and program.showTitle == show_name:
-                if season_number and program.season == season_number:
-                    pass
-                else:
-                    programs_to_add.append(program)
-            else:
+            # collect everything that's not an episode
+            if program.type != 'episode':
                 programs_to_add.append(program)
+            else:
+                # collect everything that's not the targeted show
+                if program.showTitle != show_name:
+                    programs_to_add.append(program)
+                else:
+                    if season_number:
+                        # collect everything that's not the targeted season if there is one
+                        if season_number != season_number:
+                            programs_to_add.append(program)
         if self.delete_all_programs():
+            # add back everything that's not the targeted show/season combo
             return self.add_programs(programs=programs_to_add)
         return False
 
