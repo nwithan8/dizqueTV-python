@@ -10,6 +10,7 @@ from plexapi.video import Video, Movie, Episode
 from plexapi.server import PlexServer as PServer
 
 import dizqueTV.dizquetv_requests as requests
+from dizqueTV.advanced import Advanced
 from dizqueTV import decorators
 from dizqueTV.general_classes import UploadImageResponse
 from dizqueTV.settings import XMLTVSettings, PlexSettings, FFMPEGSettings, HDHomeRunSettings
@@ -147,6 +148,7 @@ class API:
     def __init__(self, url: str, verbose: bool = False, allow_analytics: bool = True, anonymous_analytics: bool = True):
         self.url = url.rstrip('/')
         self.verbose = verbose
+        self.advanced = Advanced(dizque_instance=self)
         self.analytics = GoogleAnalytics(analytics_id=analytics_id,
                                          anonymous_ip=anonymous_analytics,
                                          do_not_track=not allow_analytics)
@@ -958,6 +960,63 @@ class API:
         :rtype: m3u8
         """
         return m3u8.load(f"{self.url}/api/hls.m3u")
+
+    def get_channel_m3u(self, channel_number: int) -> m3u8:
+        """
+        Get a channel-specific m3u playlist
+
+        :param channel_number: Number of channel to get M3U playlist
+        :type channel_number: int
+        :return: m3u8 object
+        :rtype: m3u8
+        """
+        if channel_number not in self.channel_numbers:
+            raise Exception(f"Channel {channel_number} does not exist.")
+        return m3u8.load(f"{self.url}/media-player/{channel_number}.m3u")
+
+    def get_stream_url(self, channel_number: int, audio_only: bool = False) -> str:
+        """
+        Get URL for stream (to use for network stream in players like VLC)
+
+        :param channel_number: Number of channel to stream
+        :type channel_number: int
+        :param audio_only: Stream only the audio
+        :type audio_only: bool
+        :return: Stream URL for channel
+        :rtype: str
+        """
+        if channel_number not in self.channel_numbers:
+            raise Exception(f"Channel {channel_number} does not exist.")
+        url = f"{self.url}/stream?channel={channel_number}"
+        if audio_only:
+            url += f"&audiOnly=true"
+        return url
+
+    def get_video_url(self, channel_number: int) -> str:
+        """
+        Get URL for video (to use for network stream in players like VLC)
+
+        :param channel_number: Number of channel to stream
+        :type channel_number: int
+        :return: Video URL for channel
+        :rtype: str
+        """
+        if channel_number not in self.channel_numbers:
+            raise Exception(f"Channel {channel_number} does not exist.")
+        return f"{self.url}/video?channel={channel_number}"
+
+    def get_radio_url(self, channel_number: int) -> str:
+        """
+        Get URL for only audio (to use for network stream in players like VLC)
+
+        :param channel_number: Number of channel to stream
+        :type channel_number: int
+        :return: Audio-only URL for channel
+        :rtype: str
+        """
+        if channel_number not in self.channel_numbers:
+            raise Exception(f"Channel {channel_number} does not exist.")
+        return f"{self.url}/radio?channel={channel_number}"
 
     # Guide
     @property
