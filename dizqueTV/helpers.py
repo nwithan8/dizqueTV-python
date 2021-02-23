@@ -7,6 +7,7 @@ import collections
 import random
 
 from plexapi.video import Video, Movie, Episode
+from plexapi.audio import Track
 from plexapi.server import PlexServer as PServer
 
 from dizqueTV.exceptions import MissingSettingsError, NotRemoteObjectError
@@ -214,12 +215,12 @@ def _object_has_attribute(obj: object, attribute_name: str) -> bool:
     return False
 
 
-def _make_program_dict_from_plex_item(plex_item: Union[Video, Movie, Episode], plex_server: PServer) -> dict:
+def _make_program_dict_from_plex_item(plex_item: Union[Video, Movie, Episode, Track], plex_server: PServer) -> dict:
     """
-    Build a dictionary for a Program using a PlexAPI Video, Movie or Episode object
+    Build a dictionary for a Program using a PlexAPI Video, Movie, Episode or Track object
 
-    :param plex_item: plexapi.video.Video, plexapi.video.Movie or plexapi.video.Episode object
-    :type plex_item: Union[plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode]
+    :param plex_item: plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode or plexapi.audio.Track object
+    :type plex_item: Union[plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode, plexapi.audio.Track]
     :param plex_server: plexapi.server.PlexServer object
     :type plex_server: plexapi.server.PlexServer
     :return: dict of Plex item information
@@ -232,12 +233,12 @@ def _make_program_dict_from_plex_item(plex_item: Union[Video, Movie, Episode], p
     data = {
         'title': plex_item.title,
         'key': plex_item.key,
-        'ratingKey': plex_item.ratingKey,
+        'ratingKey': str(plex_item.ratingKey),
         'icon': f"{plex_uri}{plex_item.thumb}?X-Plex-Token={plex_token}",
         'type': item_type,
         'duration': (plex_item.duration if (hasattr(plex_item, 'duration') and plex_item.duration) else 0),
         'summary': plex_item.summary,
-        'rating': plex_item.contentRating,
+        'rating': "" if plex_item.type == 'track' else plex_item.contentRating,
         'date': (remove_time_from_date(plex_item.originallyAvailableAt)
                  if (hasattr(plex_item, 'originallyAvailableAt') and plex_item.originallyAvailableAt)
                  else '1900-01-01'),
@@ -246,9 +247,9 @@ def _make_program_dict_from_plex_item(plex_item: Union[Video, Movie, Episode], p
                  else '1900'),
         'plexFile': plex_media_item_part.key,
         'file': plex_media_item_part.file,
-        'showTitle': (plex_item.grandparentTitle if item_type == 'episode' else plex_item.title),
-        'episode': (plex_item.index if item_type == 'episode' else 1),
-        'season': (plex_item.parentIndex if item_type == 'episode' else 1),
+        'showTitle': (plex_item.title if item_type == 'movie' else plex_item.grandparentTitle),
+        'episode': (1 if item_type == 'movie' else int(plex_item.index)),
+        'season': (1 if item_type == 'movie' else int(plex_item.parentIndex)),
         'serverKey': plex_server.friendlyName
     }
     if plex_item.type == 'episode':
@@ -259,12 +260,12 @@ def _make_program_dict_from_plex_item(plex_item: Union[Video, Movie, Episode], p
     return data
 
 
-def _make_filler_dict_from_plex_item(plex_item: Union[Video, Movie, Episode], plex_server: PServer) -> dict:
+def _make_filler_dict_from_plex_item(plex_item: Union[Video, Movie, Episode, Track], plex_server: PServer) -> dict:
     """
-    Build a dictionary for a FillerItem using a PlexAPI Video, Movie or Episode object
+    Build a dictionary for a FillerItem using a PlexAPI Video, Movie, Episode or Track object
 
-    :param plex_item: plexapi.video.Video, plexapi.video.Movie or plexapi.video.Episode object
-    :type plex_item: Union[plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode]
+    :param plex_item: plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode or plexapi.audio.Track object
+    :type plex_item: Union[plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode, plexapi.audio.Track]
     :param plex_server: plexapi.server.PlexServer object
     :type plex_server: plexapi.server.PlexServer
     :return: dict of Plex item information
@@ -275,7 +276,7 @@ def _make_filler_dict_from_plex_item(plex_item: Union[Video, Movie, Episode], pl
     data = {
         'title': plex_item.title,
         'key': plex_item.key,
-        'ratingKey': plex_item.ratingKey,
+        'ratingKey': str(plex_item.ratingKey),
         'icon': plex_item.thumb,
         'type': item_type,
         'duration': (plex_item.duration if (hasattr(plex_item, 'duration') and plex_item.duration) else 0),
@@ -288,9 +289,9 @@ def _make_filler_dict_from_plex_item(plex_item: Union[Video, Movie, Episode], pl
                  else '1900-01-01'),
         'plexFile': plex_media_item_part.key,
         'file': plex_media_item_part.file,
-        'showTitle': (plex_item.grandparentTitle if item_type == 'episode' else plex_item.title),
-        'episode': (plex_item.index if item_type == 'episode' else 1),
-        'season': (plex_item.parentIndex if item_type == 'episode' else 1),
+        'showTitle': (plex_item.title if item_type == 'movie' else plex_item.grandparentTitle),
+        'episode': (1 if item_type == 'movie' else int(plex_item.index)),
+        'season': (1 if item_type == 'movie' else int(plex_item.parentIndex)),
         'serverKey': plex_server.friendlyName
     }
     if plex_item.type == 'episode':

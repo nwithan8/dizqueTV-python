@@ -3,13 +3,14 @@ from typing import List, Union, Tuple
 from datetime import datetime, timedelta
 
 from plexapi.video import Video, Movie, Episode
+from plexapi.audio import Track
 from plexapi.server import PlexServer as PServer
 
 import dizqueTV.helpers as helpers
 from dizqueTV import decorators
 from dizqueTV.fillers import FillerList
 from dizqueTV.media import Redirect, Program, FillerItem
-from dizqueTV.templates import MOVIE_PROGRAM_TEMPLATE, EPISODE_PROGRAM_TEMPLATE, \
+from dizqueTV.templates import MOVIE_PROGRAM_TEMPLATE, EPISODE_PROGRAM_TEMPLATE, TRACK_PROGRAM_TEMPLATE, \
     REDIRECT_PROGRAM_TEMPLATE, FILLER_LIST_SETTINGS_TEMPLATE, FILLER_LIST_CHANNEL_TEMPLATE, \
     CHANNEL_FFMPEG_SETTINGS_DEFAULT, SCHEDULE_SETTINGS_DEFAULT, TIME_SLOT_SETTINGS_TEMPLATE, SCHEDULE_SETTINGS_TEMPLATE
 from dizqueTV.exceptions import MissingParametersError, GeneralException
@@ -470,15 +471,15 @@ class Channel:
 
     @decorators._check_for_dizque_instance
     def add_program(self,
-                    plex_item: Union[Video, Movie, Episode] = None,
+                    plex_item: Union[Video, Movie, Episode, Track] = None,
                     plex_server: PServer = None,
                     program: Program = None,
                     **kwargs) -> bool:
         """
         Add a program to this channel
 
-        :param plex_item: plexapi.video.Video, plexapi.video.Movie or plexapi.video.Episode object (optional)
-        :type plex_item: Union[plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode], optional
+        :param plex_item: plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode or plexapi.audio.Track object (optional)
+        :type plex_item: Union[plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode, plexapi.audio.Track], optional
         :param plex_server: plexapi.server.PlexServer object (optional)
         :type plex_server: plexapi.server.PlexServer, optional
         :param program: Program object (optional)
@@ -501,27 +502,31 @@ class Channel:
         template = MOVIE_PROGRAM_TEMPLATE
         if kwargs['type'] == 'episode':
             template = EPISODE_PROGRAM_TEMPLATE
+        elif kwargs['type'] == 'track':
+            template = TRACK_PROGRAM_TEMPLATE
         elif kwargs['type'] == 'redirect':
             template = REDIRECT_PROGRAM_TEMPLATE
         if helpers._settings_are_complete(new_settings_dict=kwargs,
                                           template_settings_dict=template,
                                           ignore_keys=['_id', 'id']):
             channel_data = self._data
+            if not channel_data['duration']:
+                channel_data['duration'] = 0
             channel_data['programs'].append(kwargs)
-            channel_data['duration'] += kwargs['duration']
+            channel_data['duration'] += kwargs.get('duration', 0)
             return self.update(**channel_data)
         return False
 
     @decorators._check_for_dizque_instance
     def add_programs(self,
-                     programs: List[Union[Program, Video, Movie, Episode]],
+                     programs: List[Union[Program, Video, Movie, Episode, Track]],
                      plex_server: PServer = None) -> bool:
         """
         Add multiple programs to this channel
 
-        :param programs: List of Program, plexapi.video.Video, plexapi.video.Movie or plexapi.video.Episode objects
-        :type programs: List[Union[Program, plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode]]
-        :param plex_server: plexapi.server.PlexServer object (required if adding PlexAPI Video, Movie or Episode objects)
+        :param programs: List of Program, plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode or plexapi.audio.Track objects
+        :type programs: List[Union[Program, plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode, plexapi.audio.Track]]
+        :param plex_server: plexapi.server.PlexServer object (required if adding PlexAPI Video, Movie, Episode or Track objects)
         :type plex_server: plexapi.server.PlexServer, optional
         :return: True if successful, False if unsuccessful (Channel reloads in place)
         :rtype: bool
@@ -533,7 +538,7 @@ class Channel:
             if type(program) not in [Program, Redirect]:
                 if not plex_server and not self.plex_server:
                     raise MissingParametersError("Please include a plex_server if you are adding PlexAPI Video, "
-                                                 "Movie, or Episode items.")
+                                                 "Movie, Episode or Track items.")
                 program = self._dizque_instance.convert_plex_item_to_program(plex_item=program,
                                                                              plex_server=(
                                                                                  plex_server if plex_server

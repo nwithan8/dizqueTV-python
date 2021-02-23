@@ -180,6 +180,22 @@ EPISODE_PROGRAM_TEMPLATE = {
     "seasonIcon": str
 }
 
+TRACK_PROGRAM_TEMPLATE = {
+    "title": str,
+    "key": str,
+    "ratingKey": str,
+    "icon": str,
+    "type": str,
+    "summary": str,
+    "year": int,
+    "plexFile": str,
+    "file": str,
+    "showTitle": str,
+    "episode": int,
+    "season": int,
+    "serverKey": str
+}
+
 FILLER_ITEM_TEMPLATE = {
     "title": str,
     "key": str,

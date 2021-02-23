@@ -3,6 +3,7 @@ from typing import List, Union
 from datetime import datetime, timedelta
 
 from plexapi.video import Video, Movie, Episode
+from plexapi.audio import Track
 from plexapi.server import PlexServer as PServer
 
 import dizqueTV.helpers as helpers
@@ -111,14 +112,14 @@ class FillerList:
 
     @decorators._check_for_dizque_instance
     def add_filler(self,
-                   plex_item: Union[Video, Movie, Episode] = None,
+                   plex_item: Union[Video, Movie, Episode, Track] = None,
                    plex_server: PServer = None,
                    filler: FillerItem = None, **kwargs) -> bool:
         """
         Add a filler item to this filler list
 
-        :param plex_item: plexapi.video.Video, plexapi.video.Movie or plexapi.video.Episode object (optional)
-        :type plex_item: Union[plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode], optional
+        :param plex_item: plexapi.video.Video, plexapi.video.Moviem plexapi.video.Episode or plexapi.audio.Track object (optional)
+        :type plex_item: Union[plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode, plexapi.audio.Track], optional
         :param plex_server: plexapi.server.PlexServer object (optional)
         :type plex_server: plexapi.server.PlexServer, optional
         :param filler: FillerItem item (optional)
@@ -146,14 +147,14 @@ class FillerList:
 
     @decorators._check_for_dizque_instance
     def add_fillers(self,
-                    fillers: List[Union[FillerItem, Video, Movie, Episode]],
+                    fillers: List[Union[FillerItem, Video, Movie, Episode, Track]],
                     plex_server: PServer = None) -> bool:
         """
         Add multiple programs to this channel
 
-        :param fillers: List of FillerItem, plexapi.video.Video, plexapi.video.Movie or plexapi.video.Episode objects
-        :type fillers: List[Union[FillerItem, plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode]]
-        :param plex_server: plexapi.server.PlexServer object (required if adding PlexAPI Video, Movie or Episode objects)
+        :param fillers: List of FillerItem, plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode or plexapi.audio.Track objects
+        :type fillers: List[Union[FillerItem, plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode, plexapi.audio.Track]]
+        :param plex_server: plexapi.server.PlexServer object (required if adding PlexAPI Video, Movie, Episode or Track objects)
         :type plex_server: plexapi.server.PlexServer, optional
         :return: True if successful, False if unsuccessful (Channel reloads in place)
         :rtype: bool
@@ -163,7 +164,7 @@ class FillerList:
             if type(filler) != FillerItem:
                 if not plex_server:
                     raise MissingParametersError("Please include a plex_server if you are adding PlexAPI Video, "
-                                                 "Movie, or Episode items.")
+                                                 "Movie, Episode or Track items.")
                 filler = self._dizque_instance.convert_plex_item_to_filler(plex_item=filler, plex_server=plex_server)
             filler_list_data['content'].append(filler._data)
             filler_list_data['duration'] += filler.duration
