@@ -1,7 +1,10 @@
 import json
 from functools import wraps
 
+from dizqueTV.exceptions import MissingParametersError
+
 import dizqueTV.decorators as decorators
+import dizqueTV.helpers as helpers
 
 
 class BaseMediaItem:
@@ -61,6 +64,39 @@ class Program(MediaItem, Redirect):
         return f"{self.__class__.__name__}({self.title})"
 
     @decorators._check_for_dizque_instance
+    def refresh(self, data: dict = None, program_title: str = None, redirect_channel_number: int = None):
+        """
+        Reload current Program object
+        Use to update data
+
+        :return: None
+        """
+        if not data and not program_title and not redirect_channel_number:
+            raise MissingParametersError("Please include either a JSON array, program_title or a redirect_channel_number.")
+        if program_title or redirect_channel_number:
+            temp_program = self._channel_instance.get_program(program_title = program_title, redirect_channel_number = redirect_channel_number)
+            if not temp_program:
+                raise Exception("Could not find program.")
+            else:
+                data = temp_program._data
+                self._channel_instance = temp_program._channel_instance,
+                self._dizque_instance = temp_program._dizque_instance
+                del temp_program
+        self.__init__(data=data, channel_instance=self._channel_instance, dizque_instance=self._dizque_instance)
+
+
+    @decorators._check_for_dizque_instance
+    def update(self, **kwargs) -> bool:
+        """
+        Update this program
+
+        :return: True if successful, False if unsuccessful
+        :rtype: bool
+        """
+        return self._channel_instance.update_program(program=self, **kwargs)
+
+
+    @decorators._check_for_dizque_instance
     def delete(self) -> bool:
         """
         Delete this program
@@ -78,6 +114,38 @@ class FillerItem(MediaItem):
 
     def __repr__(self):
         return f"{self.__class__.__name__}({self.title})"
+
+    @decorators._check_for_dizque_instance
+    def refresh(self, data: dict = None, filler_item_title: str = None):
+        """
+        Reload current FillerItem object
+        Use to update data
+
+        :return: None
+        """
+        if not data and not filler_item_title:
+            raise MissingParametersError(
+                "Please include either a JSON array or a filler_item_title.")
+        if filler_item_title:
+            temp_item = self._filler_list_instance.get_filler_item(filler_item_title=filler_item_title)
+            if not temp_item:
+                raise Exception("Could not find filler item.")
+            else:
+                data = temp_item._data
+                self._filler_list_instance = temp_item._filler_list_instance,
+                self._dizque_instance = temp_item._dizque_instance
+                del temp_item
+        self.__init__(data=data, filler_list_instance=self._filler_list_instance, dizque_instance=self._dizque_instance)
+
+    @decorators._check_for_dizque_instance
+    def update(self, **kwargs) -> bool:
+        """
+        Update this filler
+
+        :return: True if successful, False if unsuccessful
+        :rtype: bool
+        """
+        return self._filler_list_instance.update_filler(program=self, **kwargs)
 
     @decorators._check_for_dizque_instance
     def delete(self) -> bool:

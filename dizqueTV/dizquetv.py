@@ -7,10 +7,13 @@ from typing import List, Union
 import m3u8
 from requests import Response
 from plexapi.video import Video, Movie, Episode
+from plexapi.audio import Track
 from plexapi.server import PlexServer as PServer
 
 import dizqueTV.dizquetv_requests as requests
+from dizqueTV.advanced import Advanced
 from dizqueTV import decorators
+from dizqueTV.general_classes import UploadImageResponse
 from dizqueTV.settings import XMLTVSettings, PlexSettings, FFMPEGSettings, HDHomeRunSettings
 from dizqueTV.channels import Channel, TimeSlot, TimeSlotItem, Schedule
 from dizqueTV.guide import Guide
@@ -55,13 +58,13 @@ def make_time_slot_from_dizque_program(program: Union[Program, Redirect],
     return TimeSlot(data=data, program=item)
 
 
-def convert_plex_item_to_program(plex_item: Union[Video, Movie, Episode],
+def convert_plex_item_to_program(plex_item: Union[Video, Movie, Episode, Track],
                                  plex_server: PServer) -> Program:
     """
-    Convert a PlexAPI Video, Movie or Episode object into a Program
+    Convert a PlexAPI Video, Movie, Episode or Track object into a Program
 
-    :param plex_item: plexapi.video.Video, plexapi.video.Movie or plexapi.video.Episode object
-    :type plex_item: Union[plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode]
+    :param plex_item: plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode or plexapi.audio.Track object
+    :type plex_item: Union[plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode, plexapi.audio.Track]
     :param plex_server: plexapi.server.PlexServer object
     :type plex_server: plexapi.server.PlexServer
     :return: Program object
@@ -71,13 +74,13 @@ def convert_plex_item_to_program(plex_item: Union[Video, Movie, Episode],
     return Program(data=data, dizque_instance=None, channel_instance=None)
 
 
-def convert_plex_item_to_filler_item(plex_item: Union[Video, Movie, Episode],
+def convert_plex_item_to_filler_item(plex_item: Union[Video, Movie, Episode, Track],
                                      plex_server: PServer) -> FillerItem:
     """
-    Convert a PlexAPI Video, Movie or Episode object into a FillerItem
+    Convert a PlexAPI Video, Movie, Episode or Track object into a FillerItem
 
-    :param plex_item: plexapi.video.Video, plexapi.video.Movie or plexapi.video.Episode object
-    :type plex_item: Union[plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode]
+    :param plex_item: plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode or plexapi.audio.Track object
+    :type plex_item: Union[plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode, plexapi.audio.Track]
     :param plex_server: plexapi.server.PlexServer object
     :type plex_server: plexapi.server.PlexServer
     :return: Program object
@@ -146,6 +149,7 @@ class API:
     def __init__(self, url: str, verbose: bool = False, allow_analytics: bool = True, anonymous_analytics: bool = True):
         self.url = url.rstrip('/')
         self.verbose = verbose
+        self.advanced = Advanced(dizque_instance=self)
         self.analytics = GoogleAnalytics(analytics_id=analytics_id,
                                          anonymous_ip=anonymous_analytics,
                                          do_not_track=not allow_analytics)
@@ -165,14 +169,15 @@ class API:
                             timeout=timeout,
                             log='info')
 
-    def _post(self, endpoint: str, params: dict = None, headers: dict = None, data: dict = None, timeout: int = 2) -> \
-            Union[Response, None]:
+    def _post(self, endpoint: str, params: dict = None, headers: dict = None, data: dict = None, files: dict = None,
+              timeout: int = 2) -> Union[Response, None]:
         if not endpoint.startswith('/'):
             endpoint = f"/{endpoint}"
         url = f"{self.url}/api{endpoint}"
         return requests.post(url=url,
                              params=params,
                              data=data,
+                             files=files,
                              headers=headers,
                              timeout=timeout,
                              log='info')
@@ -480,16 +485,16 @@ class API:
                                                  template_dict=CHANNEL_SETTINGS_DEFAULT)
 
     def add_channel(self,
-                    programs: List[Union[Program, Redirect, Video, Movie, Episode]] = [],
+                    programs: List[Union[Program, Redirect, Video, Movie, Episode, Track]] = [],
                     plex_server: PServer = None,
                     handle_errors: bool = True,
                     **kwargs) -> Union[Channel, None]:
         """
         Add a channel to dizqueTV
 
-        :param programs: Program, Redirect or PlexAPI Video, Movie or Episode objects to add to the new channel
-        :type programs: List[Union[Program, Redirect, plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode]], optional
-        :param plex_server: plexapi.server.PlexServer (optional, required if adding PlexAPI Video, Movie or Episode)
+        :param programs: Program, Redirect or PlexAPI Video, Movie, Episode or Track objects to add to the new channel
+        :type programs: List[Union[Program, Redirect, plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode, plexapi.audio.Track]], optional
+        :param plex_server: plexapi.server.PlexServer (optional, required if adding PlexAPI Video, Movie, Episode or Track)
         :type plex_server: plexapi.server.PlexServer, optional
         :param kwargs: keyword arguments of setting names and values
         :param handle_errors: Suppress error if they arise (ex. alter invalid channel number, add Flex Time if no program is included)
@@ -503,8 +508,8 @@ class API:
                 kwargs['programs'].append(item._data)
             else:
                 if not plex_server:
-                    raise ItemCreationError("You must include a plex_server if you are adding PlexAPI Video, "
-                                            "Movie or Episodes as programs")
+                    raise ItemCreationError("You must include a plex_server if you are adding PlexAPI Videos, "
+                                            "Movies, Episodes or Tracks as programs")
                 kwargs['programs'].append(
                     convert_plex_item_to_program(plex_item=item, plex_server=plex_server)._data)
         if kwargs.get('iconPosition'):
@@ -659,7 +664,7 @@ class API:
         return helpers._combine_settings(new_settings_dict=settings_dict, template_dict=CHANNEL_SETTINGS_DEFAULT)
 
     def add_filler_list(self,
-                        content: List[Union[Program, Video, Movie, Episode]],
+                        content: List[Union[Program, Video, Movie, Episode, Track]],
                         plex_server: PServer = None,
                         handle_errors: bool = False,
                         **kwargs) -> Union[FillerList, None]:
@@ -667,9 +672,9 @@ class API:
         Add a filler list to dizqueTV
         Must include at least one program to create
 
-        :param content: At least one Program or PlexAPI Video, Movie or Episode to add to the new filler list
-        :type content: List[Union[Program, Video, Movie, Episode]]
-        :param plex_server: plexapi.server.PlexServer (optional, required if adding PlexAPI Video, Movie or Episode)
+        :param content: At least one Program or PlexAPI Video, Movie, Episode or Track to add to the new filler list
+        :type content: List[Union[Program, Video, Movie, Episode, Track]]
+        :param plex_server: plexapi.server.PlexServer (optional, required if adding PlexAPI Video, Movie, Episode or Track)
         :type plex_server: plexapi.server.PlexServer, optional
         :param kwargs: keyword arguments of setting names and values
         :param handle_errors: Suppress error if they arise (ex. add redirect if no program is included)
@@ -683,8 +688,8 @@ class API:
                 kwargs['content'].append(item)
             else:
                 if not plex_server:
-                    raise ItemCreationError("You must include a plex_server if you are adding PlexAPI Video, "
-                                            "Movie or Episodes as programs")
+                    raise ItemCreationError("You must include a plex_server if you are adding PlexAPI Videos, "
+                                            "Movies, Episodes or Tracks as programs")
                 kwargs['content'].append(
                     convert_plex_item_to_filler_item(plex_item=item, plex_server=plex_server)._data)
         kwargs = self._fill_in_default_filler_list_settings(settings_dict=kwargs, handle_errors=handle_errors)
@@ -725,6 +730,23 @@ class API:
         if self._delete(endpoint=f"/filler/{filler_list_id}"):
             return True
         return False
+
+    # Images
+    def upload_image(self, image_file_path: str) -> Union[UploadImageResponse, None]:
+        """
+
+        :param image_file_path:
+        :type image_file_path:
+        :return:
+        :rtype:
+        """
+        if not helpers.file_exists(image_file_path):
+            raise GeneralException("Invalid image_file_path provided.")
+        file_data = {'image': helpers.read_file_bytes(file_path=image_file_path)}
+        res = self._post(endpoint=f"/upload/image", files=file_data)
+        if not res:
+            return None
+        return UploadImageResponse(data=res.json())
 
     # FFMPEG Settings
     @property
@@ -940,6 +962,63 @@ class API:
         """
         return m3u8.load(f"{self.url}/api/hls.m3u")
 
+    def get_channel_m3u(self, channel_number: int) -> m3u8:
+        """
+        Get a channel-specific m3u playlist
+
+        :param channel_number: Number of channel to get M3U playlist
+        :type channel_number: int
+        :return: m3u8 object
+        :rtype: m3u8
+        """
+        if channel_number not in self.channel_numbers:
+            raise Exception(f"Channel {channel_number} does not exist.")
+        return m3u8.load(f"{self.url}/media-player/{channel_number}.m3u")
+
+    def get_stream_url(self, channel_number: int, audio_only: bool = False) -> str:
+        """
+        Get URL for stream (to use for network stream in players like VLC)
+
+        :param channel_number: Number of channel to stream
+        :type channel_number: int
+        :param audio_only: Stream only the audio
+        :type audio_only: bool
+        :return: Stream URL for channel
+        :rtype: str
+        """
+        if channel_number not in self.channel_numbers:
+            raise Exception(f"Channel {channel_number} does not exist.")
+        url = f"{self.url}/stream?channel={channel_number}"
+        if audio_only:
+            url += f"&audiOnly=true"
+        return url
+
+    def get_video_url(self, channel_number: int) -> str:
+        """
+        Get URL for video (to use for network stream in players like VLC)
+
+        :param channel_number: Number of channel to stream
+        :type channel_number: int
+        :return: Video URL for channel
+        :rtype: str
+        """
+        if channel_number not in self.channel_numbers:
+            raise Exception(f"Channel {channel_number} does not exist.")
+        return f"{self.url}/video?channel={channel_number}"
+
+    def get_radio_url(self, channel_number: int) -> str:
+        """
+        Get URL for only audio (to use for network stream in players like VLC)
+
+        :param channel_number: Number of channel to stream
+        :type channel_number: int
+        :return: Audio-only URL for channel
+        :rtype: str
+        """
+        if channel_number not in self.channel_numbers:
+            raise Exception(f"Channel {channel_number} does not exist.")
+        return f"{self.url}/radio?channel={channel_number}"
+
     # Guide
     @property
     def guide(self) -> Guide:
@@ -989,12 +1068,12 @@ class API:
         return self._get_json(endpoint='/guide/debug')
 
     # Other Functions
-    def convert_plex_item_to_program(self, plex_item: Union[Video, Movie, Episode], plex_server: PServer) -> Program:
+    def convert_plex_item_to_program(self, plex_item: Union[Video, Movie, Episode, Track], plex_server: PServer) -> Program:
         """
-        Convert a PlexAPI Video, Movie or Episode object into a Program
+        Convert a PlexAPI Video, Movie, Episode or Track object into a Program
 
-        :param plex_item: plexapi.video.Video, plexapi.video.Movie or plexapi.video.Episode object
-        :type plex_item: Union[plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode]
+        :param plex_item: plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode or plexapi.audio.Track object
+        :type plex_item: Union[plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode, plexapi.audio.Track]
         :param plex_server: plexapi.server.PlexServer object
         :type plex_server: plexapi.server.PlexServer
         :return: Program object
@@ -1002,13 +1081,13 @@ class API:
         """
         return convert_plex_item_to_program(plex_item=plex_item, plex_server=plex_server)
 
-    def convert_plex_item_to_filler_item(self, plex_item: Union[Video, Movie, Episode], plex_server: PServer) -> \
+    def convert_plex_item_to_filler_item(self, plex_item: Union[Video, Movie, Episode, Track], plex_server: PServer) -> \
             FillerItem:
         """
-        Convert a PlexAPI Video, Movie or Episode object into a FillerItem
+        Convert a PlexAPI Video, Movie, Episode or Track object into a FillerItem
 
-        :param plex_item: plexapi.video.Video, plexapi.video.Movie or plexapi.video.Episode object
-        :type plex_item: Union[plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode]
+        :param plex_item: plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode or plexapi.audio.Track object
+        :type plex_item: Union[plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode, plexapi.audio.Track]
         :param plex_server: plexapi.server.PlexServer object
         :type plex_server: plexapi.server.PlexServer
         :return: Program object

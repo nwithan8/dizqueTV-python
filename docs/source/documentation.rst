@@ -64,3 +64,11 @@ Exceptions
    :members:
    :undoc-members:
    :show-inheritance:
+
+Plex Utilities
+------------------------
+
+.. automodule:: dizqueTV.plex_utils
+   :members:
+   :undoc-members:
+   :show-inheritance:

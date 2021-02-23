@@ -90,7 +90,8 @@ CHANNEL_SETTINGS_TEMPLATE = {
     "guideMinimumDurationSeconds": int,
     "guideFlexPlaceholder": str,
     "stealth": bool,
-    "enabled": bool
+    "enabled": bool,
+    "groupTitle": str
 }
 
 CHANNEL_SETTINGS_DEFAULT = {
@@ -105,7 +106,8 @@ CHANNEL_SETTINGS_DEFAULT = {
     "guideMinimumDurationSeconds": 300,
     "guideFlexPlaceholder": "",
     "enabled": True,
-    "stealth": False
+    "stealth": False,
+    "groupTitle": "dizqueTV"
 }
 
 FILLER_LIST_SETTINGS_TEMPLATE = {
@@ -178,6 +180,22 @@ EPISODE_PROGRAM_TEMPLATE = {
     "seasonIcon": str
 }
 
+TRACK_PROGRAM_TEMPLATE = {
+    "title": str,
+    "key": str,
+    "ratingKey": str,
+    "icon": str,
+    "type": str,
+    "summary": str,
+    "year": int,
+    "plexFile": str,
+    "file": str,
+    "showTitle": str,
+    "episode": int,
+    "season": int,
+    "serverKey": str
+}
+
 FILLER_ITEM_TEMPLATE = {
     "title": str,
     "key": str,
@@ -194,4 +212,11 @@ FILLER_ITEM_TEMPLATE = {
     "episode": int,
     "season": int,
     "serverKey": str
+}
+
+IMAGE_UPLOAD_RESPONSE_TEMPLATE = {
+    "name": str,
+    "mimetype": str,
+    "size": int,
+    "fileUrl": str
 }
