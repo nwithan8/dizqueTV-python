@@ -147,6 +147,18 @@ def repeat_and_shuffle_list(items: List, how_many_times: int) -> List:
 
 class API:
     def __init__(self, url: str, verbose: bool = False, allow_analytics: bool = True, anonymous_analytics: bool = True):
+        """
+        Interact with dizqueTV's API
+
+        :param url: dizqueTV URL
+        :type url: str
+        :param verbose: Log API calls and other debugging
+        :type verbose: bool
+        :param allow_analytics: Allow Google Analytics (see disclaimer)
+        :type allow_analytics: bool
+        :param anonymous_analytics: Make Google Analytics anonymous (see disclaimer)
+        :type anonymous_analytics: bool
+        """
         self.url = url.rstrip('/')
         self.verbose = verbose
         self.advanced = Advanced(dizque_instance=self)

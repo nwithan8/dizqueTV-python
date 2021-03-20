@@ -5,6 +5,14 @@ from plexapi import server, media, library, playlist, myplex
 
 class PlexUtils:
     def __init__(self, url: str, token: str):
+        """
+        Work with the Plex API
+
+        :param url: Plex Media Server url
+        :type url: str
+        :param token: Plex Media Server token
+        :type token: str
+        """
         self.url = url
         self.token = token
         self.server = server.PlexServer(url, token)
