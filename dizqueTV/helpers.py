@@ -345,6 +345,23 @@ def _separate_with_and_without(items: List, attribute_name: str) -> Tuple[List, 
             items_without.append(item)
     return items_with, items_without
 
+def expand_custom_show_items(programs: List) -> List:
+    """
+    Expand all custom shows in a list out to their individual programs
+
+    :param programs: List of programs (i.e. Program, Movie, Video, Track, CustomShow)
+    :type programs: list
+    :return: list of all programs (including custom show programs)
+    :rtype: list
+    """
+    all_items = []
+    for item in programs:
+        if not _object_has_attribute(obj=item, attribute_name='customShowTag'):
+            all_items.append(item)
+        else:
+            all_items.extend(item.content)
+    return all_items
+
 
 def get_items_of_type(item_type: str, items: List) -> List:
     """
@@ -568,6 +585,25 @@ def time_to_string(datetime_object: datetime, template: str = "%H:%M:%S") -> str
     :rtype: str
     """
     return datetime_object.strftime(template)
+
+def duration_to_string(milliseconds: int) -> str:
+    """
+    Convert a millisecond duration to a duration string
+
+    :param milliseconds: duration in milliseconds
+    :type milliseconds: int
+    :return: duration string "%H
+    :rtype: str
+    """
+    milliseconds_mod = milliseconds % 100
+    milliseconds = milliseconds - milliseconds_mod
+    hms_mill = str(timedelta(seconds=(milliseconds / 1000)))
+    hms, mill = hms_mill.split(".")
+    h, m, s = hms.split(":")
+    if int(h) < 10:
+        h = f"0{h}"
+    mill = mill[:1]
+    return f"{h}:{m}:{s}.{mill}"
 
 
 def adjust_datetime_for_timezone(local_time: datetime) -> datetime:
