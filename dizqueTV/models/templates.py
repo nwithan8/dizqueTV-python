@@ -139,6 +139,11 @@ REDIRECT_PROGRAM_TEMPLATE = {
     "channel": int
 }
 
+CUSTOM_SHOW_TEMPLATE = {
+    "name": str,
+    "content": List
+}
+
 MOVIE_PROGRAM_TEMPLATE = {
     "title": str,
     "key": str,
