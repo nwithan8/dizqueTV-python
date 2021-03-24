@@ -480,8 +480,8 @@ class Channel(BaseAPIObject):
         """
         Add multiple programs to this channel
 
-        :param programs: List of Program, plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode or plexapi.audio.Track objects
-        :type programs: List[Union[Program, plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode, plexapi.audio.Track]]
+        :param programs: List of Program, CustomShow plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode or plexapi.audio.Track objects
+        :type programs: List[Union[Program, CustomShow, plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode, plexapi.audio.Track]]
         :param plex_server: plexapi.server.PlexServer object (required if adding PlexAPI Video, Movie, Episode or Track objects)
         :type plex_server: plexapi.server.PlexServer, optional
         :return: True if successful, False if unsuccessful (Channel reloads in place)
