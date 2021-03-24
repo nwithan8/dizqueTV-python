@@ -3,12 +3,12 @@ from typing import Union, List
 from datetime import datetime
 
 import dizqueTV.helpers as helpers
-from dizqueTV.models.base import BaseAPIObject
+from dizqueTV.models.base import BaseObject, BaseAPIObject
 
 
-class GuideProgram:
+class GuideProgram(BaseObject):
     def __init__(self, data):
-        self._data = data
+        super().__init__(data)
         self.start = data.get('start')
         self.stop = data.get('stop')
         self.summary = data.get('summary')

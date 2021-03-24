@@ -7,7 +7,7 @@ from plexapi.server import PlexServer as PServer
 
 import dizqueTV.helpers as helpers
 from dizqueTV import decorators
-from dizqueTV.models.base import BaseAPIObject
+from dizqueTV.models.base import BaseAPIObject, BaseObject
 from dizqueTV.models.fillers import FillerList
 from dizqueTV.models.media import Redirect, Program, FillerItem
 from dizqueTV.templates import MOVIE_PROGRAM_TEMPLATE, EPISODE_PROGRAM_TEMPLATE, TRACK_PROGRAM_TEMPLATE, \
@@ -26,16 +26,6 @@ class ChannelFFMPEGSettings(BaseAPIObject):
 
     def __repr__(self):
         return f"{self.__class__.__name__}({(self.targetResolution if self.targetResolution else 'Default')})"
-
-    @property
-    def json(self) -> dict:
-        """
-        Get ChannelFFMPEGSettings JSON
-
-        :return: JSON data for ChannelFFMPEGSettings object
-        :rtype: dict
-        """
-        return self._data
 
     @decorators._check_for_dizque_instance
     def update(self,
@@ -81,16 +71,6 @@ class Watermark(BaseAPIObject):
     def __repr__(self):
         return f"{self.__class__.__name__}({self.enabled}:{(self.url if self.url else 'Empty URL')})"
 
-    @property
-    def json(self) -> dict:
-        """
-        Get watermark JSON
-
-        :return: JSON data for watermark object
-        :rtype: dict
-        """
-        return self._data
-
     @decorators._check_for_dizque_instance
     def update(self,
                **kwargs) -> bool:
@@ -121,12 +101,9 @@ class TimeSlotItem:
         return f"{self.__class__.__name__}({self.showId})"
 
 
-class TimeSlot:
-    def __init__(self,
-                 data: dict,
-                 program: TimeSlotItem = None,
-                 schedule_instance=None):
-        self._data = data
+class TimeSlot(BaseObject):
+    def __init__(self, data: dict, program: TimeSlotItem = None, schedule_instance=None):
+        super().__init__(data)
         self.time = data.get('time')
         self.showId = (program.showId if program else data.get('showId'))
         self.order = data.get('order')
@@ -399,16 +376,6 @@ class Channel(BaseAPIObject):
             if filler_list.name == filler_list_title:
                 return filler_list
         return None
-
-    @property
-    def json(self) -> dict:
-        """
-        Get channel JSON
-
-        :return: JSON data for channel object
-        :rtype: dict
-        """
-        return self._data
 
     # Update
     @decorators._check_for_dizque_instance

@@ -12,6 +12,7 @@ from plexapi.server import PlexServer as PServer
 
 import dizqueTV.dizquetv_requests as requests
 from dizqueTV.advanced import Advanced
+from dizqueTV.models.custom_show import CustomShow, CustomShowDetails
 from dizqueTV.models.general import UploadImageResponse
 from dizqueTV.models.settings import XMLTVSettings, PlexSettings, FFMPEGSettings, HDHomeRunSettings
 from dizqueTV.models.channels import Channel, TimeSlot, TimeSlotItem, Schedule
@@ -648,6 +649,14 @@ class API:
         return self._get_json(endpoint=f'/filler/{filler_list_id}')
 
     def get_filler_list_channels(self, filler_list_id: str) -> List[Channel]:
+        """
+        Get the channels that a dizqueTV filler list belongs to
+
+        :param filler_list_id: ID of filler list
+        :type filler_list_id: str
+        :return: List of Channel objects
+        :rtype: List[Channel]
+        """
         channel_data = self._get_json(endpoint=f'/filler/{filler_list_id}/channels')
         return [self.get_channel(channel_number=channel.get('number')) for channel in channel_data]
 
@@ -744,13 +753,29 @@ class API:
 
     # Custom Shows
     @property
-    def custom_shows(self):
+    def custom_shows(self) -> List[CustomShow]:
         """
         Get a list of all custom shows
 
-        :return:
-        :rtype:
+        :return: List of CustomShow objects
+        :rtype: List[CustomShow]
         """
+        json_data = self._get_json(endpoint='/shows', timeout=5)  # large JSON may take longer, so bigger timeout
+        return [CustomShow(data=show, dizque_instance=self) for show in json_data]
+
+    def get_custom_show_details(self, custom_show_id: str):
+        """
+        Get the details of a custom show
+
+        :param custom_show_id: ID of custom show
+        :type custom_show_id: str
+        :return: CustomShowDetails object or None
+        :rtype: CustomShowDetails
+        """
+        json_data = self._get_json(endpoint=f'/show/{custom_show_id}')
+        if json_data:
+            return CustomShowDetails(data=json_data)
+        return None
 
     # Images
     def upload_image(self, image_file_path: str) -> Union[UploadImageResponse, None]:
@@ -1090,7 +1115,8 @@ class API:
         return self._get_json(endpoint='/guide/debug')
 
     # Other Functions
-    def convert_plex_item_to_program(self, plex_item: Union[Video, Movie, Episode, Track], plex_server: PServer) -> Program:
+    def convert_plex_item_to_program(self, plex_item: Union[Video, Movie, Episode, Track],
+                                     plex_server: PServer) -> Program:
         """
         Convert a PlexAPI Video, Movie, Episode or Track object into a Program
 
