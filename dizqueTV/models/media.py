@@ -1,10 +1,5 @@
-import json
-from functools import wraps
-
 from dizqueTV.exceptions import MissingParametersError
-
 import dizqueTV.decorators as decorators
-import dizqueTV.helpers as helpers
 from dizqueTV.models.base import BaseAPIObject
 
 
