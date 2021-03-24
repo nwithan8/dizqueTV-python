@@ -8,9 +8,10 @@ from plexapi.server import PlexServer as PServer
 import dizqueTV.helpers as helpers
 from dizqueTV import decorators
 from dizqueTV.models.base import BaseAPIObject, BaseObject
+from dizqueTV.models.custom_show import CustomShow, CustomShowItem
 from dizqueTV.models.fillers import FillerList
 from dizqueTV.models.media import Redirect, Program, FillerItem
-from dizqueTV.templates import MOVIE_PROGRAM_TEMPLATE, EPISODE_PROGRAM_TEMPLATE, TRACK_PROGRAM_TEMPLATE, \
+from dizqueTV.models.templates import MOVIE_PROGRAM_TEMPLATE, EPISODE_PROGRAM_TEMPLATE, TRACK_PROGRAM_TEMPLATE, \
     REDIRECT_PROGRAM_TEMPLATE, FILLER_LIST_CHANNEL_TEMPLATE, \
     CHANNEL_FFMPEG_SETTINGS_DEFAULT, SCHEDULE_SETTINGS_DEFAULT, TIME_SLOT_SETTINGS_TEMPLATE, SCHEDULE_SETTINGS_TEMPLATE
 from dizqueTV.exceptions import MissingParametersError, GeneralException
@@ -424,7 +425,7 @@ class Channel(BaseAPIObject):
     def add_program(self,
                     plex_item: Union[Video, Movie, Episode, Track] = None,
                     plex_server: PServer = None,
-                    program: Program = None,
+                    program: Union[Program, CustomShow] = None,
                     **kwargs) -> bool:
         """
         Add a program to this channel
@@ -449,7 +450,11 @@ class Channel(BaseAPIObject):
                                                                               )
             kwargs = temp_program._data
         elif program:
-            kwargs = program._data
+            if type(program) == CustomShow:
+                # pass CustomShow handling to add_programs, since multiple programs need to be added
+                return self.add_programs(programs=[program])
+            else:
+                kwargs = program._data
         template = MOVIE_PROGRAM_TEMPLATE
         if kwargs['type'] == 'episode':
             template = EPISODE_PROGRAM_TEMPLATE
@@ -470,7 +475,7 @@ class Channel(BaseAPIObject):
 
     @decorators._check_for_dizque_instance
     def add_programs(self,
-                     programs: List[Union[Program, Video, Movie, Episode, Track]],
+                     programs: List[Union[Program, CustomShow, Video, Movie, Episode, Track]],
                      plex_server: PServer = None) -> bool:
         """
         Add multiple programs to this channel
@@ -485,8 +490,11 @@ class Channel(BaseAPIObject):
         channel_data = self._data
         if not programs:
             raise GeneralException("You must provide at least one program to add to the channel.")
+
+        programs = helpers.expand_custom_show_items(programs=programs)
+
         for program in programs:
-            if type(program) not in [Program, Redirect]:
+            if type(program) not in [Program, Redirect, CustomShowItem]:
                 if not plex_server and not self.plex_server:
                     raise MissingParametersError("Please include a plex_server if you are adding PlexAPI Video, "
                                                  "Movie, Episode or Track items.")
