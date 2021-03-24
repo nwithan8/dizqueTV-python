@@ -12,7 +12,7 @@ from plexapi.server import PlexServer as PServer
 
 import dizqueTV.dizquetv_requests as requests
 from dizqueTV.advanced import Advanced
-from dizqueTV.models.custom_show import CustomShow, CustomShowDetails
+from dizqueTV.models.custom_show import CustomShow, CustomShowDetails, CustomShowItem
 from dizqueTV.models.general import UploadImageResponse
 from dizqueTV.models.settings import XMLTVSettings, PlexSettings, FFMPEGSettings, HDHomeRunSettings
 from dizqueTV.models.channels import Channel, TimeSlot, TimeSlotItem, Schedule
@@ -20,8 +20,9 @@ from dizqueTV.models.guide import Guide
 from dizqueTV.models.fillers import FillerList
 from dizqueTV.models.media import FillerItem, Program, Redirect
 from dizqueTV.models.plex_server import PlexServer
-from dizqueTV.templates import PLEX_SERVER_SETTINGS_TEMPLATE, CHANNEL_SETTINGS_TEMPLATE, CHANNEL_SETTINGS_DEFAULT, \
-    FILLER_LIST_SETTINGS_TEMPLATE, WATERMARK_SETTINGS_DEFAULT
+from dizqueTV.models.templates import PLEX_SERVER_SETTINGS_TEMPLATE, CHANNEL_SETTINGS_TEMPLATE, \
+    CHANNEL_SETTINGS_DEFAULT, \
+    FILLER_LIST_SETTINGS_TEMPLATE, WATERMARK_SETTINGS_DEFAULT, CUSTOM_SHOW_TEMPLATE
 import dizqueTV.helpers as helpers
 from dizqueTV.exceptions import MissingParametersError, ChannelCreationError, ItemCreationError, GeneralException
 from dizqueTV._analytics import GoogleAnalytics
@@ -56,6 +57,23 @@ def make_time_slot_from_dizque_program(program: Union[Program, Redirect],
             'showId': item.showId,
             'order': order}
     return TimeSlot(data=data, program=item)
+
+
+def convert_program_to_custom_show_item(program: Program, dizque_instance) -> CustomShowItem:
+    """
+    Convert a dizqueTV Program to a dizqueTV CustomShowItem (add durationStr and commercials)
+
+    :param program: Program to convert
+    :type program: Program
+    :param dizque_instance: dizqueTV API instance
+    :type dizque_instance: API
+    :return: CustomShowItem
+    :rtype: CustomShowItem
+    """
+    program_data = program._data
+    program_data['durationStr'] = helpers.duration_to_string(milliseconds=program_data['duration'])
+    program_data['commercials'] = []
+    return CustomShowItem(data=program_data, dizque_instance=dizque_instance)
 
 
 def convert_plex_item_to_program(plex_item: Union[Video, Movie, Episode, Track],
@@ -763,7 +781,21 @@ class API:
         json_data = self._get_json(endpoint='/shows', timeout=5)  # large JSON may take longer, so bigger timeout
         return [CustomShow(data=show, dizque_instance=self) for show in json_data]
 
-    def get_custom_show_details(self, custom_show_id: str):
+    def get_custom_show(self, custom_show_id: str) -> Union[CustomShow, None]:
+        """
+        Get a CustomShow object by its ID
+
+        :param custom_show_id: ID of custom show
+        :type custom_show_id: str
+        :return: CustomShow object or None
+        :rtype: CustomShow
+        """
+        for custom_show in self.custom_shows:
+            if custom_show.id == custom_show_id:
+                return custom_show
+        return None
+
+    def get_custom_show_details(self, custom_show_id: str) -> Union[CustomShowDetails, None]:
         """
         Get the details of a custom show
 
@@ -774,7 +806,28 @@ class API:
         """
         json_data = self._get_json(endpoint=f'/show/{custom_show_id}')
         if json_data:
-            return CustomShowDetails(data=json_data)
+            return CustomShowDetails(data=json_data, dizque_instance=self)
+        return None
+
+    def add_custom_show(self,
+                        name: str,
+                        content: List[Union[Program, Video, Movie, Episode, Track]],
+                        plex_server: PServer = None) -> Union[CustomShow, None]:
+        kwargs = {'name': name, 'content': []}
+        for item in content:
+            if type(item) == Program:
+                custom_show_item = convert_program_to_custom_show_item(program=item, dizque_instance=self)
+            else:
+                if not plex_server:
+                    raise ItemCreationError("You must include a plex_server if you are adding PlexAPI Videos, "
+                                            "Movies, Episodes or Tracks as programs")
+                program = convert_plex_item_to_program(plex_item=item, plex_server=plex_server)
+                custom_show_item = convert_program_to_custom_show_item(program=program, dizque_instance=self)
+            kwargs['content'].append(custom_show_item._full_data)
+        if helpers._settings_are_complete(new_settings_dict=kwargs, template_settings_dict=CUSTOM_SHOW_TEMPLATE):
+            response = self._put(endpoint='/show', data=kwargs)
+            if response:
+                return self.get_custom_show(custom_show_id=response.json()['id'])
         return None
 
     # Images
