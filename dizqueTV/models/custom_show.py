@@ -12,6 +12,9 @@ class CustomShowItem(Program):
         self.durationStr = data.get('durationStr')
         self._commercials = []
 
+    def __repr__(self):
+        return f"{self.__class__.__name__}({self.title})"
+
     @property
     def _data(self):
         """
@@ -45,6 +48,9 @@ class CustomShowDetails(BaseAPIObject):
         self.id = data.get('id')
         self._content = []
 
+    def __repr__(self):
+        return f"{self.__class__.__name__}({self.name})"
+
     @property
     def content(self) -> List[CustomShowItem]:
         """
@@ -67,6 +73,9 @@ class CustomShow(BaseAPIObject):
         self.count = data.get('count')
         self.customShowTag = "customShow"
         self._details = None
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}({self.name})"
 
     @property
     def details(self) -> Union[CustomShowDetails, None]:
