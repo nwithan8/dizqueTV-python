@@ -1,7 +1,6 @@
 import json
 import os
 from datetime import datetime, timedelta
-from functools import wraps
 from typing import List, Union, Tuple
 import collections
 import random
@@ -10,9 +9,9 @@ from plexapi.video import Video, Movie, Episode
 from plexapi.audio import Track
 from plexapi.server import PlexServer as PServer
 
-from dizqueTV.exceptions import MissingSettingsError, NotRemoteObjectError
+from dizqueTV.exceptions import MissingSettingsError
 import dizqueTV.dizquetv_requests as requests
-from dizqueTV.media import Program, Redirect, FillerItem
+from dizqueTV.models.media import Program, Redirect, FillerItem
 
 _access_tokens = {}
 _uris = {}

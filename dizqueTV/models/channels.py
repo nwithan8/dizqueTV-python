@@ -1,5 +1,4 @@
-import json
-from typing import List, Union, Tuple
+from typing import List, Union
 from datetime import datetime, timedelta
 
 from plexapi.video import Video, Movie, Episode
@@ -8,21 +7,18 @@ from plexapi.server import PlexServer as PServer
 
 import dizqueTV.helpers as helpers
 from dizqueTV import decorators
-from dizqueTV.fillers import FillerList
-from dizqueTV.media import Redirect, Program, FillerItem
+from dizqueTV.models.base import BaseAPIObject
+from dizqueTV.models.fillers import FillerList
+from dizqueTV.models.media import Redirect, Program, FillerItem
 from dizqueTV.templates import MOVIE_PROGRAM_TEMPLATE, EPISODE_PROGRAM_TEMPLATE, TRACK_PROGRAM_TEMPLATE, \
-    REDIRECT_PROGRAM_TEMPLATE, FILLER_LIST_SETTINGS_TEMPLATE, FILLER_LIST_CHANNEL_TEMPLATE, \
+    REDIRECT_PROGRAM_TEMPLATE, FILLER_LIST_CHANNEL_TEMPLATE, \
     CHANNEL_FFMPEG_SETTINGS_DEFAULT, SCHEDULE_SETTINGS_DEFAULT, TIME_SLOT_SETTINGS_TEMPLATE, SCHEDULE_SETTINGS_TEMPLATE
 from dizqueTV.exceptions import MissingParametersError, GeneralException
 
 
-class ChannelFFMPEGSettings:
-    def __init__(self,
-                 data: dict,
-                 dizque_instance,
-                 channel_instance):
-        self._data = data
-        self._dizque_instance = dizque_instance
+class ChannelFFMPEGSettings(BaseAPIObject):
+    def __init__(self, data: dict, dizque_instance, channel_instance):
+        super().__init__(data, dizque_instance)
         self._channel_instance = channel_instance
         self.targetResolution = data.get('targetResolution')
         self.videoBitrate = data.get('videoBitrate')
@@ -68,13 +64,9 @@ class ChannelFFMPEGSettings:
         return False
 
 
-class Watermark:
-    def __init__(self,
-                 data: dict,
-                 dizque_instance,
-                 channel_instance):
-        self._data = data
-        self._dizque_instance = dizque_instance
+class Watermark(BaseAPIObject):
+    def __init__(self, data: dict, dizque_instance, channel_instance):
+        super().__init__(data, dizque_instance)
         self._channel_instance = channel_instance
         self.enabled = data.get('enabled')
         self.width = data.get('width')
@@ -169,13 +161,9 @@ class TimeSlot:
         return self._schedule_instance.delete_time_slot(time_slot=self)
 
 
-class Schedule:
-    def __init__(self,
-                 data: dict,
-                 dizque_instance,
-                 channel_instance):
-        self._data = data
-        self._dizque_instance = dizque_instance
+class Schedule(BaseAPIObject):
+    def __init__(self, data: dict, dizque_instance, channel_instance):
+        super().__init__(data, dizque_instance)
         self._channel_instance = channel_instance
         self.lateness = data.get('lateness')
         self.maxDays = data.get('maxDays')
@@ -293,13 +281,9 @@ class Schedule:
         return self._channel_instance.delete_schedule()
 
 
-class Channel:
-    def __init__(self,
-                 data: dict,
-                 dizque_instance,
-                 plex_server: PServer = None):
-        self._data = data
-        self._dizque_instance = dizque_instance
+class Channel(BaseAPIObject):
+    def __init__(self, data: dict, dizque_instance, plex_server: PServer = None):
+        super().__init__(data, dizque_instance)
         self._program_data = data.get('programs')
         self._fillerCollections_data = data.get('fillerCollections')
         self.fillerRepeatCooldown = data.get('fillerRepeatCooldown')

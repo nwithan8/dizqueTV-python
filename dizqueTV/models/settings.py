@@ -1,12 +1,12 @@
 import json
 
 from dizqueTV import decorators
+from dizqueTV.models.base import BaseAPIObject
 
 
-class XMLTVSettings:
+class XMLTVSettings(BaseAPIObject):
     def __init__(self, data: dict, dizque_instance):
-        self._data = data
-        self._dizque_instance = dizque_instance
+        super().__init__(data, dizque_instance)
         self.cache = data.get('cache')
         self.refresh = data.get('refresh')
         self.file = data.get('file')
@@ -59,10 +59,9 @@ class XMLTVSettings:
         return False
 
 
-class HDHomeRunSettings:
+class HDHomeRunSettings(BaseAPIObject):
     def __init__(self, data: dict, dizque_instance):
-        self._data = data
-        self._dizque_instance = dizque_instance
+        super().__init__(data, dizque_instance)
         self.tunerCount = data.get('tunerCount')
         self.autoDiscovery = data.get('autoDiscovery')
         self._id = data.get('_id')
@@ -114,10 +113,9 @@ class HDHomeRunSettings:
         return False
 
 
-class FFMPEGSettings:
+class FFMPEGSettings(BaseAPIObject):
     def __init__(self, data: dict, dizque_instance):
-        self._data = data
-        self._dizque_instance = dizque_instance
+        super().__init__(data, dizque_instance)
         self.configVersion = data.get('configVersion')
         self.ffmpegPath = data.get('ffmpegPath')
         self.threads = data.get('threads')
@@ -191,10 +189,9 @@ class FFMPEGSettings:
         return False
 
 
-class PlexSettings:
+class PlexSettings(BaseAPIObject):
     def __init__(self, data: dict, dizque_instance):
-        self._data = data
-        self._dizque_instance = dizque_instance
+        super().__init__(data, dizque_instance)
         self.streamPath = data.get('streamPath')
         self.debugLogging = data.get('debugLogging')
         self.directStreamBitrate = data.get('directStreamBitrate')

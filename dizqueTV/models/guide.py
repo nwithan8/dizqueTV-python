@@ -3,6 +3,7 @@ from typing import Union, List
 from datetime import datetime
 
 import dizqueTV.helpers as helpers
+from dizqueTV.models.base import BaseAPIObject
 
 
 class GuideProgram:
@@ -20,10 +21,9 @@ class GuideProgram:
         return f"{self.__class__.__name__}({self.title})"
 
 
-class GuideChannel:
+class GuideChannel(BaseAPIObject):
     def __init__(self, data, programs, dizque_instance):
-        self._data = data
-        self._dizque_instance = dizque_instance
+        super().__init__(data, dizque_instance)
         self.name = data.get('name')
         self.icon = data.get('icon')
         self.number = data.get('number')
@@ -53,10 +53,9 @@ class GuideChannel:
         return []
 
 
-class Guide:
+class Guide(BaseAPIObject):
     def __init__(self, data, dizque_instance):
-        self._data = data
-        self._dizque_instance = dizque_instance
+        super().__init__(data, dizque_instance)
         self.channels = self._create_channels_and_programs()
 
     def __repr__(self):

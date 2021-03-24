@@ -12,16 +12,15 @@ from plexapi.server import PlexServer as PServer
 
 import dizqueTV.dizquetv_requests as requests
 from dizqueTV.advanced import Advanced
-from dizqueTV import decorators
-from dizqueTV.general_classes import UploadImageResponse
-from dizqueTV.settings import XMLTVSettings, PlexSettings, FFMPEGSettings, HDHomeRunSettings
-from dizqueTV.channels import Channel, TimeSlot, TimeSlotItem, Schedule
-from dizqueTV.guide import Guide
-from dizqueTV.fillers import FillerList
-from dizqueTV.media import FillerItem, Program, Redirect
-from dizqueTV.plex_server import PlexServer
+from dizqueTV.models.general import UploadImageResponse
+from dizqueTV.models.settings import XMLTVSettings, PlexSettings, FFMPEGSettings, HDHomeRunSettings
+from dizqueTV.models.channels import Channel, TimeSlot, TimeSlotItem, Schedule
+from dizqueTV.models.guide import Guide
+from dizqueTV.models.fillers import FillerList
+from dizqueTV.models.media import FillerItem, Program, Redirect
+from dizqueTV.models.plex_server import PlexServer
 from dizqueTV.templates import PLEX_SERVER_SETTINGS_TEMPLATE, CHANNEL_SETTINGS_TEMPLATE, CHANNEL_SETTINGS_DEFAULT, \
-    FILLER_LIST_SETTINGS_TEMPLATE, FILLER_LIST_SETTINGS_DEFAULT, WATERMARK_SETTINGS_DEFAULT
+    FILLER_LIST_SETTINGS_TEMPLATE, WATERMARK_SETTINGS_DEFAULT
 import dizqueTV.helpers as helpers
 from dizqueTV.exceptions import MissingParametersError, ChannelCreationError, ItemCreationError, GeneralException
 from dizqueTV._analytics import GoogleAnalytics
@@ -743,14 +742,25 @@ class API:
             return True
         return False
 
+    # Custom Shows
+    @property
+    def custom_shows(self):
+        """
+        Get a list of all custom shows
+
+        :return:
+        :rtype:
+        """
+
     # Images
     def upload_image(self, image_file_path: str) -> Union[UploadImageResponse, None]:
         """
+        Upload an image to dizqueTV
 
-        :param image_file_path:
-        :type image_file_path:
-        :return:
-        :rtype:
+        :param image_file_path: path of image to upload
+        :type image_file_path: str
+        :return: UploadImageResponse object or None
+        :rtype: UploadImageResponse
         """
         if not helpers.file_exists(image_file_path):
             raise GeneralException("Invalid image_file_path provided.")

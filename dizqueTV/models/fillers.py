@@ -1,6 +1,4 @@
-import json
 from typing import List, Union
-from datetime import datetime, timedelta
 
 from plexapi.video import Video, Movie, Episode
 from plexapi.audio import Track
@@ -8,15 +6,15 @@ from plexapi.server import PlexServer as PServer
 
 import dizqueTV.helpers as helpers
 from dizqueTV import decorators
-from dizqueTV.media import FillerItem
+from dizqueTV.models.base import BaseAPIObject
+from dizqueTV.models.media import FillerItem
 from dizqueTV.templates import FILLER_ITEM_TEMPLATE
 from dizqueTV.exceptions import MissingParametersError
 
 
-class FillerList:
+class FillerList(BaseAPIObject):
     def __init__(self, data: dict, dizque_instance):
-        self._data = data
-        self._dizque_instance = dizque_instance
+        super().__init__(data, dizque_instance)
         self.id = data.get('id')
         self.name = data.get('name')
         self.count = data.get('count')
