@@ -1288,6 +1288,49 @@ class API:
         """
         return expand_custom_show_items(programs=programs, dizque_instance=self)
 
+    def create_custom_show_with_programs(self, custom_show_programs: list) -> CustomShow:
+        custom_show_data = {
+            'name': custom_show_programs[0]['customShowName'],
+            'id': custom_show_programs[0]['customShowId'],
+            'content': custom_show_programs
+        }
+        return CustomShow(data=custom_show_data, dizque_instance=self)
+
+    def parse_custom_shows_and_non_custom_shows(self, items: list, non_custom_show_type, **kwargs):
+        custom_show_programs = []
+        current_custom_show_id = None
+        parsing_custom_show = False
+        final_items = []
+        for item in items:
+            if item.get('customShowId'):  # came across an item that belongs to a custom show
+                if not current_custom_show_id:  # initialize the first custom show
+                    current_custom_show_id = item.get('customShowId')
+                if item.get('customShowId') == current_custom_show_id:  # item belongs to the same custom show
+                    custom_show_programs.append(item)
+                else:  # item belong to a new custom show
+                    # create and save the old custom show
+                    custom_show = self.create_custom_show_with_programs(custom_show_programs=custom_show_programs)
+                    final_items.append(custom_show)
+                    # start storing the new custom show
+                    current_custom_show_id = item.get('customShowId')
+                    custom_show_programs = [item]
+                parsing_custom_show = True
+            else:  # came across an item that does not belong to a custom show
+                if parsing_custom_show:  # was tracking a custom show, have reached the end
+                    # create and save a custom show with the items we collected
+                    custom_show = self.create_custom_show_with_programs(custom_show_programs=custom_show_programs)
+                    final_items.append(custom_show)
+                    # reset for capturing the next custom show
+                    parsing_custom_show = False
+                    custom_show_programs = []
+                else:  # was not tracking a custom show
+                    final_items.append(non_custom_show_type(data=item, **kwargs))
+        # build final custom show if needed
+        if custom_show_programs:
+            custom_show = self.create_custom_show_with_programs(custom_show_programs=custom_show_programs)
+            final_items.append(custom_show)
+        return final_items
+
     def add_programs_to_channels(self,
                                  programs: List[Program],
                                  channels: List[Channel] = None,
