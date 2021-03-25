@@ -304,7 +304,9 @@ class Channel(BaseAPIObject):
         used_titles = []
         schedulable_items = []
         for program in self.programs:
-            if program.type == 'redirect' and program.channel not in used_titles:
+            if program.type == 'customShow':  # custom shows not schedulable at this time
+                pass
+            elif program.type == 'redirect' and program.channel not in used_titles:
                 schedulable_items.append(TimeSlotItem(item_type='redirect', item_value=program.channel))
                 used_titles.append(program.channel)
             elif program.showTitle and program.showTitle not in used_titles:
@@ -319,15 +321,17 @@ class Channel(BaseAPIObject):
     # Create (handled in dizqueTV.py)
     # Read
     @property
-    def programs(self) -> List[Program]:
+    def programs(self) -> List[Union[Program, CustomShow]]:
         """
         Get all programs on this channel
 
-        :return: List of MediaItem objects
-        :rtype: List[Programs]
+        :return: List of Program and CustomShow objects
+        :rtype: List[Union[Program, CustomShow]]
         """
-        return [Program(data=program, dizque_instance=self._dizque_instance, channel_instance=self)
-                for program in self._program_data]
+        return self._dizque_instance.parse_custom_shows_and_non_custom_shows(items=self._program_data,
+                                                                             non_custom_show_type=Program,
+                                                                             dizque_instance=self._dizque_instance,
+                                                                             channel_instance=self)
 
     @decorators._check_for_dizque_instance
     def get_program(self,

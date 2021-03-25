@@ -54,17 +54,19 @@ class FillerList(BaseAPIObject):
         return self._dizque_instance.get_filler_list_info(filler_list_id=self.id)
 
     @property
-    def content(self) -> List[FillerItem]:
+    def content(self) -> List[Union[FillerItem, CustomShow]]:
         """
         Get all filler items on this list
 
-        :return: List of FillerItem objects
-        :rtype: List[FillerItem]
+        :return: List of FillerItem and CustomShow objects
+        :rtype: List[Union[FillerItem, CustomShow]]
         """
         if not self._filler_data:
             self.refresh()
-        return [FillerItem(data=filler, dizque_instance=self._dizque_instance, filler_list_instance=self)
-                for filler in self._filler_data]
+        return self._dizque_instance.parse_custom_shows_and_non_custom_shows(items=self._filler_data,
+                                                                             non_custom_show_type=FillerItem,
+                                                                             dizque_instance=self._dizque_instance,
+                                                                             filler_list_instance=self)
 
     @property
     @decorators._check_for_dizque_instance
