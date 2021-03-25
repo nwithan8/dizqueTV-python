@@ -891,7 +891,7 @@ class API:
         """
         Delete a dizqueTV custom show
 
-        :param custom_show_id: ID of FillerList to delete
+        :param custom_show_id: ID of CustomShow to delete
         :type custom_show_id: str
         :return: True if successful, False if unsuccessful
         :rtype: bool
