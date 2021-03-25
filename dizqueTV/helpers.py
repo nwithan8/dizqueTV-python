@@ -345,23 +345,6 @@ def _separate_with_and_without(items: List, attribute_name: str) -> Tuple[List, 
             items_without.append(item)
     return items_with, items_without
 
-def expand_custom_show_items(programs: List) -> List:
-    """
-    Expand all custom shows in a list out to their individual programs
-
-    :param programs: List of programs (i.e. Program, Movie, Video, Track, CustomShow)
-    :type programs: list
-    :return: list of all programs (including custom show programs)
-    :rtype: list
-    """
-    all_items = []
-    for item in programs:
-        if not _object_has_attribute(obj=item, attribute_name='customShowTag'):
-            all_items.append(item)
-        else:
-            all_items.extend(item.content)
-    return all_items
-
 
 def get_items_of_type(item_type: str, items: List) -> List:
     """
