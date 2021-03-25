@@ -183,6 +183,7 @@ def repeat_and_shuffle_list(items: List, how_many_times: int) -> List:
             final_list.append(item)
     return final_list
 
+
 def expand_custom_show_items(programs: List, dizque_instance) -> List:
     """
     Expand all custom shows in a list out to their individual programs
@@ -780,7 +781,7 @@ class API:
 
     def update_filler_list(self, filler_list_id: str, **kwargs) -> bool:
         """
-        Edit a dizqueTV FillerList
+        Edit a dizqueTV filler list
 
         :param filler_list_id: ID of FillerList to update
         :type filler_list_id: str
@@ -868,6 +869,36 @@ class API:
             if response:
                 return self.get_custom_show(custom_show_id=response.json()['id'])
         return None
+
+    def update_custom_show(self, custom_show_id: str, **kwargs) -> bool:
+        """
+        Edit a dizqueTV custom show
+
+        :param custom_show_id: ID of CustomShow to update
+        :type custom_show_id: str
+        :param kwargs: keyword arguments of setting names and values
+        :return: True if successful, False if unsuccessful
+        :rtype: bool
+        """
+        custom_show = self.get_custom_show(custom_show_id=custom_show_id)
+        if custom_show:
+            new_settings = helpers._combine_settings(new_settings_dict=kwargs, template_dict=custom_show._data)
+            if self._post(endpoint=f"/show/{custom_show_id}", data=new_settings):
+                return True
+        return False
+
+    def delete_custom_show(self, custom_show_id: str) -> bool:
+        """
+        Delete a dizqueTV custom show
+
+        :param custom_show_id: ID of FillerList to delete
+        :type custom_show_id: str
+        :return: True if successful, False if unsuccessful
+        :rtype: bool
+        """
+        if self._delete(endpoint=f"/show/{custom_show_id}"):
+            return True
+        return False
 
     # Images
     def upload_image(self, image_file_path: str) -> Union[UploadImageResponse, None]:
@@ -1234,6 +1265,17 @@ class API:
         :rtype: Program
         """
         return convert_plex_item_to_filler_item(plex_item=plex_item, plex_server=plex_server)
+
+    def convert_program_to_custom_show_item(self, program: Program) -> CustomShowItem:
+        """
+        Convert a dizqueTV Program to a dizqueTV CustomShowItem (add durationStr and commercials)
+
+        :param program: Program to convert
+        :type program: Program
+        :return: CustomShowItem
+        :rtype: CustomShowItem
+        """
+        return convert_program_to_custom_show_item(program=program, dizque_instance=self)
 
     def expand_custom_show_items(self, programs: List) -> List:
         """
