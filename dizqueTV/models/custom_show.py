@@ -210,7 +210,8 @@ class CustomShow(BaseAPIObject):
                 if not plex_server:
                     raise MissingParametersError("Please include a plex_server if you are adding PlexAPI Video, "
                                                  "Movie, Episode or Track items.")
-                temp_program = self._dizque_instance.convert_plex_item_to_program(plex_item=program, plex_server=plex_server)
+                temp_program = self._dizque_instance.convert_plex_item_to_program(plex_item=program,
+                                                                                  plex_server=plex_server)
                 custom_show_item = self._dizque_instance.convert_program_to_custom_show_item(program=temp_program)
             elif type(program) != CustomShowItem:
                 custom_show_item = self._dizque_instance.convert_program_to_custom_show_item(program=program)
@@ -222,18 +223,18 @@ class CustomShow(BaseAPIObject):
         return self.update(**custom_show_data)
 
     @decorators._check_for_dizque_instance
-    def delete_program(self, custom_show_item: CustomShowItem) -> bool:
+    def delete_program(self, program: Union[Program, CustomShowItem]) -> bool:
         """
         Delete a custom show item from this custom show
 
-        :param custom_show_item: CustomShowItem object to delete
-        :type custom_show_item: CustomShowItem
+        :param program: CustomShowItem or Program object to delete
+        :type program: CustomShowItem or Program
         :return: True if successful, False if unsuccessful (CustomShow reloads in-place)
         :rtype: bool
         """
         custom_show_data = self._data
         for a_program in custom_show_data['content']:
-            if a_program['title'] == custom_show_item.title:
+            if a_program['title'] == program.title:
                 if custom_show_data.get('duration'):
                     custom_show_data['duration'] -= a_program['duration']
                 custom_show_data['content'].remove(a_program)
