@@ -6,9 +6,10 @@ from dizqueTV.models.base import BaseAPIObject
 
 
 class CustomShowItem(Program):
-    def __init__(self, data: dict, dizque_instance):
+    def __init__(self, data: dict, dizque_instance, order: int):
         super().__init__(data, dizque_instance, None)
         self._full_data = data
+        self.order = order
         self.durationStr = data.get('durationStr')
         self._commercials = []
 
@@ -60,8 +61,10 @@ class CustomShowDetails(BaseAPIObject):
         :rtype: list
         """
         if not self._content:
-            self._content = [CustomShowItem(item_data, self._dizque_instance) for item_data in
-                             self._data.get('content', [])]
+            order = 0
+            for item in self._data.get('content', []):
+                self._content.append(CustomShowItem(data=item, dizque_instance=self._dizque_instance, order=order))
+                order += 1
         return self._content
 
 
@@ -90,7 +93,7 @@ class CustomShow(BaseAPIObject):
         return self._details
 
     @property
-    def content(self):
+    def content(self) -> List[CustomShowItem]:
         """
         Get the custom show's content (the actual programs)
 
