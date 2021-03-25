@@ -491,7 +491,7 @@ class Channel(BaseAPIObject):
         if not programs:
             raise GeneralException("You must provide at least one program to add to the channel.")
 
-        programs = helpers.expand_custom_show_items(programs=programs)
+        programs = self._dizque_instance.expand_custom_show_items(programs=programs)
 
         for program in programs:
             if type(program) not in [Program, Redirect, CustomShowItem]:

@@ -165,7 +165,7 @@ class FillerList(BaseAPIObject):
         """
         filler_list_data = self._data
 
-        fillers = helpers.expand_custom_show_items(programs=fillers)
+        fillers = self._dizque_instance.expand_custom_show_items(programs=fillers, dizque_instance=self)
 
         for filler in fillers:
             if type(filler) not in [FillerItem, CustomShowItem]:

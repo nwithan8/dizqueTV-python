@@ -76,6 +76,27 @@ def convert_program_to_custom_show_item(program: Program, dizque_instance) -> Cu
     return CustomShowItem(data=program_data, dizque_instance=dizque_instance)
 
 
+def convert_custom_show_to_programs(custom_show: CustomShow, dizque_instance) -> List[Program]:
+    """
+    Convert a CustomShow into a list of Program objects
+
+    :param custom_show: CustomShow object to convert
+    :type custom_show: CustomShow
+    :param dizque_instance: dizqueTV API instance
+    :type dizque_instance: API
+    :return: List of Program objects
+    :rtype: list
+    """
+    programs = []
+    for program in custom_show.content:
+        data = program._data
+        data['customShowId'] = custom_show.id
+        data['customShowName'] = custom_show.name
+        data['customOrder'] = program.order
+        programs.append(Program(data=data, dizque_instance=dizque_instance, channel_instance=None))
+    return programs
+
+
 def convert_plex_item_to_program(plex_item: Union[Video, Movie, Episode, Track],
                                  plex_server: PServer) -> Program:
     """
@@ -161,6 +182,24 @@ def repeat_and_shuffle_list(items: List, how_many_times: int) -> List:
         for item in list_to_shuffle:
             final_list.append(item)
     return final_list
+
+def expand_custom_show_items(programs: List, dizque_instance) -> List:
+    """
+    Expand all custom shows in a list out to their individual programs
+
+    :param programs: List of programs (i.e. Program, Movie, Video, Track, CustomShow)
+    :type programs: list
+    :return: list of all programs (including custom show programs)
+    :rtype: list
+    """
+    all_items = []
+    for item in programs:
+        if not helpers._object_has_attribute(obj=item, attribute_name='customShowTag'):
+            all_items.append(item)
+        else:
+            programs = convert_custom_show_to_programs(custom_show=item, dizque_instance=dizque_instance)
+            all_items.extend(programs)
+    return all_items
 
 
 class API:
@@ -1195,6 +1234,17 @@ class API:
         :rtype: Program
         """
         return convert_plex_item_to_filler_item(plex_item=plex_item, plex_server=plex_server)
+
+    def expand_custom_show_items(self, programs: List) -> List:
+        """
+        Expand all custom shows in a list out to their individual programs
+
+        :param programs: List of programs (i.e. Program, Movie, Video, Track, CustomShow)
+        :type programs: list
+        :return: list of all programs (including custom show programs)
+        :rtype: list
+        """
+        return expand_custom_show_items(programs=programs, dizque_instance=self)
 
     def add_programs_to_channels(self,
                                  programs: List[Program],
