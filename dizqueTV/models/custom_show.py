@@ -187,6 +187,7 @@ class CustomShow(BaseAPIObject):
         else:
             custom_show_item = program
         custom_show_data['content'].append(custom_show_item._full_data)
+        custom_show_data['count'] = len(custom_show_data['content'])
         if custom_show_data.get('duration'):
             custom_show_data['duration'] += custom_show_item.duration
         return self.update(**custom_show_data)
@@ -221,6 +222,7 @@ class CustomShow(BaseAPIObject):
             else:
                 custom_show_item = program
             custom_show_data['content'].append(custom_show_item._full_data)
+            custom_show_data['count'] = len(custom_show_data['content'])
             if custom_show_data.get('duration'):
                 custom_show_data['duration'] += custom_show_item.duration
         return self.update(**custom_show_data)

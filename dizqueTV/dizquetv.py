@@ -882,7 +882,7 @@ class API:
         """
         custom_show = self.get_custom_show(custom_show_id=custom_show_id)
         if custom_show:
-            new_settings = helpers._combine_settings(new_settings_dict=kwargs, template_dict=custom_show._data)
+            new_settings = helpers._combine_settings_add_new(new_settings_dict=kwargs, template_dict=custom_show._data)
             if self._post(endpoint=f"/show/{custom_show_id}", data=new_settings):
                 return True
         return False
