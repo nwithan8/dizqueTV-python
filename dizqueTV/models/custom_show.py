@@ -74,11 +74,14 @@ class CustomShowDetails(BaseAPIObject):
 
 
 class CustomShow(BaseAPIObject):
+    # Has no knowledge of the Channel or FillerList it belongs to
+
     def __init__(self, data: dict, dizque_instance):
         super().__init__(data, dizque_instance)
         self.id = data.get('id')
         self.name = data.get('name')
         self.count = data.get('count')
+        self.type = "customShow"
         self.customShowTag = "customShow"
         self._details = None
 
