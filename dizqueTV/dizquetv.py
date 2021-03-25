@@ -73,7 +73,7 @@ def convert_program_to_custom_show_item(program: Program, dizque_instance) -> Cu
     program_data = program._data
     program_data['durationStr'] = helpers.duration_to_string(milliseconds=program_data['duration'])
     program_data['commercials'] = []
-    return CustomShowItem(data=program_data, dizque_instance=dizque_instance)
+    return CustomShowItem(data=program_data, dizque_instance=dizque_instance, order=-1)
 
 
 def convert_custom_show_to_programs(custom_show: CustomShow, dizque_instance) -> List[Program]:

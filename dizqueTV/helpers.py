@@ -569,6 +569,7 @@ def time_to_string(datetime_object: datetime, template: str = "%H:%M:%S") -> str
     """
     return datetime_object.strftime(template)
 
+
 def duration_to_string(milliseconds: int) -> str:
     """
     Convert a millisecond duration to a duration string
@@ -578,15 +579,10 @@ def duration_to_string(milliseconds: int) -> str:
     :return: duration string "%H
     :rtype: str
     """
-    milliseconds_mod = milliseconds % 100
-    milliseconds = milliseconds - milliseconds_mod
-    hms_mill = str(timedelta(seconds=(milliseconds / 1000)))
-    hms, mill = hms_mill.split(".")
-    h, m, s = hms.split(":")
-    if int(h) < 10:
-        h = f"0{h}"
-    mill = mill[:1]
-    return f"{h}:{m}:{s}.{mill}"
+    seconds, milliseconds = divmod(milliseconds, 1000)
+    minutes, seconds = divmod(seconds, 60)
+    hours, minutes = divmod(minutes, 60)
+    return "%02d:%02d:%02d.%01d" % (hours, minutes, seconds, milliseconds)
 
 
 def adjust_datetime_for_timezone(local_time: datetime) -> datetime:

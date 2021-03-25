@@ -124,7 +124,7 @@ class CustomShow(BaseAPIObject):
         """
         temp_custom_show = self._dizque_instance.get_custom_show(custom_show_id=self.id)
         if temp_custom_show:
-            json_data = temp_custom_show._full_data
+            json_data = temp_custom_show._data
             self.__init__(data=json_data, dizque_instance=self._dizque_instance)
             del temp_custom_show
 
