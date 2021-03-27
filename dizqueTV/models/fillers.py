@@ -1,6 +1,4 @@
-import json
 from typing import List, Union
-from datetime import datetime, timedelta
 
 from plexapi.video import Video, Movie, Episode
 from plexapi.audio import Track
@@ -8,15 +6,16 @@ from plexapi.server import PlexServer as PServer
 
 import dizqueTV.helpers as helpers
 from dizqueTV import decorators
-from dizqueTV.media import FillerItem
-from dizqueTV.templates import FILLER_ITEM_TEMPLATE
+from dizqueTV.models.base import BaseAPIObject
+from dizqueTV.models.custom_show import CustomShow, CustomShowItem
+from dizqueTV.models.media import FillerItem
+from dizqueTV.models.templates import FILLER_ITEM_TEMPLATE
 from dizqueTV.exceptions import MissingParametersError
 
 
-class FillerList:
+class FillerList(BaseAPIObject):
     def __init__(self, data: dict, dizque_instance):
-        self._data = data
-        self._dizque_instance = dizque_instance
+        super().__init__(data, dizque_instance)
         self.id = data.get('id')
         self.name = data.get('name')
         self.count = data.get('count')
@@ -55,17 +54,19 @@ class FillerList:
         return self._dizque_instance.get_filler_list_info(filler_list_id=self.id)
 
     @property
-    def content(self) -> List[FillerItem]:
+    def content(self) -> List[Union[FillerItem, CustomShow]]:
         """
         Get all filler items on this list
 
-        :return: List of FillerItem objects
-        :rtype: List[FillerItem]
+        :return: List of FillerItem and CustomShow objects
+        :rtype: List[Union[FillerItem, CustomShow]]
         """
         if not self._filler_data:
             self.refresh()
-        return [FillerItem(data=filler, dizque_instance=self._dizque_instance, filler_list_instance=self)
-                for filler in self._filler_data]
+        return self._dizque_instance.parse_custom_shows_and_non_custom_shows(items=self._filler_data,
+                                                                             non_custom_show_type=FillerItem,
+                                                                             dizque_instance=self._dizque_instance,
+                                                                             filler_list_instance=self)
 
     @property
     @decorators._check_for_dizque_instance
@@ -114,7 +115,8 @@ class FillerList:
     def add_filler(self,
                    plex_item: Union[Video, Movie, Episode, Track] = None,
                    plex_server: PServer = None,
-                   filler: FillerItem = None, **kwargs) -> bool:
+                   filler: FillerItem = None,
+                   **kwargs) -> bool:
         """
         Add a filler item to this filler list
 
@@ -135,6 +137,9 @@ class FillerList:
                                                                             plex_server=plex_server)
             kwargs = temp_filler._data
         if filler:
+            if type(filler) == CustomShow:
+                # pass CustomShow handling to add_programs, since multiple programs need to be added
+                return self.add_fillers(fillers=[filler])
             kwargs = filler._data
         if helpers._settings_are_complete(new_settings_dict=kwargs,
                                              template_settings_dict=FILLER_ITEM_TEMPLATE,
@@ -148,21 +153,24 @@ class FillerList:
 
     @decorators._check_for_dizque_instance
     def add_fillers(self,
-                    fillers: List[Union[FillerItem, Video, Movie, Episode, Track]],
+                    fillers: List[Union[FillerItem, CustomShow, Video, Movie, Episode, Track]],
                     plex_server: PServer = None) -> bool:
         """
         Add multiple programs to this channel
 
-        :param fillers: List of FillerItem, plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode or plexapi.audio.Track objects
-        :type fillers: List[Union[FillerItem, plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode, plexapi.audio.Track]]
+        :param fillers: List of FillerItem, CustomShow, plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode or plexapi.audio.Track objects
+        :type fillers: List[Union[FillerItem, CustomShow, plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode, plexapi.audio.Track]]
         :param plex_server: plexapi.server.PlexServer object (required if adding PlexAPI Video, Movie, Episode or Track objects)
         :type plex_server: plexapi.server.PlexServer, optional
         :return: True if successful, False if unsuccessful (Channel reloads in place)
         :rtype: bool
         """
         filler_list_data = self._data
+
+        fillers = self._dizque_instance.expand_custom_show_items(programs=fillers, dizque_instance=self)
+
         for filler in fillers:
-            if type(filler) != FillerItem:
+            if type(filler) not in [FillerItem, CustomShowItem]:
                 if not plex_server:
                     raise MissingParametersError("Please include a plex_server if you are adding PlexAPI Video, "
                                                  "Movie, Episode or Track items.")

@@ -1,5 +1,4 @@
-import json
-from typing import List, Union, Tuple
+from typing import List, Union
 from datetime import datetime, timedelta
 
 from plexapi.video import Video, Movie, Episode
@@ -8,21 +7,19 @@ from plexapi.server import PlexServer as PServer
 
 import dizqueTV.helpers as helpers
 from dizqueTV import decorators
-from dizqueTV.fillers import FillerList
-from dizqueTV.media import Redirect, Program, FillerItem
-from dizqueTV.templates import MOVIE_PROGRAM_TEMPLATE, EPISODE_PROGRAM_TEMPLATE, TRACK_PROGRAM_TEMPLATE, \
-    REDIRECT_PROGRAM_TEMPLATE, FILLER_LIST_SETTINGS_TEMPLATE, FILLER_LIST_CHANNEL_TEMPLATE, \
+from dizqueTV.models.base import BaseAPIObject, BaseObject
+from dizqueTV.models.custom_show import CustomShow, CustomShowItem
+from dizqueTV.models.fillers import FillerList
+from dizqueTV.models.media import Redirect, Program, FillerItem
+from dizqueTV.models.templates import MOVIE_PROGRAM_TEMPLATE, EPISODE_PROGRAM_TEMPLATE, TRACK_PROGRAM_TEMPLATE, \
+    REDIRECT_PROGRAM_TEMPLATE, FILLER_LIST_CHANNEL_TEMPLATE, \
     CHANNEL_FFMPEG_SETTINGS_DEFAULT, SCHEDULE_SETTINGS_DEFAULT, TIME_SLOT_SETTINGS_TEMPLATE, SCHEDULE_SETTINGS_TEMPLATE
 from dizqueTV.exceptions import MissingParametersError, GeneralException
 
 
-class ChannelFFMPEGSettings:
-    def __init__(self,
-                 data: dict,
-                 dizque_instance,
-                 channel_instance):
-        self._data = data
-        self._dizque_instance = dizque_instance
+class ChannelFFMPEGSettings(BaseAPIObject):
+    def __init__(self, data: dict, dizque_instance, channel_instance):
+        super().__init__(data, dizque_instance)
         self._channel_instance = channel_instance
         self.targetResolution = data.get('targetResolution')
         self.videoBitrate = data.get('videoBitrate')
@@ -30,16 +27,6 @@ class ChannelFFMPEGSettings:
 
     def __repr__(self):
         return f"{self.__class__.__name__}({(self.targetResolution if self.targetResolution else 'Default')})"
-
-    @property
-    def json(self) -> dict:
-        """
-        Get ChannelFFMPEGSettings JSON
-
-        :return: JSON data for ChannelFFMPEGSettings object
-        :rtype: dict
-        """
-        return self._data
 
     @decorators._check_for_dizque_instance
     def update(self,
@@ -68,13 +55,9 @@ class ChannelFFMPEGSettings:
         return False
 
 
-class Watermark:
-    def __init__(self,
-                 data: dict,
-                 dizque_instance,
-                 channel_instance):
-        self._data = data
-        self._dizque_instance = dizque_instance
+class Watermark(BaseAPIObject):
+    def __init__(self, data: dict, dizque_instance, channel_instance):
+        super().__init__(data, dizque_instance)
         self._channel_instance = channel_instance
         self.enabled = data.get('enabled')
         self.width = data.get('width')
@@ -88,16 +71,6 @@ class Watermark:
 
     def __repr__(self):
         return f"{self.__class__.__name__}({self.enabled}:{(self.url if self.url else 'Empty URL')})"
-
-    @property
-    def json(self) -> dict:
-        """
-        Get watermark JSON
-
-        :return: JSON data for watermark object
-        :rtype: dict
-        """
-        return self._data
 
     @decorators._check_for_dizque_instance
     def update(self,
@@ -129,12 +102,9 @@ class TimeSlotItem:
         return f"{self.__class__.__name__}({self.showId})"
 
 
-class TimeSlot:
-    def __init__(self,
-                 data: dict,
-                 program: TimeSlotItem = None,
-                 schedule_instance=None):
-        self._data = data
+class TimeSlot(BaseObject):
+    def __init__(self, data: dict, program: TimeSlotItem = None, schedule_instance=None):
+        super().__init__(data)
         self.time = data.get('time')
         self.showId = (program.showId if program else data.get('showId'))
         self.order = data.get('order')
@@ -169,13 +139,9 @@ class TimeSlot:
         return self._schedule_instance.delete_time_slot(time_slot=self)
 
 
-class Schedule:
-    def __init__(self,
-                 data: dict,
-                 dizque_instance,
-                 channel_instance):
-        self._data = data
-        self._dizque_instance = dizque_instance
+class Schedule(BaseAPIObject):
+    def __init__(self, data: dict, dizque_instance, channel_instance):
+        super().__init__(data, dizque_instance)
         self._channel_instance = channel_instance
         self.lateness = data.get('lateness')
         self.maxDays = data.get('maxDays')
@@ -293,13 +259,9 @@ class Schedule:
         return self._channel_instance.delete_schedule()
 
 
-class Channel:
-    def __init__(self,
-                 data: dict,
-                 dizque_instance,
-                 plex_server: PServer = None):
-        self._data = data
-        self._dizque_instance = dizque_instance
+class Channel(BaseAPIObject):
+    def __init__(self, data: dict, dizque_instance, plex_server: PServer = None):
+        super().__init__(data, dizque_instance)
         self._program_data = data.get('programs')
         self._fillerCollections_data = data.get('fillerCollections')
         self.fillerRepeatCooldown = data.get('fillerRepeatCooldown')
@@ -342,7 +304,9 @@ class Channel:
         used_titles = []
         schedulable_items = []
         for program in self.programs:
-            if program.type == 'redirect' and program.channel not in used_titles:
+            if program.type == 'customShow':  # custom shows not schedulable at this time
+                pass
+            elif program.type == 'redirect' and program.channel not in used_titles:
                 schedulable_items.append(TimeSlotItem(item_type='redirect', item_value=program.channel))
                 used_titles.append(program.channel)
             elif program.showTitle and program.showTitle not in used_titles:
@@ -357,15 +321,17 @@ class Channel:
     # Create (handled in dizqueTV.py)
     # Read
     @property
-    def programs(self) -> List[Program]:
+    def programs(self) -> List[Union[Program, CustomShow]]:
         """
         Get all programs on this channel
 
-        :return: List of MediaItem objects
-        :rtype: List[Programs]
+        :return: List of Program and CustomShow objects
+        :rtype: List[Union[Program, CustomShow]]
         """
-        return [Program(data=program, dizque_instance=self._dizque_instance, channel_instance=self)
-                for program in self._program_data]
+        return self._dizque_instance.parse_custom_shows_and_non_custom_shows(items=self._program_data,
+                                                                             non_custom_show_type=Program,
+                                                                             dizque_instance=self._dizque_instance,
+                                                                             channel_instance=self)
 
     @decorators._check_for_dizque_instance
     def get_program(self,
@@ -416,16 +382,6 @@ class Channel:
                 return filler_list
         return None
 
-    @property
-    def json(self) -> dict:
-        """
-        Get channel JSON
-
-        :return: JSON data for channel object
-        :rtype: dict
-        """
-        return self._data
-
     # Update
     @decorators._check_for_dizque_instance
     def refresh(self):
@@ -473,7 +429,7 @@ class Channel:
     def add_program(self,
                     plex_item: Union[Video, Movie, Episode, Track] = None,
                     plex_server: PServer = None,
-                    program: Program = None,
+                    program: Union[Program, CustomShow] = None,
                     **kwargs) -> bool:
         """
         Add a program to this channel
@@ -498,7 +454,11 @@ class Channel:
                                                                               )
             kwargs = temp_program._data
         elif program:
-            kwargs = program._data
+            if type(program) == CustomShow:
+                # pass CustomShow handling to add_programs, since multiple programs need to be added
+                return self.add_programs(programs=[program])
+            else:
+                kwargs = program._data
         template = MOVIE_PROGRAM_TEMPLATE
         if kwargs['type'] == 'episode':
             template = EPISODE_PROGRAM_TEMPLATE
@@ -519,13 +479,13 @@ class Channel:
 
     @decorators._check_for_dizque_instance
     def add_programs(self,
-                     programs: List[Union[Program, Video, Movie, Episode, Track]],
+                     programs: List[Union[Program, CustomShow, Video, Movie, Episode, Track]],
                      plex_server: PServer = None) -> bool:
         """
         Add multiple programs to this channel
 
-        :param programs: List of Program, plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode or plexapi.audio.Track objects
-        :type programs: List[Union[Program, plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode, plexapi.audio.Track]]
+        :param programs: List of Program, CustomShow plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode or plexapi.audio.Track objects
+        :type programs: List[Union[Program, CustomShow, plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode, plexapi.audio.Track]]
         :param plex_server: plexapi.server.PlexServer object (required if adding PlexAPI Video, Movie, Episode or Track objects)
         :type plex_server: plexapi.server.PlexServer, optional
         :return: True if successful, False if unsuccessful (Channel reloads in place)
@@ -534,8 +494,11 @@ class Channel:
         channel_data = self._data
         if not programs:
             raise GeneralException("You must provide at least one program to add to the channel.")
+
+        programs = self._dizque_instance.expand_custom_show_items(programs=programs)
+
         for program in programs:
-            if type(program) not in [Program, Redirect]:
+            if type(program) not in [Program, Redirect, CustomShowItem]:
                 if not plex_server and not self.plex_server:
                     raise MissingParametersError("Please include a plex_server if you are adding PlexAPI Video, "
                                                  "Movie, Episode or Track items.")

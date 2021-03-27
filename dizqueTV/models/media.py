@@ -1,16 +1,11 @@
-import json
-from functools import wraps
-
 from dizqueTV.exceptions import MissingParametersError
-
 import dizqueTV.decorators as decorators
-import dizqueTV.helpers as helpers
+from dizqueTV.models.base import BaseAPIObject
 
 
-class BaseMediaItem:
+class BaseMediaItem(BaseAPIObject):
     def __init__(self, data: dict, dizque_instance, channel_instance=None):
-        self._data = data
-        self._dizque_instance = dizque_instance
+        super().__init__(data, dizque_instance)
         self.type = data.get('type')
         self.isOffline = data.get('isOffline')
         self.duration = data.get('duration')
