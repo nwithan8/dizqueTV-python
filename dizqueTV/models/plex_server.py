@@ -1,6 +1,3 @@
-import json
-
-import dizqueTV.helpers as helpers
 from dizqueTV import decorators
 from dizqueTV.models.base import BaseAPIObject
 

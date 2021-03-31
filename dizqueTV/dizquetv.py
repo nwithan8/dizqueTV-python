@@ -7,22 +7,18 @@ from typing import List, Union
 import m3u8
 from requests import Response
 from plexapi.video import Video, Movie, Episode
-from plexapi.audio import Track
 from plexapi.server import PlexServer as PServer
 
 import dizqueTV.dizquetv_requests as requests
-from dizqueTV.advanced import Advanced
-from dizqueTV.models.custom_show import CustomShow, CustomShowDetails, CustomShowItem
-from dizqueTV.models.general import UploadImageResponse
-from dizqueTV.models.settings import XMLTVSettings, PlexSettings, FFMPEGSettings, HDHomeRunSettings
-from dizqueTV.models.channels import Channel, TimeSlot, TimeSlotItem, Schedule
-from dizqueTV.models.guide import Guide
-from dizqueTV.models.fillers import FillerList
-from dizqueTV.models.media import FillerItem, Program, Redirect
-from dizqueTV.models.plex_server import PlexServer
-from dizqueTV.models.templates import PLEX_SERVER_SETTINGS_TEMPLATE, CHANNEL_SETTINGS_TEMPLATE, \
-    CHANNEL_SETTINGS_DEFAULT, \
-    FILLER_LIST_SETTINGS_TEMPLATE, WATERMARK_SETTINGS_DEFAULT, CUSTOM_SHOW_TEMPLATE
+from dizqueTV.general_classes import UploadImageResponse
+from dizqueTV.settings import XMLTVSettings, PlexSettings, FFMPEGSettings, HDHomeRunSettings
+from dizqueTV.channels import Channel, TimeSlot, TimeSlotItem, Schedule
+from dizqueTV.guide import Guide
+from dizqueTV.fillers import FillerList
+from dizqueTV.media import FillerItem, Program, Redirect
+from dizqueTV.plex_server import PlexServer
+from dizqueTV.templates import PLEX_SERVER_SETTINGS_TEMPLATE, CHANNEL_SETTINGS_TEMPLATE, CHANNEL_SETTINGS_DEFAULT, \
+    FILLER_LIST_SETTINGS_TEMPLATE, WATERMARK_SETTINGS_DEFAULT
 import dizqueTV.helpers as helpers
 from dizqueTV.exceptions import MissingParametersError, ChannelCreationError, ItemCreationError, GeneralException
 from dizqueTV._analytics import GoogleAnalytics
@@ -59,51 +55,13 @@ def make_time_slot_from_dizque_program(program: Union[Program, Redirect],
     return TimeSlot(data=data, program=item)
 
 
-def convert_program_to_custom_show_item(program: Program, dizque_instance) -> CustomShowItem:
-    """
-    Convert a dizqueTV Program to a dizqueTV CustomShowItem (add durationStr and commercials)
-
-    :param program: Program to convert
-    :type program: Program
-    :param dizque_instance: dizqueTV API instance
-    :type dizque_instance: API
-    :return: CustomShowItem
-    :rtype: CustomShowItem
-    """
-    program_data = program._data
-    program_data['durationStr'] = helpers.duration_to_string(milliseconds=program_data['duration'])
-    program_data['commercials'] = []
-    return CustomShowItem(data=program_data, dizque_instance=dizque_instance, order=-1)
-
-
-def convert_custom_show_to_programs(custom_show: CustomShow, dizque_instance) -> List[Program]:
-    """
-    Convert a CustomShow into a list of Program objects
-
-    :param custom_show: CustomShow object to convert
-    :type custom_show: CustomShow
-    :param dizque_instance: dizqueTV API instance
-    :type dizque_instance: API
-    :return: List of Program objects
-    :rtype: list
-    """
-    programs = []
-    for program in custom_show.content:
-        data = program._data
-        data['customShowId'] = custom_show.id
-        data['customShowName'] = custom_show.name
-        data['customOrder'] = program.order
-        programs.append(Program(data=data, dizque_instance=dizque_instance, channel_instance=None))
-    return programs
-
-
-def convert_plex_item_to_program(plex_item: Union[Video, Movie, Episode, Track],
+def convert_plex_item_to_program(plex_item: Union[Video, Movie, Episode],
                                  plex_server: PServer) -> Program:
     """
-    Convert a PlexAPI Video, Movie, Episode or Track object into a Program
+    Convert a PlexAPI Video, Movie or Episode object into a Program
 
-    :param plex_item: plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode or plexapi.audio.Track object
-    :type plex_item: Union[plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode, plexapi.audio.Track]
+    :param plex_item: plexapi.video.Video, plexapi.video.Movie or plexapi.video.Episode object
+    :type plex_item: Union[plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode]
     :param plex_server: plexapi.server.PlexServer object
     :type plex_server: plexapi.server.PlexServer
     :return: Program object
@@ -113,13 +71,13 @@ def convert_plex_item_to_program(plex_item: Union[Video, Movie, Episode, Track],
     return Program(data=data, dizque_instance=None, channel_instance=None)
 
 
-def convert_plex_item_to_filler_item(plex_item: Union[Video, Movie, Episode, Track],
+def convert_plex_item_to_filler_item(plex_item: Union[Video, Movie, Episode],
                                      plex_server: PServer) -> FillerItem:
     """
-    Convert a PlexAPI Video, Movie, Episode or Track object into a FillerItem
+    Convert a PlexAPI Video, Movie or Episode object into a FillerItem
 
-    :param plex_item: plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode or plexapi.audio.Track object
-    :type plex_item: Union[plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode, plexapi.audio.Track]
+    :param plex_item: plexapi.video.Video, plexapi.video.Movie or plexapi.video.Episode object
+    :type plex_item: Union[plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode]
     :param plex_server: plexapi.server.PlexServer object
     :type plex_server: plexapi.server.PlexServer
     :return: Program object
@@ -184,42 +142,10 @@ def repeat_and_shuffle_list(items: List, how_many_times: int) -> List:
     return final_list
 
 
-def expand_custom_show_items(programs: List, dizque_instance) -> List:
-    """
-    Expand all custom shows in a list out to their individual programs
-
-    :param programs: List of programs (i.e. Program, Movie, Video, Track, CustomShow)
-    :type programs: list
-    :return: list of all programs (including custom show programs)
-    :rtype: list
-    """
-    all_items = []
-    for item in programs:
-        if not helpers._object_has_attribute(obj=item, attribute_name='customShowTag'):
-            all_items.append(item)
-        else:
-            programs = convert_custom_show_to_programs(custom_show=item, dizque_instance=dizque_instance)
-            all_items.extend(programs)
-    return all_items
-
-
 class API:
     def __init__(self, url: str, verbose: bool = False, allow_analytics: bool = True, anonymous_analytics: bool = True):
-        """
-        Interact with dizqueTV's API
-
-        :param url: dizqueTV URL
-        :type url: str
-        :param verbose: Log API calls and other debugging
-        :type verbose: bool
-        :param allow_analytics: Allow Google Analytics (see disclaimer)
-        :type allow_analytics: bool
-        :param anonymous_analytics: Make Google Analytics anonymous (see disclaimer)
-        :type anonymous_analytics: bool
-        """
         self.url = url.rstrip('/')
         self.verbose = verbose
-        self.advanced = Advanced(dizque_instance=self)
         self.analytics = GoogleAnalytics(analytics_id=analytics_id,
                                          anonymous_ip=anonymous_analytics,
                                          do_not_track=not allow_analytics)
@@ -555,16 +481,16 @@ class API:
                                                  template_dict=CHANNEL_SETTINGS_DEFAULT)
 
     def add_channel(self,
-                    programs: List[Union[Program, Redirect, Video, Movie, Episode, Track]] = [],
+                    programs: List[Union[Program, Redirect, Video, Movie, Episode]] = [],
                     plex_server: PServer = None,
                     handle_errors: bool = True,
                     **kwargs) -> Union[Channel, None]:
         """
         Add a channel to dizqueTV
 
-        :param programs: Program, Redirect or PlexAPI Video, Movie, Episode or Track objects to add to the new channel
-        :type programs: List[Union[Program, Redirect, plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode, plexapi.audio.Track]], optional
-        :param plex_server: plexapi.server.PlexServer (optional, required if adding PlexAPI Video, Movie, Episode or Track)
+        :param programs: Program, Redirect or PlexAPI Video, Movie or Episode objects to add to the new channel
+        :type programs: List[Union[Program, Redirect, plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode]], optional
+        :param plex_server: plexapi.server.PlexServer (optional, required if adding PlexAPI Video, Movie or Episode)
         :type plex_server: plexapi.server.PlexServer, optional
         :param kwargs: keyword arguments of setting names and values
         :param handle_errors: Suppress error if they arise (ex. alter invalid channel number, add Flex Time if no program is included)
@@ -578,8 +504,8 @@ class API:
                 kwargs['programs'].append(item._data)
             else:
                 if not plex_server:
-                    raise ItemCreationError("You must include a plex_server if you are adding PlexAPI Videos, "
-                                            "Movies, Episodes or Tracks as programs")
+                    raise ItemCreationError("You must include a plex_server if you are adding PlexAPI Video, "
+                                            "Movie or Episodes as programs")
                 kwargs['programs'].append(
                     convert_plex_item_to_program(plex_item=item, plex_server=plex_server)._data)
         if kwargs.get('iconPosition'):
@@ -707,14 +633,6 @@ class API:
         return self._get_json(endpoint=f'/filler/{filler_list_id}')
 
     def get_filler_list_channels(self, filler_list_id: str) -> List[Channel]:
-        """
-        Get the channels that a dizqueTV filler list belongs to
-
-        :param filler_list_id: ID of filler list
-        :type filler_list_id: str
-        :return: List of Channel objects
-        :rtype: List[Channel]
-        """
         channel_data = self._get_json(endpoint=f'/filler/{filler_list_id}/channels')
         return [self.get_channel(channel_number=channel.get('number')) for channel in channel_data]
 
@@ -742,7 +660,7 @@ class API:
         return helpers._combine_settings(new_settings_dict=settings_dict, template_dict=CHANNEL_SETTINGS_DEFAULT)
 
     def add_filler_list(self,
-                        content: List[Union[Program, Video, Movie, Episode, Track]],
+                        content: List[Union[Program, Video, Movie, Episode]],
                         plex_server: PServer = None,
                         handle_errors: bool = False,
                         **kwargs) -> Union[FillerList, None]:
@@ -750,9 +668,9 @@ class API:
         Add a filler list to dizqueTV
         Must include at least one program to create
 
-        :param content: At least one Program or PlexAPI Video, Movie, Episode or Track to add to the new filler list
-        :type content: List[Union[Program, Video, Movie, Episode, Track]]
-        :param plex_server: plexapi.server.PlexServer (optional, required if adding PlexAPI Video, Movie, Episode or Track)
+        :param content: At least one Program or PlexAPI Video, Movie or Episode to add to the new filler list
+        :type content: List[Union[Program, Video, Movie, Episode]]
+        :param plex_server: plexapi.server.PlexServer (optional, required if adding PlexAPI Video, Movie or Episode)
         :type plex_server: plexapi.server.PlexServer, optional
         :param kwargs: keyword arguments of setting names and values
         :param handle_errors: Suppress error if they arise (ex. add redirect if no program is included)
@@ -766,8 +684,8 @@ class API:
                 kwargs['content'].append(item)
             else:
                 if not plex_server:
-                    raise ItemCreationError("You must include a plex_server if you are adding PlexAPI Videos, "
-                                            "Movies, Episodes or Tracks as programs")
+                    raise ItemCreationError("You must include a plex_server if you are adding PlexAPI Video, "
+                                            "Movie or Episodes as programs")
                 kwargs['content'].append(
                     convert_plex_item_to_filler_item(plex_item=item, plex_server=plex_server)._data)
         kwargs = self._fill_in_default_filler_list_settings(settings_dict=kwargs, handle_errors=handle_errors)
@@ -781,7 +699,7 @@ class API:
 
     def update_filler_list(self, filler_list_id: str, **kwargs) -> bool:
         """
-        Edit a dizqueTV filler list
+        Edit a dizqueTV FillerList
 
         :param filler_list_id: ID of FillerList to update
         :type filler_list_id: str
@@ -809,111 +727,19 @@ class API:
             return True
         return False
 
-    # Custom Shows
-    @property
-    def custom_shows(self) -> List[CustomShow]:
-        """
-        Get a list of all custom shows
-
-        :return: List of CustomShow objects
-        :rtype: List[CustomShow]
-        """
-        json_data = self._get_json(endpoint='/shows', timeout=5)  # large JSON may take longer, so bigger timeout
-        return [CustomShow(data=show, dizque_instance=self) for show in json_data]
-
-    def get_custom_show(self, custom_show_id: str) -> Union[CustomShow, None]:
-        """
-        Get a CustomShow object by its ID
-
-        :param custom_show_id: ID of custom show
-        :type custom_show_id: str
-        :return: CustomShow object or None
-        :rtype: CustomShow
-        """
-        for custom_show in self.custom_shows:
-            if custom_show.id == custom_show_id:
-                return custom_show
-        return None
-
-    def get_custom_show_details(self, custom_show_id: str) -> Union[CustomShowDetails, None]:
-        """
-        Get the details of a custom show
-
-        :param custom_show_id: ID of custom show
-        :type custom_show_id: str
-        :return: CustomShowDetails object or None
-        :rtype: CustomShowDetails
-        """
-        json_data = self._get_json(endpoint=f'/show/{custom_show_id}')
-        if json_data:
-            return CustomShowDetails(data=json_data, dizque_instance=self)
-        return None
-
-    def add_custom_show(self,
-                        name: str,
-                        content: List[Union[Program, Video, Movie, Episode, Track]],
-                        plex_server: PServer = None) -> Union[CustomShow, None]:
-        kwargs = {'name': name, 'content': []}
-        for item in content:
-            if type(item) == Program:
-                custom_show_item = convert_program_to_custom_show_item(program=item, dizque_instance=self)
-            else:
-                if not plex_server:
-                    raise ItemCreationError("You must include a plex_server if you are adding PlexAPI Videos, "
-                                            "Movies, Episodes or Tracks as programs")
-                program = convert_plex_item_to_program(plex_item=item, plex_server=plex_server)
-                custom_show_item = convert_program_to_custom_show_item(program=program, dizque_instance=self)
-            kwargs['content'].append(custom_show_item._full_data)
-        if helpers._settings_are_complete(new_settings_dict=kwargs, template_settings_dict=CUSTOM_SHOW_TEMPLATE):
-            response = self._put(endpoint='/show', data=kwargs)
-            if response:
-                return self.get_custom_show(custom_show_id=response.json()['id'])
-        return None
-
-    def update_custom_show(self, custom_show_id: str, **kwargs) -> bool:
-        """
-        Edit a dizqueTV custom show
-
-        :param custom_show_id: ID of CustomShow to update
-        :type custom_show_id: str
-        :param kwargs: keyword arguments of setting names and values
-        :return: True if successful, False if unsuccessful
-        :rtype: bool
-        """
-        custom_show = self.get_custom_show(custom_show_id=custom_show_id)
-        if custom_show:
-            new_settings = helpers._combine_settings_add_new(new_settings_dict=kwargs, template_dict=custom_show._data)
-            if self._post(endpoint=f"/show/{custom_show_id}", data=new_settings):
-                return True
-        return False
-
-    def delete_custom_show(self, custom_show_id: str) -> bool:
-        """
-        Delete a dizqueTV custom show
-
-        :param custom_show_id: ID of CustomShow to delete
-        :type custom_show_id: str
-        :return: True if successful, False if unsuccessful
-        :rtype: bool
-        """
-        if self._delete(endpoint=f"/show/{custom_show_id}"):
-            return True
-        return False
-
     # Images
     def upload_image(self, image_file_path: str) -> Union[UploadImageResponse, None]:
         """
-        Upload an image to dizqueTV
 
-        :param image_file_path: path of image to upload
-        :type image_file_path: str
-        :return: UploadImageResponse object or None
-        :rtype: UploadImageResponse
+        :param image_file_path:
+        :type image_file_path:
+        :return:
+        :rtype:
         """
         if not helpers.file_exists(image_file_path):
             raise GeneralException("Invalid image_file_path provided.")
         file_data = {'image': helpers.read_file_bytes(file_path=image_file_path)}
-        res = self._post(endpoint=f"/upload/image", files=file_data)
+        res = self._post(endpoint="/upload/image", files=file_data)
         if not res:
             return None
         return UploadImageResponse(data=res.json())
@@ -1132,63 +958,6 @@ class API:
         """
         return m3u8.load(f"{self.url}/api/hls.m3u")
 
-    def get_channel_m3u(self, channel_number: int) -> m3u8:
-        """
-        Get a channel-specific m3u playlist
-
-        :param channel_number: Number of channel to get M3U playlist
-        :type channel_number: int
-        :return: m3u8 object
-        :rtype: m3u8
-        """
-        if channel_number not in self.channel_numbers:
-            raise Exception(f"Channel {channel_number} does not exist.")
-        return m3u8.load(f"{self.url}/media-player/{channel_number}.m3u")
-
-    def get_stream_url(self, channel_number: int, audio_only: bool = False) -> str:
-        """
-        Get URL for stream (to use for network stream in players like VLC)
-
-        :param channel_number: Number of channel to stream
-        :type channel_number: int
-        :param audio_only: Stream only the audio
-        :type audio_only: bool
-        :return: Stream URL for channel
-        :rtype: str
-        """
-        if channel_number not in self.channel_numbers:
-            raise Exception(f"Channel {channel_number} does not exist.")
-        url = f"{self.url}/stream?channel={channel_number}"
-        if audio_only:
-            url += f"&audiOnly=true"
-        return url
-
-    def get_video_url(self, channel_number: int) -> str:
-        """
-        Get URL for video (to use for network stream in players like VLC)
-
-        :param channel_number: Number of channel to stream
-        :type channel_number: int
-        :return: Video URL for channel
-        :rtype: str
-        """
-        if channel_number not in self.channel_numbers:
-            raise Exception(f"Channel {channel_number} does not exist.")
-        return f"{self.url}/video?channel={channel_number}"
-
-    def get_radio_url(self, channel_number: int) -> str:
-        """
-        Get URL for only audio (to use for network stream in players like VLC)
-
-        :param channel_number: Number of channel to stream
-        :type channel_number: int
-        :return: Audio-only URL for channel
-        :rtype: str
-        """
-        if channel_number not in self.channel_numbers:
-            raise Exception(f"Channel {channel_number} does not exist.")
-        return f"{self.url}/radio?channel={channel_number}"
-
     # Guide
     @property
     def guide(self) -> Guide:
@@ -1238,13 +1007,12 @@ class API:
         return self._get_json(endpoint='/guide/debug')
 
     # Other Functions
-    def convert_plex_item_to_program(self, plex_item: Union[Video, Movie, Episode, Track],
-                                     plex_server: PServer) -> Program:
+    def convert_plex_item_to_program(self, plex_item: Union[Video, Movie, Episode], plex_server: PServer) -> Program:
         """
-        Convert a PlexAPI Video, Movie, Episode or Track object into a Program
+        Convert a PlexAPI Video, Movie or Episode object into a Program
 
-        :param plex_item: plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode or plexapi.audio.Track object
-        :type plex_item: Union[plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode, plexapi.audio.Track]
+        :param plex_item: plexapi.video.Video, plexapi.video.Movie or plexapi.video.Episode object
+        :type plex_item: Union[plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode]
         :param plex_server: plexapi.server.PlexServer object
         :type plex_server: plexapi.server.PlexServer
         :return: Program object
@@ -1252,84 +1020,19 @@ class API:
         """
         return convert_plex_item_to_program(plex_item=plex_item, plex_server=plex_server)
 
-    def convert_plex_item_to_filler_item(self, plex_item: Union[Video, Movie, Episode, Track], plex_server: PServer) -> \
+    def convert_plex_item_to_filler_item(self, plex_item: Union[Video, Movie, Episode], plex_server: PServer) -> \
             FillerItem:
         """
-        Convert a PlexAPI Video, Movie, Episode or Track object into a FillerItem
+        Convert a PlexAPI Video, Movie or Episode object into a FillerItem
 
-        :param plex_item: plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode or plexapi.audio.Track object
-        :type plex_item: Union[plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode, plexapi.audio.Track]
+        :param plex_item: plexapi.video.Video, plexapi.video.Movie or plexapi.video.Episode object
+        :type plex_item: Union[plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode]
         :param plex_server: plexapi.server.PlexServer object
         :type plex_server: plexapi.server.PlexServer
         :return: Program object
         :rtype: Program
         """
         return convert_plex_item_to_filler_item(plex_item=plex_item, plex_server=plex_server)
-
-    def convert_program_to_custom_show_item(self, program: Program) -> CustomShowItem:
-        """
-        Convert a dizqueTV Program to a dizqueTV CustomShowItem (add durationStr and commercials)
-
-        :param program: Program to convert
-        :type program: Program
-        :return: CustomShowItem
-        :rtype: CustomShowItem
-        """
-        return convert_program_to_custom_show_item(program=program, dizque_instance=self)
-
-    def expand_custom_show_items(self, programs: List) -> List:
-        """
-        Expand all custom shows in a list out to their individual programs
-
-        :param programs: List of programs (i.e. Program, Movie, Video, Track, CustomShow)
-        :type programs: list
-        :return: list of all programs (including custom show programs)
-        :rtype: list
-        """
-        return expand_custom_show_items(programs=programs, dizque_instance=self)
-
-    def create_custom_show_with_programs(self, custom_show_programs: list) -> CustomShow:
-        custom_show_data = {
-            'name': custom_show_programs[0]['customShowName'],
-            'id': custom_show_programs[0]['customShowId'],
-            'content': custom_show_programs
-        }
-        return CustomShow(data=custom_show_data, dizque_instance=self)
-
-    def parse_custom_shows_and_non_custom_shows(self, items: list, non_custom_show_type, **kwargs):
-        custom_show_programs = []
-        current_custom_show_id = None
-        parsing_custom_show = False
-        final_items = []
-        for item in items:
-            if item.get('customShowId'):  # came across an item that belongs to a custom show
-                if not current_custom_show_id:  # initialize the first custom show
-                    current_custom_show_id = item.get('customShowId')
-                if item.get('customShowId') == current_custom_show_id:  # item belongs to the same custom show
-                    custom_show_programs.append(item)
-                else:  # item belong to a new custom show
-                    # create and save the old custom show
-                    custom_show = self.create_custom_show_with_programs(custom_show_programs=custom_show_programs)
-                    final_items.append(custom_show)
-                    # start storing the new custom show
-                    current_custom_show_id = item.get('customShowId')
-                    custom_show_programs = [item]
-                parsing_custom_show = True
-            else:  # came across an item that does not belong to a custom show
-                if parsing_custom_show:  # was tracking a custom show, have reached the end
-                    # create and save a custom show with the items we collected
-                    custom_show = self.create_custom_show_with_programs(custom_show_programs=custom_show_programs)
-                    final_items.append(custom_show)
-                    # reset for capturing the next custom show
-                    parsing_custom_show = False
-                    custom_show_programs = []
-                else:  # was not tracking a custom show
-                    final_items.append(non_custom_show_type(data=item, **kwargs))
-        # build final custom show if needed
-        if custom_show_programs:
-            custom_show = self.create_custom_show_with_programs(custom_show_programs=custom_show_programs)
-            final_items.append(custom_show)
-        return final_items
 
     def add_programs_to_channels(self,
                                  programs: List[Program],

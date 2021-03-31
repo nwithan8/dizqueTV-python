@@ -70,9 +70,9 @@ class PlexUtils:
         :return: Plex playlist or None
         :rtype: plexapi.playlist.Playlist | None
         """
-        for playlist in self.playlists:
-            if playlist.title == playlist_name:
-                return playlist
+        for pl in self.playlists:
+            if pl.title == playlist_name:
+                return pl
         return None
 
     def create_new_playlist(self, playlist_name: str, items: List[media.Media]) -> bool:
