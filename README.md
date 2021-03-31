@@ -1,10 +1,14 @@
 # dizqueTV-python
 [![PyPi](https://img.shields.io/pypi/dm/dizquetv?color=green&label=PyPi%20downloads&logo=Pypi&logoColor=orange&style=flat-square)](https://pypi.org/project/dizqueTV/)
-[![License](https://img.shields.io/pypi/l/dizqueTV?color=orange&style=flat-square)](https://github.com/nwithan8/dizqueTV-python/blob/master/LICENSE)
+[![Python support](https://img.shields.io/pypi/pyversions/dizquetv?color=purple&label=Python%20support&logo=python&logoColor=yellow&style=flat-square)]
+[![License](https://img.shields.io/pypi/l/dizquetv?color=orange&style=flat-square)](https://github.com/nwithan8/dizqueTV-python/blob/master/LICENSE)
 
 [![Open Issues](https://img.shields.io/github/issues-raw/nwithan8/dizqueTV-python?color=gold&style=flat-square)](https://github.com/nwithan8/dizqueTV-python/issues?q=is%3Aopen+is%3Aissue)
 [![Closed Issues](https://img.shields.io/github/issues-closed-raw/nwithan8/dizqueTV-python?color=black&style=flat-square)](https://github.com/nwithan8/dizqueTV-python/issues?q=is%3Aissue+is%3Aclosed)
+[![Activity](https://img.shields.io/github/commit-activity/m/nwithan8/dizqueTV-python?color=red&style=flat-square)]
+
 [![Latest Release](https://img.shields.io/github/v/release/nwithan8/dizqueTV-python?color=red&label=latest%20release&logo=github&style=flat-square)](https://github.com/nwithan8/dizqueTV-python/releases)
+[![Docs](https://img.shields.io/readthedocs/dizquetv?style=flat-square)](http://dizquetv.readthedocs.io/)
 
 [![Discord](https://img.shields.io/discord/472537215457689601?color=blue&logo=discord&style=flat-square)](https://discord.gg/7jGbCJQ)
 [![Twitter](https://img.shields.io/twitter/follow/nwithan8?label=%40nwithan8&logo=twitter&style=flat-square)](https://twitter.com/nwithan8)
