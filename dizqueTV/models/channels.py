@@ -1,20 +1,21 @@
-from typing import List, Union
 from datetime import datetime, timedelta
+from typing import List, Union
 
-from plexapi.video import Video, Movie, Episode
 from plexapi.audio import Track
 from plexapi.server import PlexServer as PServer
+from plexapi.video import Video, Movie, Episode
 
 import dizqueTV.helpers as helpers
 from dizqueTV import decorators
+from dizqueTV.exceptions import MissingParametersError, GeneralException
 from dizqueTV.models.base import BaseAPIObject, BaseObject
 from dizqueTV.models.custom_show import CustomShow, CustomShowItem
 from dizqueTV.models.fillers import FillerList
 from dizqueTV.models.media import Redirect, Program, FillerItem
 from dizqueTV.models.templates import MOVIE_PROGRAM_TEMPLATE, EPISODE_PROGRAM_TEMPLATE, TRACK_PROGRAM_TEMPLATE, \
     REDIRECT_PROGRAM_TEMPLATE, FILLER_LIST_CHANNEL_TEMPLATE, \
-    CHANNEL_FFMPEG_SETTINGS_DEFAULT, SCHEDULE_SETTINGS_DEFAULT, TIME_SLOT_SETTINGS_TEMPLATE, SCHEDULE_SETTINGS_TEMPLATE
-from dizqueTV.exceptions import MissingParametersError, GeneralException
+    CHANNEL_FFMPEG_SETTINGS_DEFAULT, SCHEDULE_SETTINGS_DEFAULT, TIME_SLOT_SETTINGS_TEMPLATE, SCHEDULE_SETTINGS_TEMPLATE, \
+    RANDOM_SCHEDULE_SETTINGS_TEMPLATE, RANDOM_SCHEDULE_SETTINGS_DEFAULT
 
 
 class ChannelFFMPEGSettings(BaseAPIObject):
@@ -28,7 +29,7 @@ class ChannelFFMPEGSettings(BaseAPIObject):
     def __repr__(self):
         return f"{self.__class__.__name__}({(self.targetResolution if self.targetResolution else 'Default')})"
 
-    @decorators._check_for_dizque_instance
+    @decorators.check_for_dizque_instance
     def update(self,
                use_global_settings: bool = False,
                **kwargs) -> bool:
@@ -72,7 +73,7 @@ class Watermark(BaseAPIObject):
     def __repr__(self):
         return f"{self.__class__.__name__}({self.enabled}:{(self.url if self.url else 'Empty URL')})"
 
-    @decorators._check_for_dizque_instance
+    @decorators.check_for_dizque_instance
     def update(self,
                **kwargs) -> bool:
         """
@@ -148,11 +149,14 @@ class Schedule(BaseAPIObject):
         self.slots = [TimeSlot(data=slot, schedule_instance=self) for slot in data.get('slots', [])]
         self.pad = data.get('pad')
         self.timeZoneOffset = data.get('timeZoneOffset')
+        self.padStyle = data.get('padStyle')
+        self.randomDistribution = data.get('randomDistribution')
+        self.flexPreference = data.get('flexPreference')
 
     def __repr__(self):
         return f"{self.__class__.__name__}({self.maxDays} Days:{len(self.slots)} TimeSlots>"
 
-    @decorators._check_for_dizque_instance
+    @decorators.check_for_dizque_instance
     def update(self,
                **kwargs):
         """
@@ -229,7 +233,7 @@ class Schedule(BaseAPIObject):
                 new_slots.append(new_slot_data)
         return self.update(slots=new_slots)
 
-    @decorators._check_for_dizque_instance
+    @decorators.check_for_dizque_instance
     def delete_time_slot(self, time_slot: TimeSlot) -> bool:
         """
         Delete a time slot from this Schedule
@@ -247,7 +251,7 @@ class Schedule(BaseAPIObject):
             pass
         return False
 
-    @decorators._check_for_dizque_instance
+    @decorators.check_for_dizque_instance
     def delete(self) -> bool:
         """
         Delete this channel's Schedule
@@ -333,7 +337,7 @@ class Channel(BaseAPIObject):
                                                                              dizque_instance=self._dizque_instance,
                                                                              channel_instance=self)
 
-    @decorators._check_for_dizque_instance
+    @decorators.check_for_dizque_instance
     def get_program(self,
                     program_title: str = None,
                     redirect_channel_number: int = None) -> Union[Program, None]:
@@ -366,7 +370,7 @@ class Channel(BaseAPIObject):
         return [FillerList(data=filler_list, dizque_instance=self._dizque_instance)
                 for filler_list in self._fillerCollections_data]
 
-    @decorators._check_for_dizque_instance
+    @decorators.check_for_dizque_instance
     def get_filler_list(self,
                         filler_list_title: str) -> Union[FillerList, None]:
         """
@@ -383,7 +387,7 @@ class Channel(BaseAPIObject):
         return None
 
     # Update
-    @decorators._check_for_dizque_instance
+    @decorators.check_for_dizque_instance
     def refresh(self):
         """
         Reload current Channel object
@@ -397,7 +401,7 @@ class Channel(BaseAPIObject):
             self.__init__(data=json_data, dizque_instance=self._dizque_instance)
             del temp_channel
 
-    @decorators._check_for_dizque_instance
+    @decorators.check_for_dizque_instance
     def update(self,
                **kwargs) -> bool:
         """
@@ -413,7 +417,7 @@ class Channel(BaseAPIObject):
             return True
         return False
 
-    @decorators._check_for_dizque_instance
+    @decorators.check_for_dizque_instance
     def edit(self,
              **kwargs) -> bool:
         """
@@ -425,7 +429,7 @@ class Channel(BaseAPIObject):
         """
         return self.update(**kwargs)
 
-    @decorators._check_for_dizque_instance
+    @decorators.check_for_dizque_instance
     def add_program(self,
                     plex_item: Union[Video, Movie, Episode, Track] = None,
                     plex_server: PServer = None,
@@ -477,7 +481,7 @@ class Channel(BaseAPIObject):
             return self.update(**channel_data)
         return False
 
-    @decorators._check_for_dizque_instance
+    @decorators.check_for_dizque_instance
     def add_programs(self,
                      programs: List[Union[Program, CustomShow, Video, Movie, Episode, Track]],
                      plex_server: PServer = None) -> bool:
@@ -511,7 +515,7 @@ class Channel(BaseAPIObject):
             channel_data['duration'] += program.duration
         return self.update(**channel_data)
 
-    @decorators._check_for_dizque_instance
+    @decorators.check_for_dizque_instance
     def update_program(self,
                        program: Program,
                        **kwargs) -> bool:
@@ -536,7 +540,7 @@ class Channel(BaseAPIObject):
                 return self.update(**channel_data)
         return False
 
-    @decorators._check_for_dizque_instance
+    @decorators.check_for_dizque_instance
     def delete_program(self,
                        program: Program) -> bool:
         """
@@ -556,7 +560,7 @@ class Channel(BaseAPIObject):
                 return self.update(**channel_data)
         return False
 
-    @decorators._check_for_dizque_instance
+    @decorators.check_for_dizque_instance
     def delete_show(self,
                     show_name: str,
                     season_number: int = None) -> bool:
@@ -590,7 +594,7 @@ class Channel(BaseAPIObject):
             return self.add_programs(programs=programs_to_add)
         return False
 
-    @decorators._check_for_dizque_instance
+    @decorators.check_for_dizque_instance
     def add_x_number_of_show_episodes(self,
                                       number_of_episodes: int,
                                       list_of_episodes: List[Union[Program, Episode]],
@@ -622,7 +626,7 @@ class Channel(BaseAPIObject):
             channel_data['duration'] += list_of_episodes[i].duration
         return self.update(**channel_data)
 
-    @decorators._check_for_dizque_instance
+    @decorators.check_for_dizque_instance
     def add_x_duration_of_show_episodes(self,
                                         duration_in_milliseconds: int,
                                         list_of_episodes: List[Union[Program, Episode]],
@@ -669,7 +673,7 @@ class Channel(BaseAPIObject):
             list_index += 1
         return self.update(**channel_data)
 
-    @decorators._check_for_dizque_instance
+    @decorators.check_for_dizque_instance
     def delete_all_programs(self) -> bool:
         """
         Delete all programs from this channel
@@ -682,7 +686,7 @@ class Channel(BaseAPIObject):
         channel_data['programs'] = []
         return self.update(**channel_data)
 
-    @decorators._check_for_dizque_instance
+    @decorators.check_for_dizque_instance
     def _delete_all_offline_times(self) -> bool:
         """
         Delete all offline program in a channel
@@ -698,7 +702,7 @@ class Channel(BaseAPIObject):
             return self.add_programs(programs=programs_to_add)
         return False
 
-    @decorators._check_for_dizque_instance
+    @decorators.check_for_dizque_instance
     def add_filler_list(self,
                         filler_list: FillerList = None,
                         filler_list_id: str = None,
@@ -736,7 +740,7 @@ class Channel(BaseAPIObject):
             return self.update(**channel_data)
         return False
 
-    @decorators._check_for_dizque_instance
+    @decorators.check_for_dizque_instance
     def delete_filler_list(self,
                            filler_list: FillerList = None,
                            filler_list_id: str = None) -> bool:
@@ -761,7 +765,7 @@ class Channel(BaseAPIObject):
                 return self.update(**channel_data)
         return False
 
-    @decorators._check_for_dizque_instance
+    @decorators.check_for_dizque_instance
     def delete_all_filler_lists(self) -> bool:
         """
         Delete all filler lists from this channel
@@ -774,7 +778,7 @@ class Channel(BaseAPIObject):
         return self.update(**channel_data)
 
     # Schedule
-    @decorators._check_for_dizque_instance
+    @decorators.check_for_dizque_instance
     def add_schedule(self, time_slots: List[TimeSlot], **kwargs) -> bool:
         """
         Add a schedule to this channel
@@ -796,18 +800,42 @@ class Channel(BaseAPIObject):
             return self._dizque_instance._make_schedule(channel=self, schedule=schedule)
         return False
 
-    @decorators._check_for_dizque_instance
+    @decorators.check_for_dizque_instance
+    def add_random_schedule(self, time_slots: List[TimeSlot], **kwargs) -> bool:
+        """
+        Add a random schedule to this channel
+
+        :param time_slots: List of TimeSlot objects
+        :type time_slots: List[TimeSlot]
+        :param kwargs: keyword arguments for schedule settings
+        :return: True if successful, False if unsuccessful (Channel reloads in-place)
+        :rtype: bool
+        """
+        for slot in time_slots:
+            kwargs['slots'].append(slot._data)
+        schedule_settings = helpers._combine_settings_enforce_types(new_settings_dict=kwargs,
+                                                                    template_dict=RANDOM_SCHEDULE_SETTINGS_TEMPLATE,
+                                                                    default_dict=RANDOM_SCHEDULE_SETTINGS_DEFAULT)
+        if helpers._settings_are_complete(new_settings_dict=schedule_settings,
+                                          template_settings_dict=RANDOM_SCHEDULE_SETTINGS_TEMPLATE):
+            schedule = Schedule(data=schedule_settings, dizque_instance=None, channel_instance=self)
+            return self._dizque_instance._make_random_schedule(channel=self, schedule=schedule)
+        return False
+
+    @decorators.check_for_dizque_instance
     def update_schedule(self, **kwargs) -> bool:
         """
         Update the schedule for this channel
 
-        :param kwargs: keyword arguments for schedule settings (slots data included if needed)
+        :param kwargs: keyword arguments for schedule settings (slots data included if needed) (include random=true to use random time slots)
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
         :rtype: bool
         """
+        if kwargs.get('random', False):
+            return self.add_random_schedule(time_slots=[], **kwargs)
         return self.add_schedule(time_slots=[], **kwargs)
 
-    @decorators._check_for_dizque_instance
+    @decorators.check_for_dizque_instance
     def delete_schedule(self) -> bool:
         """
         Delete this channel's Schedule
@@ -822,7 +850,7 @@ class Channel(BaseAPIObject):
         return self.update(scheduleBackup={})
 
     # Sort Programs
-    @decorators._check_for_dizque_instance
+    @decorators.check_for_dizque_instance
     def sort_programs_by_release_date(self) -> bool:
         """
         Sort all programs on this channel by release date
@@ -835,7 +863,7 @@ class Channel(BaseAPIObject):
             return self.add_programs(programs=sorted_programs)
         return False
 
-    @decorators._check_for_dizque_instance
+    @decorators.check_for_dizque_instance
     def sort_programs_by_season_order(self) -> bool:
         """
         Sort all programs on this channel by season order
@@ -849,7 +877,7 @@ class Channel(BaseAPIObject):
             return self.add_programs(programs=sorted_programs)
         return False
 
-    @decorators._check_for_dizque_instance
+    @decorators.check_for_dizque_instance
     def sort_programs_alphabetically(self) -> bool:
         """
         Sort all programs on this channel in alphabetical order
@@ -862,7 +890,7 @@ class Channel(BaseAPIObject):
             return self.add_programs(programs=sorted_programs)
         return False
 
-    @decorators._check_for_dizque_instance
+    @decorators.check_for_dizque_instance
     def sort_programs_by_duration(self) -> bool:
         """
         Sort all programs on this channel by duration
@@ -875,7 +903,7 @@ class Channel(BaseAPIObject):
             return self.add_programs(programs=sorted_programs)
         return False
 
-    @decorators._check_for_dizque_instance
+    @decorators.check_for_dizque_instance
     def sort_programs_randomly(self) -> bool:
         """
         Sort all programs on this channel randomly
@@ -888,7 +916,7 @@ class Channel(BaseAPIObject):
             return self.add_programs(programs=sorted_programs)
         return False
 
-    @decorators._check_for_dizque_instance
+    @decorators.check_for_dizque_instance
     def cyclical_shuffle(self) -> bool:
         """
         Sort TV shows on this channel cyclically
@@ -901,7 +929,7 @@ class Channel(BaseAPIObject):
             return self.add_programs(programs=sorted_programs)
         return False
 
-    @decorators._check_for_dizque_instance
+    @decorators.check_for_dizque_instance
     def block_shuffle(self,
                       block_length: int,
                       randomize: bool = False) -> bool:
@@ -922,7 +950,7 @@ class Channel(BaseAPIObject):
             return self.add_programs(programs=sorted_programs)
         return False
 
-    @decorators._check_for_dizque_instance
+    @decorators.check_for_dizque_instance
     def replicate(self,
                   how_many_times: int) -> bool:
         """
@@ -944,7 +972,7 @@ class Channel(BaseAPIObject):
             return self.add_programs(programs=final_program_list)
         return False
 
-    @decorators._check_for_dizque_instance
+    @decorators.check_for_dizque_instance
     def replicate_and_shuffle(self,
                               how_many_times: int) -> bool:
         """
@@ -968,7 +996,7 @@ class Channel(BaseAPIObject):
             return self.add_programs(programs=final_program_list)
         return False
 
-    @decorators._check_for_dizque_instance
+    @decorators.check_for_dizque_instance
     def remove_duplicate_programs(self) -> bool:
         """
         Delete duplicate programs on this channel
@@ -982,7 +1010,7 @@ class Channel(BaseAPIObject):
             return self.add_programs(programs=sorted_programs)
         return False
 
-    @decorators._check_for_dizque_instance
+    @decorators.check_for_dizque_instance
     def remove_duplicate_redirects(self) -> bool:
         """
         Delete duplicate redirects on this channel
@@ -995,7 +1023,7 @@ class Channel(BaseAPIObject):
             return self.add_programs(programs=sorted_programs)
         return False
 
-    @decorators._check_for_dizque_instance
+    @decorators.check_for_dizque_instance
     def remove_redirects(self) -> bool:
         """
         Delete all redirects from a channel, preserving offline times, programs and filler items
@@ -1011,7 +1039,7 @@ class Channel(BaseAPIObject):
             return self.add_programs(programs=non_redirects)
         return False
 
-    @decorators._check_for_dizque_instance
+    @decorators.check_for_dizque_instance
     def remove_specials(self) -> bool:
         """
         Delete all specials from this channel
@@ -1030,7 +1058,7 @@ class Channel(BaseAPIObject):
             return self.add_programs(programs=non_specials)
         return False
 
-    @decorators._check_for_dizque_instance
+    @decorators.check_for_dizque_instance
     def pad_times(self,
                   start_every_x_minutes: int) -> bool:
         """
@@ -1055,7 +1083,7 @@ class Channel(BaseAPIObject):
                 return self.add_programs(programs=programs_and_pads)
         return False
 
-    @decorators._check_for_dizque_instance
+    @decorators.check_for_dizque_instance
     def add_reruns(self,
                    start_time: datetime,
                    length_hours: int,
@@ -1092,7 +1120,7 @@ class Channel(BaseAPIObject):
             return self.add_programs(programs=final_programs_to_add)
         return False
 
-    @decorators._check_for_dizque_instance
+    @decorators.check_for_dizque_instance
     def add_channel_at_night(self,
                              night_channel_number: int,
                              start_hour: int,
@@ -1152,7 +1180,7 @@ class Channel(BaseAPIObject):
             return self.add_programs(programs=final_programs_to_add)
         return False
 
-    @decorators._check_for_dizque_instance
+    @decorators.check_for_dizque_instance
     def add_channel_at_night_alt(self,
                                  night_channel_number: int,
                                  start_hour: int,
@@ -1252,7 +1280,7 @@ class Channel(BaseAPIObject):
             return self.add_programs(programs=final_programs_to_add)
         return False
 
-    @decorators._check_for_dizque_instance
+    @decorators.check_for_dizque_instance
     def balance_programs(self,
                          margin_of_error: float = 0.1) -> bool:
         """
@@ -1268,7 +1296,7 @@ class Channel(BaseAPIObject):
             return self.add_programs(programs=sorted_programs)
         return False
 
-    @decorators._check_for_dizque_instance
+    @decorators.check_for_dizque_instance
     def fast_forward(self,
                      seconds: int = 0,
                      minutes: int = 0,
@@ -1307,7 +1335,7 @@ class Channel(BaseAPIObject):
             return True
         return False
 
-    @decorators._check_for_dizque_instance
+    @decorators.check_for_dizque_instance
     def rewind(self,
                seconds: int = 0,
                minutes: int = 0,
@@ -1341,7 +1369,7 @@ class Channel(BaseAPIObject):
                                  years=years * -1)
 
     # Delete
-    @decorators._check_for_dizque_instance
+    @decorators.check_for_dizque_instance
     def delete(self) -> bool:
         """
         Delete this channel

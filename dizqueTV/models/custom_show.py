@@ -1,13 +1,13 @@
 from typing import Union, List
 
-from dizqueTV.exceptions import MissingParametersError, ItemCreationError
-from plexapi.video import Video, Movie, Episode
 from plexapi.audio import Track
 from plexapi.server import PlexServer as PServer
+from plexapi.video import Video, Movie, Episode
 
 from dizqueTV import decorators, helpers
-from dizqueTV.models.media import Program
+from dizqueTV.exceptions import MissingParametersError, ItemCreationError
 from dizqueTV.models.base import BaseAPIObject
+from dizqueTV.models.media import Program
 
 
 class CustomShowItem(Program):
@@ -114,7 +114,7 @@ class CustomShow(BaseAPIObject):
         return details.content
 
     # Update
-    @decorators._check_for_dizque_instance
+    @decorators.check_for_dizque_instance
     def refresh(self):
         """
         Reload current CustomShow object
@@ -128,7 +128,7 @@ class CustomShow(BaseAPIObject):
             self.__init__(data=json_data, dizque_instance=self._dizque_instance)
             del temp_custom_show
 
-    @decorators._check_for_dizque_instance
+    @decorators.check_for_dizque_instance
     def update(self, **kwargs) -> bool:
         """
         Edit this CustomShow on dizqueTV
@@ -143,7 +143,7 @@ class CustomShow(BaseAPIObject):
             return True
         return False
 
-    @decorators._check_for_dizque_instance
+    @decorators.check_for_dizque_instance
     def edit(self,
              **kwargs) -> bool:
         """
@@ -155,7 +155,7 @@ class CustomShow(BaseAPIObject):
         """
         return self.update(**kwargs)
 
-    @decorators._check_for_dizque_instance
+    @decorators.check_for_dizque_instance
     def add_program(self,
                     plex_item: Union[Video, Movie, Episode, Track] = None,
                     plex_server: PServer = None,
@@ -192,7 +192,7 @@ class CustomShow(BaseAPIObject):
             custom_show_data['duration'] += custom_show_item.duration
         return self.update(**custom_show_data)
 
-    @decorators._check_for_dizque_instance
+    @decorators.check_for_dizque_instance
     def add_programs(self,
                      programs: List[Union[Program, CustomShowItem, Video, Movie, Episode, Track]] = None,
                      plex_server: PServer = None):
@@ -227,7 +227,7 @@ class CustomShow(BaseAPIObject):
                 custom_show_data['duration'] += custom_show_item.duration
         return self.update(**custom_show_data)
 
-    @decorators._check_for_dizque_instance
+    @decorators.check_for_dizque_instance
     def delete_program(self, program: Union[Program, CustomShowItem]) -> bool:
         """
         Delete a custom show item from this custom show
@@ -246,7 +246,7 @@ class CustomShow(BaseAPIObject):
                 return self.update(**custom_show_data)
         return False
 
-    @decorators._check_for_dizque_instance
+    @decorators.check_for_dizque_instance
     def delete_all_programs(self) -> bool:
         """
         Delete all custom show items from this custom show
@@ -261,7 +261,7 @@ class CustomShow(BaseAPIObject):
         return self.update(**custom_show_data)
 
     # Sort FillerItem
-    @decorators._check_for_dizque_instance
+    @decorators.check_for_dizque_instance
     def sort_filler_by_duration(self) -> bool:
         """
         Sort all custom show items on this custom show by duration
@@ -274,7 +274,7 @@ class CustomShow(BaseAPIObject):
             return self.add_programs(programs=sorted_programs)
         return False
 
-    @decorators._check_for_dizque_instance
+    @decorators.check_for_dizque_instance
     def sort_filler_randomly(self) -> bool:
         """
         Sort all custom show items on this custom show randomly
@@ -287,7 +287,7 @@ class CustomShow(BaseAPIObject):
             return self.add_programs(programs=sorted_programs)
         return False
 
-    @decorators._check_for_dizque_instance
+    @decorators.check_for_dizque_instance
     def remove_duplicate_fillers(self) -> bool:
         """
         Delete duplicate custom show items on this custom show
@@ -301,7 +301,7 @@ class CustomShow(BaseAPIObject):
         return False
 
     # Delete
-    @decorators._check_for_dizque_instance
+    @decorators.check_for_dizque_instance
     def delete(self) -> bool:
         """
         Delete this custom show

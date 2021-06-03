@@ -1,32 +1,32 @@
 import json
 import logging
 from datetime import datetime
-from xml.etree import ElementTree
 from typing import List, Union
+from xml.etree import ElementTree
 
 import m3u8
-from requests import Response
-from plexapi.video import Video, Movie, Episode
 from plexapi.audio import Track
 from plexapi.server import PlexServer as PServer
+from plexapi.video import Video, Movie, Episode
+from requests import Response
 
 import dizqueTV.dizquetv_requests as requests
+import dizqueTV.helpers as helpers
+from dizqueTV._analytics import GoogleAnalytics
+from dizqueTV._info import __analytics_id__ as analytics_id
 from dizqueTV.advanced import Advanced
-from dizqueTV.models.custom_show import CustomShow, CustomShowDetails, CustomShowItem
-from dizqueTV.models.general import UploadImageResponse
-from dizqueTV.models.settings import XMLTVSettings, PlexSettings, FFMPEGSettings, HDHomeRunSettings
+from dizqueTV.exceptions import MissingParametersError, ChannelCreationError, ItemCreationError, GeneralException
 from dizqueTV.models.channels import Channel, TimeSlot, TimeSlotItem, Schedule
-from dizqueTV.models.guide import Guide
+from dizqueTV.models.custom_show import CustomShow, CustomShowDetails, CustomShowItem
 from dizqueTV.models.fillers import FillerList
+from dizqueTV.models.general import UploadImageResponse
+from dizqueTV.models.guide import Guide
 from dizqueTV.models.media import FillerItem, Program, Redirect
 from dizqueTV.models.plex_server import PlexServer
+from dizqueTV.models.settings import XMLTVSettings, PlexSettings, FFMPEGSettings, HDHomeRunSettings
 from dizqueTV.models.templates import PLEX_SERVER_SETTINGS_TEMPLATE, CHANNEL_SETTINGS_TEMPLATE, \
     CHANNEL_SETTINGS_DEFAULT, \
     FILLER_LIST_SETTINGS_TEMPLATE, WATERMARK_SETTINGS_DEFAULT, CUSTOM_SHOW_TEMPLATE
-import dizqueTV.helpers as helpers
-from dizqueTV.exceptions import MissingParametersError, ChannelCreationError, ItemCreationError, GeneralException
-from dizqueTV._analytics import GoogleAnalytics
-from dizqueTV._info import __analytics_id__ as analytics_id
 
 
 def make_time_slot_from_dizque_program(program: Union[Program, Redirect],
@@ -470,6 +470,20 @@ class API:
         """
         return self._get_json(endpoint=f'/channel/description/{channel_number}')
 
+    def get_channel_without_programs(self, channel_number: int) -> Union[Channel, None]:
+        channel_data = self._get_json(endpoint=f'/channel/programless/{channel_number}')
+        if channel_data:
+            return Channel(data=channel_data, dizque_instance=self)
+        return None
+
+    def get_channel_programs(self, channel_number: int) -> List[Union[Program, CustomShow]]:
+        channel_data = self._get_json(endpoint=f'/channel/programs/{channel_number}')
+        if channel_data:
+            channel = Channel(data=channel_data, dizque_instance=self)
+            if channel:
+                return channel.programs
+        return []
+
     @property
     def channel_numbers(self) -> List[int]:
         """
@@ -648,6 +662,37 @@ class API:
             if type(item) in [Program, Redirect]:
                 data['programs'].append(item._data)
         res = self._post(endpoint='/channel-tools/time-slots', data=data)
+        if res:
+            schedule_json = res.json()
+            return channel.update(programs=schedule_json['programs'],
+                                  startTime=schedule_json['startTime'],
+                                  scheduleBackup=data['schedule'])
+        return False
+
+    def _make_random_schedule(self, channel: Channel, schedule: Schedule = None, schedule_settings: dict = None) -> bool:
+        """
+        Add or update a random schedule to a Channel
+
+        :param channel: Channel object to add schedule to
+        :type channel: Channel
+        :param schedule: Schedule object to add (Optional)
+        :type schedule: Schedule, optional
+        :param schedule_settings: Schedule settings dictionary to use (Optional)
+        :type schedule_settings: dict, optional
+        :return: True if successful, False if unsuccessful (Channel reloads in-place)
+        :rtype: bool
+        """
+        data = {'programs': []}
+        if schedule:
+            data['schedule'] = (schedule._data
+                                if helpers._object_has_attribute(obj=schedule, attribute_name="_data")
+                                else {})
+        else:
+            data['schedule'] = schedule_settings
+        for item in channel.programs:
+            if type(item) in [Program, Redirect]:
+                data['programs'].append(item._data)
+        res = self._post(endpoint='/channel-tools/random-slots', data=data)
         if res:
             schedule_json = res.json()
             return channel.update(programs=schedule_json['programs'],

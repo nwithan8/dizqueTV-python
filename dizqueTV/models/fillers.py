@@ -1,16 +1,16 @@
 from typing import List, Union
 
-from plexapi.video import Video, Movie, Episode
 from plexapi.audio import Track
 from plexapi.server import PlexServer as PServer
+from plexapi.video import Video, Movie, Episode
 
 import dizqueTV.helpers as helpers
 from dizqueTV import decorators
+from dizqueTV.exceptions import MissingParametersError
 from dizqueTV.models.base import BaseAPIObject
 from dizqueTV.models.custom_show import CustomShow, CustomShowItem
 from dizqueTV.models.media import FillerItem
 from dizqueTV.models.templates import FILLER_ITEM_TEMPLATE
-from dizqueTV.exceptions import MissingParametersError
 
 
 class FillerList(BaseAPIObject):
@@ -26,7 +26,7 @@ class FillerList(BaseAPIObject):
     # CRUD Operations
     # Create (handled in dizqueTV.py)
     # Read
-    @decorators._check_for_dizque_instance
+    @decorators.check_for_dizque_instance
     def refresh(self):
         """
         Reload current FillerList object
@@ -43,7 +43,7 @@ class FillerList(BaseAPIObject):
             del temp_filler_list
 
     @property
-    @decorators._check_for_dizque_instance
+    @decorators.check_for_dizque_instance
     def details(self) -> dict:
         """
         Get FillerList JSON
@@ -69,7 +69,7 @@ class FillerList(BaseAPIObject):
                                                                              filler_list_instance=self)
 
     @property
-    @decorators._check_for_dizque_instance
+    @decorators.check_for_dizque_instance
     def channels(self) -> List:
         """
         Get all channels this filler list is used on
@@ -80,7 +80,7 @@ class FillerList(BaseAPIObject):
         return self._dizque_instance.get_filler_list_channels(filler_list_id=self.id)
 
     # Update
-    @decorators._check_for_dizque_instance
+    @decorators.check_for_dizque_instance
     def update(self, **kwargs) -> bool:
         """
         Edit this FillerList on dizqueTV
@@ -95,7 +95,7 @@ class FillerList(BaseAPIObject):
             return True
         return False
 
-    @decorators._check_for_dizque_instance
+    @decorators.check_for_dizque_instance
     def get_filler_item(self,
                         filler_item_title: str) -> Union[FillerItem, None]:
         """
@@ -111,7 +111,7 @@ class FillerList(BaseAPIObject):
                 return filler_item
         return None
 
-    @decorators._check_for_dizque_instance
+    @decorators.check_for_dizque_instance
     def add_filler(self,
                    plex_item: Union[Video, Movie, Episode, Track] = None,
                    plex_server: PServer = None,
@@ -151,7 +151,7 @@ class FillerList(BaseAPIObject):
             return self.update(**filler_list_data)
         return False
 
-    @decorators._check_for_dizque_instance
+    @decorators.check_for_dizque_instance
     def add_fillers(self,
                     fillers: List[Union[FillerItem, CustomShow, Video, Movie, Episode, Track]],
                     plex_server: PServer = None) -> bool:
@@ -180,7 +180,7 @@ class FillerList(BaseAPIObject):
                 filler_list_data['duration'] += filler.duration
         return self.update(**filler_list_data)
 
-    @decorators._check_for_dizque_instance
+    @decorators.check_for_dizque_instance
     def update_filler(self, filler: FillerItem, **kwargs) -> bool:
         """
         Update a filler item on this filler list
@@ -202,7 +202,7 @@ class FillerList(BaseAPIObject):
                 return self.update(**filler_list_data)
         return False
 
-    @decorators._check_for_dizque_instance
+    @decorators.check_for_dizque_instance
     def delete_filler(self, filler: FillerItem) -> bool:
         """
         Delete a filler item from this filler list
@@ -221,7 +221,7 @@ class FillerList(BaseAPIObject):
                 return self.update(**filler_list_data)
         return False
 
-    @decorators._check_for_dizque_instance
+    @decorators.check_for_dizque_instance
     def delete_all_fillers(self) -> bool:
         """
         Delete all filler items from this filler list
@@ -236,7 +236,7 @@ class FillerList(BaseAPIObject):
         return self.update(**filler_list_data)
 
     # Sort FillerItem
-    @decorators._check_for_dizque_instance
+    @decorators.check_for_dizque_instance
     def sort_filler_by_duration(self) -> bool:
         """
         Sort all filler items on this filler list by duration
@@ -249,7 +249,7 @@ class FillerList(BaseAPIObject):
             return self.add_fillers(fillers=sorted_filler)
         return False
 
-    @decorators._check_for_dizque_instance
+    @decorators.check_for_dizque_instance
     def sort_filler_randomly(self) -> bool:
         """
         Sort all filler items on this filler list randomly
@@ -262,7 +262,7 @@ class FillerList(BaseAPIObject):
             return self.add_fillers(fillers=sorted_filler)
         return False
 
-    @decorators._check_for_dizque_instance
+    @decorators.check_for_dizque_instance
     def remove_duplicate_fillers(self) -> bool:
         """
         Delete duplicate filler items on this filler list
@@ -276,7 +276,7 @@ class FillerList(BaseAPIObject):
         return False
 
     # Delete
-    @decorators._check_for_dizque_instance
+    @decorators.check_for_dizque_instance
     def delete(self) -> bool:
         """
         Delete this filler list
