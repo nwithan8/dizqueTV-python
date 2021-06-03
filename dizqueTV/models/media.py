@@ -1,5 +1,5 @@
-from dizqueTV.exceptions import MissingParametersError
 import dizqueTV.decorators as decorators
+from dizqueTV.exceptions import MissingParametersError
 from dizqueTV.models.base import BaseAPIObject
 
 
@@ -58,7 +58,7 @@ class Program(MediaItem, Redirect):
     def __repr__(self):
         return f"{self.__class__.__name__}({self.title})"
 
-    @decorators._check_for_dizque_instance
+    @decorators.check_for_dizque_instance
     def refresh(self, data: dict = None, program_title: str = None, redirect_channel_number: int = None):
         """
         Reload current Program object
@@ -80,7 +80,7 @@ class Program(MediaItem, Redirect):
         self.__init__(data=data, channel_instance=self._channel_instance, dizque_instance=self._dizque_instance)
 
 
-    @decorators._check_for_dizque_instance
+    @decorators.check_for_dizque_instance
     def update(self, **kwargs) -> bool:
         """
         Update this program
@@ -91,7 +91,7 @@ class Program(MediaItem, Redirect):
         return self._channel_instance.update_program(program=self, **kwargs)
 
 
-    @decorators._check_for_dizque_instance
+    @decorators.check_for_dizque_instance
     def delete(self) -> bool:
         """
         Delete this program
@@ -110,7 +110,7 @@ class FillerItem(MediaItem):
     def __repr__(self):
         return f"{self.__class__.__name__}({self.title})"
 
-    @decorators._check_for_dizque_instance
+    @decorators.check_for_dizque_instance
     def refresh(self, data: dict = None, filler_item_title: str = None):
         """
         Reload current FillerItem object
@@ -132,7 +132,7 @@ class FillerItem(MediaItem):
                 del temp_item
         self.__init__(data=data, filler_list_instance=self._filler_list_instance, dizque_instance=self._dizque_instance)
 
-    @decorators._check_for_dizque_instance
+    @decorators.check_for_dizque_instance
     def update(self, **kwargs) -> bool:
         """
         Update this filler
@@ -142,7 +142,7 @@ class FillerItem(MediaItem):
         """
         return self._filler_list_instance.update_filler(program=self, **kwargs)
 
-    @decorators._check_for_dizque_instance
+    @decorators.check_for_dizque_instance
     def delete(self) -> bool:
         """
         Delete this filler

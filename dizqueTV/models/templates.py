@@ -70,6 +70,28 @@ SCHEDULE_SETTINGS_DEFAULT = {
     "timeZoneOffset": 0,
 }
 
+RANDOM_SCHEDULE_SETTINGS_TEMPLATE = {
+    "lateness": int,
+    "maxDays": int,
+    "flexPreference": ["end", "distribute"],
+    "slots": [],
+    "pad": int,
+    "padStyle": str,
+    "randomDistribution": str,
+    "timeZoneOffset": int,
+}
+
+RANDOM_SCHEDULE_SETTINGS_DEFAULT = {
+    "lateness": 0,
+    "maxDays": 365,
+    "flexPreference": "distribute",
+    "slots": [],
+    "pad": 1,
+    "padStyle": "slot",
+    "randomDistribution": "uniform",
+    "timeZoneOffset": 0,
+}
+
 CHANNEL_SETTINGS_TEMPLATE = {
     "programs": List,
     "fillerRepeatCooldown": int,
