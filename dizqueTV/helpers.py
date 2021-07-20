@@ -99,12 +99,8 @@ def _combine_settings_enforce_types(new_settings_dict: dict,
                 pass
             else:
                 if type(v) == template_dict[k]:
-                    template_dict[k] = v
-                elif v in template_dict[k]:
-                    template_dict[k] = v
-                else:
-                    template_dict[k] = default_dict[k]
-    return template_dict
+                    default_dict[k] = v
+    return default_dict
 
 
 def _filter_dictionary(new_dictionary: dict, template_dict: dict) -> dict:

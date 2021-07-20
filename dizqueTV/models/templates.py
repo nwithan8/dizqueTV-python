@@ -53,21 +53,25 @@ TIME_SLOT_SETTINGS_TEMPLATE = {
 }
 
 SCHEDULE_SETTINGS_TEMPLATE = {
+    "period": int,
     "lateness": int,
     "maxDays": int,
     "flexPreference": ["end", "distribute"],
-    "slots": [],
+    "slots": list,
     "pad": int,
+    "fake": dict,
     "timeZoneOffset": int,
 }
 
 SCHEDULE_SETTINGS_DEFAULT = {
+    "period": 86400000,
     "lateness": 0,
     "maxDays": 365,
     "flexPreference": "distribute",
     "slots": [],
     "pad": 1,
-    "timeZoneOffset": 0,
+    "fake": {"time": -1},
+    "timeZoneOffset": 300,
 }
 
 RANDOM_SCHEDULE_SETTINGS_TEMPLATE = {
