@@ -12,7 +12,7 @@ DizqueTV
 Channels
 ------------------------
 
-.. automodule:: dizqueTV.channels
+.. automodule:: dizqueTV.models.channels
    :members:
    :undoc-members:
    :show-inheritance:
@@ -20,15 +20,7 @@ Channels
 Fillers
 -----------------------
 
-.. automodule:: dizqueTV.fillers
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-Guide
----------------------
-
-.. automodule:: dizqueTV.guide
+.. automodule:: dizqueTV.models.fillers
    :members:
    :undoc-members:
    :show-inheritance:
@@ -36,7 +28,24 @@ Guide
 Media
 ---------------------
 
-.. automodule:: dizqueTV.media
+.. automodule:: dizqueTV.models.media
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Custom Show
+---------------------
+
+.. automodule:: dizqueTV.models.custom_show
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+Guide
+---------------------
+
+.. automodule:: dizqueTV.models.guide
    :members:
    :undoc-members:
    :show-inheritance:
@@ -44,7 +53,7 @@ Media
 Plex Server
 ----------------------------
 
-.. automodule:: dizqueTV.plex_server
+.. automodule:: dizqueTV.models.plex_server
    :members:
    :undoc-members:
    :show-inheritance:
@@ -52,7 +61,7 @@ Plex Server
 Settings
 ------------------------
 
-.. automodule:: dizqueTV.settings
+.. automodule:: dizqueTV.models.settings
    :members:
    :undoc-members:
    :show-inheritance:
