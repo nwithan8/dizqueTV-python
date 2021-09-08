@@ -1,16 +1,17 @@
+import collections
 import json
 import os
+import random
 from datetime import datetime, timedelta
 from typing import List, Union, Tuple
-import collections
-import random
 
-from plexapi.video import Video, Movie, Episode
+import numpy.random as numpy_random
 from plexapi.audio import Track
 from plexapi.server import PlexServer as PServer
+from plexapi.video import Video, Movie, Episode
 
-from dizqueTV.exceptions import MissingSettingsError
 import dizqueTV.dizquetv_requests as requests
+from dizqueTV.exceptions import MissingSettingsError
 from dizqueTV.models.media import Program, Redirect, FillerItem
 
 _access_tokens = {}
@@ -813,6 +814,58 @@ def random_choice(items: List):
     return random.choice(items)
 
 
+def weighted_choice_by_probabilities(items: List, probabilities: List[float]):
+    """
+    Get a random item from a weighted list
+
+    :param items: list of items
+    :type items: list
+    :param probabilities: list of corresponding item percentage (must total 1)
+    :type probabilities: list of floats
+    :return: random item
+    :rtype: object
+    """
+    choice_list = numpy_random.choice(a=items, size=1, p=probabilities)
+    return choice_list[0]
+
+
+def weighted_choice_by_sizes_lists(items: List, sizes: List[int]):
+    """
+    Get a random item from a weighted list
+
+    :param items: list of items
+    :type items: list
+    :param sizes: list of corresponding item sizes
+    :type sizes: list of ints
+    :return: random item
+    :rtype: object
+    """
+    total_items = sum(sizes)
+    percentages = []
+    for size in sizes:
+        percentages.append(size / total_items)
+    return weighted_choice_by_probabilities(items=items, probabilities=percentages)
+
+
+def weighted_choice_by_sizes_dict(items_and_sizes: dict):
+    """
+    Get a random item from a weighted dict
+
+    :param items_and_sizes: dict of items and sizes
+    :type items_and_sizes: dict
+    :return: random item
+    :rtype: object
+    """
+    total_items = sum(items_and_sizes.values())
+    percentages = []
+    for size in items_and_sizes.values():
+        percentages.append(size / total_items)
+    items = []
+    for item in items_and_sizes.keys():
+        items.append(item)
+    return weighted_choice_by_probabilities(items=items, probabilities=percentages)
+
+
 def shuffle(items: List) -> bool:
     """
     Randomize the order of the items in a list in-place
@@ -1019,15 +1072,18 @@ def sort_media_cyclical_shuffle(media_items: List[Union[Program, FillerItem]]) -
         index += 1
     show_list['remaining_episode_count'] = total_episode_count
     final_list = []
-    categories = ['show', 'non_show']
     while len(final_list) != total_item_count:
-        if 'non_show' in categories and len(non_shows) == 0:
-            categories.remove('non_show')
-        if 'show' in categories and show_list['remaining_episode_count'] == 0:
-            categories.remove('show')
-        if not categories:
+        categories_and_sizes = {
+            'show': show_list['remaining_episode_count'],
+            'non_show': len(non_shows)
+        }
+        if 'non_show' in categories_and_sizes.keys() and len(non_shows) == 0:
+            del categories_and_sizes['non_show']
+        if 'show' in categories_and_sizes.keys() and show_list['remaining_episode_count'] == 0:
+            del categories_and_sizes['show']
+        if not categories_and_sizes:
             break
-        show_or_non_show = random_choice(items=categories)
+        show_or_non_show = weighted_choice_by_sizes_dict(items_and_sizes=categories_and_sizes)
         if show_or_non_show == 'show':
             random_index = random_choice(items=index_list)  # failure 1
             new_item = show_list[random_index].pop(0)
