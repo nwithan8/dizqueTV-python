@@ -12,18 +12,17 @@
 #
 import os
 import sys
-from dizqueTV import _info
 sys.path.insert(0, os.path.abspath('../..'))
 
 
 # -- Project information -----------------------------------------------------
 
-project = _info.__title__
-copyright = _info.__copyright__
-author = _info.__author__
+project = "dizqueTV"
+copyright = "Copyright © 2021 - Nate Harris"
+author = "Nate Harris"
 
 # The full version, including alpha/beta/rc tags
-release = _info.__version__
+release = "1.4.3.0"
 
 
 # -- General configuration ---------------------------------------------------
