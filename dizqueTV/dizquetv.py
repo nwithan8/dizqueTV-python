@@ -23,7 +23,7 @@ from dizqueTV.models.general import UploadImageResponse
 from dizqueTV.models.guide import Guide
 from dizqueTV.models.media import FillerItem, Program, Redirect
 from dizqueTV.models.plex_server import PlexServer
-from dizqueTV.models.settings import XMLTVSettings, PlexSettings, FFMPEGSettings, HDHomeRunSettings
+from dizqueTV.models.settings import XMLTVSettings, PlexSettings, FFMPEGSettings, HDHomeRunSettings, ServerDetails
 from dizqueTV.models.templates import PLEX_SERVER_SETTINGS_TEMPLATE, CHANNEL_SETTINGS_TEMPLATE, \
     CHANNEL_SETTINGS_DEFAULT, \
     FILLER_LIST_SETTINGS_TEMPLATE, WATERMARK_SETTINGS_DEFAULT, CUSTOM_SHOW_TEMPLATE
@@ -280,6 +280,17 @@ class API:
             return response.json()
         return {}
 
+    @property
+    def dizquetv_server_details(self) -> ServerDetails:
+        """
+        Get dizqueTV server details
+
+        :return: ServerDetails object
+        :rtype: ServerDetails
+        """
+        json_data = self._get_json(endpoint='/version')
+        return ServerDetails(data=json_data, dizque_instance=self)
+
     # Versions
     @property
     def dizquetv_version(self) -> str:
@@ -289,17 +300,27 @@ class API:
         :return: dizqueTV version number
         :rtype: str
         """
-        return self._get_json(endpoint='/version').get('dizquetv')
+        return self.dizquetv_server_details.server_version
 
     @property
     def ffmpeg_version(self) -> str:
         """
-        Get FFMPEG version number
+        Get FFmpeg version number
 
-        :return: ffmpeg version number
+        :return: FFmpeg version number
         :rtype: str
         """
-        return self._get_json(endpoint='/version').get('ffmpeg')
+        return self.dizquetv_server_details.ffmpeg_version
+
+    @property
+    def nodejs_version(self) -> str:
+        """
+        Get Node.js version number
+
+        :return: Node.js version number
+        :rtype: str
+        """
+        return self.dizquetv_server_details.nodejs_version
 
     # Plex Servers
     @property
