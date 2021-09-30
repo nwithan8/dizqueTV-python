@@ -81,6 +81,7 @@ class ChannelOnDemandSettings(BaseAPIObject):
         :rtype: bool
         """
         new_settings = helpers._combine_settings(new_settings_dict=kwargs, template_dict=self._data)
+        new_settings['firstProgramModulo'] = (self._channel_instance.startTime_datetime.timestamp() * 1000) % new_settings['modulo']
         if self._dizque_instance.update_channel(channel_number=self._channel_instance.number,
                                                 onDemand=new_settings):
             self._channel_instance.refresh()
@@ -333,6 +334,10 @@ class Channel(BaseAPIObject):
 
     def __repr__(self):
         return f"{self.__class__.__name__}({self.number}:{self.name})"
+
+    @property
+    def startTime_datetime(self) -> datetime:
+        return helpers.string_to_datetime(date_string=self.startTime)
 
     def _get_schedulable_items(self) -> List[TimeSlotItem]:
         """
