@@ -56,6 +56,39 @@ class ChannelFFMPEGSettings(BaseAPIObject):
         return False
 
 
+class ChannelOnDemandSettings(BaseAPIObject):
+    def __init__(self, data: dict, dizque_instance, channel_instance):
+        super().__init__(data, dizque_instance)
+        self._channel_instance = channel_instance
+        self.isOnDemand = data.get('isOnDemand')
+        self.modulo = data.get('modulo')
+        self.paused = data.get('paused')
+        self.firstProgramModulo = data.get('firstProgramModulo')
+        self.playedOffset = data.get('playedOffset')
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}({('On Demand' if self.isOnDemand else 'Not On Demand')})"
+
+    @decorators.check_for_dizque_instance
+    def update(self, **kwargs) -> bool:
+        """
+        Edit this channel's OnDemand settings on dizqueTV
+        Automatically refreshes associated Channel object
+
+
+        :param kwargs: keyword arguments of Channel FFMPEG settings names and values
+        :return: True if successful, False if unsuccessful (Channel reloads in-place, ChannelFFMPEGSettings object is destroyed)
+        :rtype: bool
+        """
+        new_settings = helpers._combine_settings(new_settings_dict=kwargs, template_dict=self._data)
+        if self._dizque_instance.update_channel(channel_number=self._channel_instance.number,
+                                                onDemand=new_settings):
+            self._channel_instance.refresh()
+            del self
+            return True
+        return False
+
+
 class Watermark(BaseAPIObject):
     def __init__(self, data: dict, dizque_instance, channel_instance):
         super().__init__(data, dizque_instance)
@@ -202,7 +235,7 @@ class Schedule(BaseAPIObject):
             kwargs = new_settings_filtered
         if kwargs['showId'] not in [item.showId for item in self._channel_instance.scheduledableItems]:
             raise GeneralException(f"Program {kwargs['showId']} cannot be added to a time slot. "
-                            f"Please make sure the program is added to the channel first.")
+                                   f"Please make sure the program is added to the channel first.")
         slots = self._data.get('slots', [])
         if kwargs['time'] in [slot['time'] for slot in slots]:
             raise GeneralException(f"Time slot {kwargs['time']} is already filled.")
@@ -287,6 +320,9 @@ class Channel(BaseAPIObject):
         self.transcoding = ChannelFFMPEGSettings(data=data.get('transcoding'),
                                                  dizque_instance=dizque_instance,
                                                  channel_instance=self) if data.get('transcoding') else None
+        self.onDemand = ChannelOnDemandSettings(data=data.get('onDemand'),
+                                                dizque_instance=dizque_instance,
+                                                channel_instance=self) if data.get('onDemand') else None
         self.schedule = None
         if data.get('scheduleBackup'):
             self.schedule = Schedule(data=data.get('scheduleBackup'),

@@ -46,6 +46,22 @@ CHANNEL_FFMPEG_SETTINGS_DEFAULT = {
     "videoBufSize": None
 }
 
+CHANNEL_ON_DEMAND_SETTINGS_TEMPLATE = {
+    "isOnDemand": bool,
+    "modulo": int,
+    "paused": bool,
+    "firstProgramModulo": int,
+    "playedOffset": int,
+}
+
+CHANNEL_ON_DEMAND_SETTINGS_DEFAULT = {
+    "isOnDemand": False,
+    "modulo": 1,
+    "paused": False,
+    "firstProgramModulo": 1,
+    "playedOffset": 0,
+}
+
 TIME_SLOT_SETTINGS_TEMPLATE = {
     "time": int,
     "showId": str,
