@@ -1,6 +1,30 @@
 from dizqueTV import decorators
-from dizqueTV.models.base import BaseAPIObject
+from dizqueTV.models.base import BaseAPIObject, BaseObject
 
+
+class ServerDetails(BaseAPIObject):
+    def __init__(self, data: dict, dizque_instance):
+        super().__init__(data, dizque_instance)
+        self.server_version = data.get('dizquetv')
+        self.ffmpeg_version = data.get('ffmpeg')
+        self.nodejs_version = data.get('nodejs')
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}({self.server_version})"
+
+    @decorators.check_for_dizque_instance
+    def reload(self):
+        """
+        Reload current ServerDetails object
+
+        :return: None
+        :rtype: None
+        """
+        temp_settings = self._dizque_instance.xmltv_settings
+        if temp_settings:
+            json_data = temp_settings._data
+            self.__init__(data=json_data, dizque_instance=self._dizque_instance)
+            del temp_settings
 
 class XMLTVSettings(BaseAPIObject):
     def __init__(self, data: dict, dizque_instance):
