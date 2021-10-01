@@ -75,6 +75,7 @@ SCHEDULE_SETTINGS_TEMPLATE = {
     "slots": [],
     "pad": int,
     "timeZoneOffset": int,
+    "fake": dict
 }
 
 SCHEDULE_SETTINGS_DEFAULT = {
@@ -84,6 +85,9 @@ SCHEDULE_SETTINGS_DEFAULT = {
     "slots": [],
     "pad": 1,
     "timeZoneOffset": 0,
+    "fake": {
+        "time": -1
+    }
 }
 
 RANDOM_SCHEDULE_SETTINGS_TEMPLATE = {
@@ -95,6 +99,7 @@ RANDOM_SCHEDULE_SETTINGS_TEMPLATE = {
     "padStyle": str,
     "randomDistribution": str,
     "timeZoneOffset": int,
+    "fake": dict
 }
 
 RANDOM_SCHEDULE_SETTINGS_DEFAULT = {
@@ -106,6 +111,9 @@ RANDOM_SCHEDULE_SETTINGS_DEFAULT = {
     "padStyle": "slot",
     "randomDistribution": "uniform",
     "timeZoneOffset": 0,
+    "fake": {
+        "time": -1
+    }
 }
 
 CHANNEL_SETTINGS_TEMPLATE = {
