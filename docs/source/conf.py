@@ -22,7 +22,7 @@ copyright = "Copyright © 2021 - Nate Harris"
 author = "Nate Harris"
 
 # The full version, including alpha/beta/rc tags
-release = "1.4.3.0"
+release = "1.5.0.0"
 
 
 # -- General configuration ---------------------------------------------------
