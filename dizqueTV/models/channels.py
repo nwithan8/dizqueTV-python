@@ -501,7 +501,7 @@ class Channel(BaseAPIObject):
         elif program:
             if type(program) == CustomShow:
                 # pass CustomShow handling to add_programs, since multiple programs need to be added
-                return self.add_programs(programs=[program])
+                return self.add_programs(programs=[program], plex_server=plex_server)
             else:
                 kwargs = program._data
         template = MOVIE_PROGRAM_TEMPLATE
