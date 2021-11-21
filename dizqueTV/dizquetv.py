@@ -5,6 +5,7 @@ from typing import List, Union
 from xml.etree import ElementTree
 
 import m3u8
+import plexapi.server
 from plexapi.audio import Track
 from plexapi.server import PlexServer as PServer
 from plexapi.video import Video, Movie, Episode
@@ -1400,7 +1401,8 @@ class API:
     def add_programs_to_channels(self,
                                  programs: List[Program],
                                  channels: List[Channel] = None,
-                                 channel_numbers: List[int] = None) -> bool:
+                                 channel_numbers: List[int] = None,
+                                 plex_server: PServer = None) -> bool:
         """
         Add multiple programs to multiple channels
 
@@ -1410,6 +1412,8 @@ class API:
         :type channels: List[Channel], optional
         :param channel_numbers: List of channel numbers
         :type channel_numbers: List[int], optional
+        :param plex_server: plexapi.server.PlexServer object (required if adding PlexAPI Video, Movie, Episode or Track objects)
+        :type plex_server: plexapi.server.PlexServer, optional
         :return: True if successful, False if unsuccessful (Channel objects reload in place)
         :rtype: bool
         """
@@ -1421,7 +1425,7 @@ class API:
             for number in channel_numbers:
                 channels.append(self.get_channel(channel_number=number))
         for channel in channels:
-            if not channel.add_programs(programs=programs):
+            if not channel.add_programs(programs=programs, plex_server=plex_server):
                 return False
         return True
 
