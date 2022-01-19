@@ -47,7 +47,7 @@ class ChannelFFMPEGSettings(BaseAPIObject):
             new_settings = CHANNEL_FFMPEG_SETTINGS_DEFAULT
         else:
             new_settings = helpers._combine_settings(new_settings_dict=kwargs,
-                                                     template_dict=self._data)
+                                                     default_dict=self._data)
         if self._dizque_instance.update_channel(channel_number=self._channel_instance.number,
                                                 transcoding=new_settings):
             self._channel_instance.refresh()
@@ -80,7 +80,7 @@ class ChannelOnDemandSettings(BaseAPIObject):
         :return: True if successful, False if unsuccessful (Channel reloads in-place, ChannelFFMPEGSettings object is destroyed)
         :rtype: bool
         """
-        new_settings = helpers._combine_settings(new_settings_dict=kwargs, template_dict=self._data)
+        new_settings = helpers._combine_settings(new_settings_dict=kwargs, default_dict=self._data)
         new_settings['firstProgramModulo'] = (self._channel_instance.startTime_datetime.timestamp() * 1000) % new_settings['modulo']
         if self._dizque_instance.update_channel(channel_number=self._channel_instance.number,
                                                 onDemand=new_settings):
@@ -202,7 +202,7 @@ class Schedule(BaseAPIObject):
         :rtype: bool
         """
         new_settings = helpers._combine_settings_add_new(new_settings_dict=kwargs,
-                                                         template_dict=(self._data
+                                                         default_dict=(self._data
                                                                         if self._data else SCHEDULE_SETTINGS_DEFAULT)
                                                          )
         return self._channel_instance.update_schedule(**new_settings)
@@ -263,7 +263,7 @@ class Schedule(BaseAPIObject):
             if slot['time'] != time_slot.time:
                 new_slots.append(slot)
             else:
-                new_slot_data = helpers._combine_settings(new_settings_dict=kwargs, template_dict=slot)
+                new_slot_data = helpers._combine_settings(new_settings_dict=kwargs, default_dict=slot)
                 new_slots.append(new_slot_data)
         return self.update(slots=new_slots)
 
@@ -576,7 +576,7 @@ class Channel(BaseAPIObject):
                 if kwargs.get('duration'):
                     channel_data['duration'] -= a_program['duration']
                     channel_data['duration'] += kwargs['duration']
-                new_data = helpers._combine_settings(new_settings_dict=kwargs, template_dict=a_program)
+                new_data = helpers._combine_settings(new_settings_dict=kwargs, default_dict=a_program)
                 a_program.update(new_data)
                 return self.update(**channel_data)
         return False
@@ -833,8 +833,8 @@ class Channel(BaseAPIObject):
         for slot in time_slots:
             kwargs['slots'].append(slot._data)
         schedule_settings = helpers._combine_settings_enforce_types(new_settings_dict=kwargs,
-                                                                    template_dict=SCHEDULE_SETTINGS_TEMPLATE,
-                                                                    default_dict=SCHEDULE_SETTINGS_DEFAULT)
+                                                                    default_dict=SCHEDULE_SETTINGS_DEFAULT,
+                                                                    template_dict=SCHEDULE_SETTINGS_TEMPLATE)
         if helpers._settings_are_complete(new_settings_dict=schedule_settings,
                                           template_settings_dict=SCHEDULE_SETTINGS_TEMPLATE):
             schedule = Schedule(data=schedule_settings, dizque_instance=None, channel_instance=self)
@@ -855,8 +855,8 @@ class Channel(BaseAPIObject):
         for slot in time_slots:
             kwargs['slots'].append(slot._data)
         schedule_settings = helpers._combine_settings_enforce_types(new_settings_dict=kwargs,
-                                                                    template_dict=RANDOM_SCHEDULE_SETTINGS_TEMPLATE,
-                                                                    default_dict=RANDOM_SCHEDULE_SETTINGS_DEFAULT)
+                                                                    default_dict=RANDOM_SCHEDULE_SETTINGS_DEFAULT,
+                                                                    template_dict=RANDOM_SCHEDULE_SETTINGS_TEMPLATE)
         if helpers._settings_are_complete(new_settings_dict=schedule_settings,
                                           template_settings_dict=RANDOM_SCHEDULE_SETTINGS_TEMPLATE):
             schedule = Schedule(data=schedule_settings, dizque_instance=None, channel_instance=self)

@@ -427,7 +427,7 @@ class API:
         """
         server = self.get_plex_server(server_name=server_name)
         if server:
-            new_settings = helpers._combine_settings(new_settings_dict=kwargs, template_dict=server._data)
+            new_settings = helpers._combine_settings(new_settings_dict=kwargs, default_dict=server._data)
             if self._post(endpoint='/plex-servers', data=new_settings):
                 return True
         return False
@@ -537,7 +537,7 @@ class API:
         :rtype: dict
         """
         final_dict = helpers._combine_settings_add_new(new_settings_dict=kwargs,
-                                                       template_dict=WATERMARK_SETTINGS_DEFAULT)
+                                                       default_dict=WATERMARK_SETTINGS_DEFAULT)
         if handle_errors and final_dict['enabled'] is True:
             if not (0 < final_dict['width'] <= 100):
                 raise GeneralException("Watermark width must greater than 0 and less than 100")
@@ -587,7 +587,7 @@ class API:
         settings_dict['duration'] = sum(program['duration'] for program in settings_dict['programs'])
         settings_dict['watermark'] = self._fill_in_watermark_settings(**settings_dict)
         return helpers._combine_settings_add_new(new_settings_dict=settings_dict,
-                                                 template_dict=CHANNEL_SETTINGS_DEFAULT)
+                                                 default_dict=CHANNEL_SETTINGS_DEFAULT)
 
     def add_channel(self,
                     programs: List[Union[Program, Redirect, Video, Movie, Episode, Track]] = [],
@@ -641,7 +641,7 @@ class API:
         if channel:
             if kwargs.get('iconPosition'):
                 kwargs['iconPosition'] = helpers.convert_icon_position(position_text=kwargs['iconPosition'])
-            new_settings = helpers._combine_settings_add_new(new_settings_dict=kwargs, template_dict=channel._data)
+            new_settings = helpers._combine_settings_add_new(new_settings_dict=kwargs, default_dict=channel._data)
             if self._post(endpoint="/channel", data=new_settings):
                 return True
         return False
@@ -805,7 +805,7 @@ class API:
                 raise ChannelCreationError("You must include at least one program when creating a filler list.")
         if 'name' not in settings_dict.keys():
             settings_dict['name'] = f"New List {len(self.filler_lists) + 1}"
-        return helpers._combine_settings(new_settings_dict=settings_dict, template_dict=CHANNEL_SETTINGS_DEFAULT)
+        return helpers._combine_settings(new_settings_dict=settings_dict, default_dict=CHANNEL_SETTINGS_DEFAULT)
 
     def add_filler_list(self,
                         content: List[Union[Program, Video, Movie, Episode, Track]],
@@ -857,7 +857,7 @@ class API:
         """
         filler_list = self.get_filler_list(filler_list_id=filler_list_id)
         if filler_list:
-            new_settings = helpers._combine_settings(new_settings_dict=kwargs, template_dict=filler_list._data)
+            new_settings = helpers._combine_settings(new_settings_dict=kwargs, default_dict=filler_list._data)
             if self._post(endpoint=f"/filler/{filler_list_id}", data=new_settings):
                 return True
         return False
@@ -948,7 +948,7 @@ class API:
         """
         custom_show = self.get_custom_show(custom_show_id=custom_show_id)
         if custom_show:
-            new_settings = helpers._combine_settings_add_new(new_settings_dict=kwargs, template_dict=custom_show._data)
+            new_settings = helpers._combine_settings_add_new(new_settings_dict=kwargs, default_dict=custom_show._data)
             if self._post(endpoint=f"/show/{custom_show_id}", data=new_settings):
                 return True
         return False
@@ -1006,7 +1006,7 @@ class API:
         :return: True if successful, False if unsuccessful
         :rtype: bool
         """
-        new_settings = helpers._combine_settings(new_settings_dict=kwargs, template_dict=self.ffmpeg_settings._data)
+        new_settings = helpers._combine_settings(new_settings_dict=kwargs, default_dict=self.ffmpeg_settings._data)
         if self._put(endpoint='/ffmpeg-settings', data=new_settings):
             return True
         return False
@@ -1045,7 +1045,7 @@ class API:
         :return: True if successful, False if unsuccessful
         :rtype: bool
         """
-        new_settings = helpers._combine_settings(new_settings_dict=kwargs, template_dict=self.plex_settings._data)
+        new_settings = helpers._combine_settings(new_settings_dict=kwargs, default_dict=self.plex_settings._data)
         if self._put(endpoint='/plex-settings', data=new_settings):
             return True
         return False
@@ -1095,7 +1095,7 @@ class API:
         :return: True if successful, False if unsuccessful
         :rtype: bool
         """
-        new_settings = helpers._combine_settings(new_settings_dict=kwargs, template_dict=self.xmltv_settings._data)
+        new_settings = helpers._combine_settings(new_settings_dict=kwargs, default_dict=self.xmltv_settings._data)
         if self._put(endpoint='/xmltv-settings', data=new_settings):
             return True
         return False
@@ -1134,7 +1134,7 @@ class API:
         :return: True if successful, False if unsuccessful
         :rtype: bool
         """
-        new_settings = helpers._combine_settings(new_settings_dict=kwargs, template_dict=self.hdhr_settings._data)
+        new_settings = helpers._combine_settings(new_settings_dict=kwargs, default_dict=self.hdhr_settings._data)
         if self._put(endpoint='/hdhr-settings', data=new_settings):
             return True
         return False

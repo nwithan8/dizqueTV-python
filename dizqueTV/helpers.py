@@ -20,7 +20,7 @@ _uris = {}
 
 # Internal Helpers
 def _combine_settings_add_new(new_settings_dict: dict,
-                              template_dict: dict,
+                              default_dict: dict,
                               ignore_keys: List = None) -> dict:
     """
     Build a complete dictionary for new settings, using old settings as a base
@@ -28,8 +28,8 @@ def _combine_settings_add_new(new_settings_dict: dict,
 
     :param new_settings_dict: Dictionary of new settings kwargs
     :type new_settings_dict: dict
-    :param template_dict: Current settings
-    :type template_dict: dict
+    :param default_dict: Current settings
+    :type default_dict: dict
     :param ignore_keys: List of keys to ignore when combining dictionaries
     :type ignore_keys: list, optional
     :return: Dictionary of new settings
@@ -41,12 +41,12 @@ def _combine_settings_add_new(new_settings_dict: dict,
         if k in ignore_keys:
             pass
         else:
-            template_dict[k] = v
-    return template_dict
+            default_dict[k] = v
+    return default_dict
 
 
 def _combine_settings(new_settings_dict: dict,
-                      template_dict: dict,
+                      default_dict: dict,
                       ignore_keys: List = None) -> dict:
     """
     Build a complete dictionary for new settings, using old settings as a base
@@ -54,8 +54,8 @@ def _combine_settings(new_settings_dict: dict,
 
     :param new_settings_dict: Dictionary of new settings kwargs
     :type new_settings_dict: dict
-    :param template_dict: settings template
-    :type template_dict: dict
+    :param default_dict: settings template
+    :type default_dict: dict
     :param ignore_keys: List of keys to ignore when combining dictionaries
     :type ignore_keys: list, optional
     :return: Dictionary of new settings
@@ -64,17 +64,18 @@ def _combine_settings(new_settings_dict: dict,
     if not ignore_keys:
         ignore_keys = []
     for k, v in new_settings_dict.items():
-        if k in template_dict.keys():
-            if k in ignore_keys:
-                pass
-            else:
-                template_dict[k] = v
-    return template_dict
+        if k in ignore_keys:
+            pass
+        else:
+            # only add the key if it's in the template
+            if k in default_dict.keys():
+                default_dict[k] = v
+    return default_dict
 
 
 def _combine_settings_enforce_types(new_settings_dict: dict,
-                                    template_dict: dict,
                                     default_dict: dict,
+                                    template_dict: dict,
                                     ignore_keys: List = None) -> dict:
     """
     Build a complete dictionary for new settings, using old settings as a base
@@ -94,18 +95,15 @@ def _combine_settings_enforce_types(new_settings_dict: dict,
     """
     if not ignore_keys:
         ignore_keys = []
-    for k, v in new_settings_dict.items():
-        if k in template_dict.keys():
-            if k in ignore_keys:
-                pass
-            else:
-                if type(v) == template_dict[k]:
-                    template_dict[k] = v
-                elif v in template_dict[k]:
-                    template_dict[k] = v
-                else:
-                    template_dict[k] = default_dict[k]
-    return template_dict
+    for k in default_dict.keys():
+        if k in ignore_keys:
+            # don't bother checking this key, just leave it with the default
+            pass
+        else:
+            # only accept the override value if it's of the correct type
+            if (type(new_settings_dict[k]) == template_dict[k]) or (new_settings_dict[k] in template_dict[k]):
+                default_dict[k] = new_settings_dict[k]
+    return default_dict
 
 
 def _filter_dictionary(new_dictionary: dict, template_dict: dict) -> dict:

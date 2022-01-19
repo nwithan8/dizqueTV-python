@@ -197,7 +197,7 @@ class FillerList(BaseAPIObject):
                 if kwargs.get('duration'):
                     filler_list_data['duration'] -= a_filler['duration']
                     filler_list_data['duration'] += kwargs['duration']
-                new_data = helpers._combine_settings(new_settings_dict=kwargs, template_dict=a_filler)
+                new_data = helpers._combine_settings(new_settings_dict=kwargs, default_dict=a_filler)
                 a_filler.update(new_data)
                 return self.update(**filler_list_data)
         return False
