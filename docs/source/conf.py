@@ -18,11 +18,11 @@ sys.path.insert(0, os.path.abspath('../..'))
 # -- Project information -----------------------------------------------------
 
 project = "dizqueTV"
-copyright = "Copyright © 2021 - Nate Harris"
+copyright = "Copyright © 2022 - Nate Harris"
 author = "Nate Harris"
 
 # The full version, including alpha/beta/rc tags
-release = "1.5.0.0"
+release = "1.5.0.1"
 
 
 # -- General configuration ---------------------------------------------------
