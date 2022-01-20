@@ -96,11 +96,11 @@ def _combine_settings_enforce_types(new_settings_dict: dict,
     if not ignore_keys:
         ignore_keys = []
     for k in default_dict.keys():
-        if k in ignore_keys:
+        if k not in new_settings_dict.keys() or k in ignore_keys:
             # don't bother checking this key, just leave it with the default
             pass
         else:
-            # only accept the override value if it's of the correct type
+            # only accept the override value if it's of the correct type or option
             if (type(new_settings_dict[k]) == template_dict[k]) or (new_settings_dict[k] in template_dict[k]):
                 default_dict[k] = new_settings_dict[k]
     return default_dict
