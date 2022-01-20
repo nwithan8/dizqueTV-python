@@ -5,14 +5,13 @@ import random
 from datetime import datetime, timedelta
 from typing import List, Union, Tuple
 
+import dizqueTV.dizquetv_requests as requests
 import numpy.random as numpy_random
+from dizqueTV.exceptions import MissingSettingsError
+from dizqueTV.models.media import Program, Redirect, FillerItem
 from plexapi.audio import Track
 from plexapi.server import PlexServer as PServer
 from plexapi.video import Video, Movie, Episode
-
-import dizqueTV.dizquetv_requests as requests
-from dizqueTV.exceptions import MissingSettingsError
-from dizqueTV.models.media import Program, Redirect, FillerItem
 
 _access_tokens = {}
 _uris = {}
@@ -38,6 +37,7 @@ def _combine_settings_add_new(new_settings_dict: dict,
     if not ignore_keys:
         ignore_keys = []
     for k, v in new_settings_dict.items():
+        # add key as long as it's not ignored
         if k in ignore_keys:
             pass
         else:
@@ -64,12 +64,13 @@ def _combine_settings(new_settings_dict: dict,
     if not ignore_keys:
         ignore_keys = []
     for k, v in new_settings_dict.items():
+        # add key as long as it's not ignored and in the template
         if k in ignore_keys:
             pass
+        elif k not in default_dict.keys():
+            pass
         else:
-            # only add the key if it's in the template
-            if k in default_dict.keys():
-                default_dict[k] = v
+            default_dict[k] = v
     return default_dict
 
 
@@ -95,14 +96,16 @@ def _combine_settings_enforce_types(new_settings_dict: dict,
     """
     if not ignore_keys:
         ignore_keys = []
-    for k in default_dict.keys():
-        if k not in new_settings_dict.keys() or k in ignore_keys:
-            # don't bother checking this key, just leave it with the default
+    for k, v in new_settings_dict.items():
+        # add key as long as it's not ignored, in the template and a valid type/option
+        if k in ignore_keys:
+            pass
+        elif k not in template_dict.keys():
+            pass
+        elif not (type(v) == template_dict[k] or v in template_dict[k]):
             pass
         else:
-            # only accept the override value if it's of the correct type or option
-            if (type(new_settings_dict[k]) == template_dict[k]) or (new_settings_dict[k] in template_dict[k]):
-                default_dict[k] = new_settings_dict[k]
+            default_dict[k] = v
     return default_dict
 
 
@@ -252,7 +255,8 @@ def _make_program_dict_from_plex_item(plex_item: Union[Video, Movie, Episode, Tr
     }
     if plex_item.type == 'episode':
         data['episodeIcon'] = f"{plex_uri}{plex_item.thumb}?X-Plex-Token={plex_token}"
-        data['seasonIcon'] = f"{plex_uri}{plex_item.parentThumb if plex_item.parentThumb else plex_item.grandparentThumb}?X-Plex-Token={plex_token}"
+        data[
+            'seasonIcon'] = f"{plex_uri}{plex_item.parentThumb if plex_item.parentThumb else plex_item.grandparentThumb}?X-Plex-Token={plex_token}"
         data['showIcon'] = f"{plex_uri}{plex_item.grandparentThumb}?X-Plex-Token={plex_token}"
         data['icon'] = data['showIcon']
     return data
