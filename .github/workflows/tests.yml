@@ -1,0 +1,23 @@
+name: Tests
+on:
+  push:
+    branches:
+      - develop
+  pull_request: ~
+
+jobs:
+  run-tests:
+    runs-on: ubuntu-latest
+    services:
+      dizquetv-docker:
+        image: vexorian/dizquetv
+        ports:
+           - 8001:8000
+
+    steps:
+    - name: Sleep for 30 seconds
+      uses: jakejarvis/wait-action@master
+      with:
+        time: '30s'
+    - name: Test docker 1
+      run: "curl http://localhost:8001/api/version"
