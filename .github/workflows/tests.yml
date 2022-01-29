@@ -19,5 +19,29 @@ jobs:
       uses: jakejarvis/wait-action@master
       with:
         time: '30s'
-    - name: Test docker 1
+
+    - name: Test Docker is running
       run: "curl http://localhost:8001/api/version"
+
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Make envfile
+      uses: SpicyPizza/create-envfile@v1
+      with:
+        envkey_D_URL: http://localhost:8001
+        file_name: .env
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.9
+
+    - name: Install Python dependencies
+      run: |
+        python3 -m pip install --upgrade pip
+        pip3 install -r requirements_test.txt
+
+    - name: Test with pytest
+      run: |
+        pytest --exitfirst --verbose --failed-first
