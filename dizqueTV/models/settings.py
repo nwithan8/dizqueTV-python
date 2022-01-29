@@ -1,5 +1,5 @@
 from dizqueTV import decorators
-from dizqueTV.models.base import BaseAPIObject, BaseObject
+from dizqueTV.models.base import BaseAPIObject
 
 
 class ServerDetails(BaseAPIObject):
@@ -25,6 +25,7 @@ class ServerDetails(BaseAPIObject):
             json_data = temp_settings._data
             self.__init__(data=json_data, dizque_instance=self._dizque_instance)
             del temp_settings
+
 
 class XMLTVSettings(BaseAPIObject):
     def __init__(self, data: dict, dizque_instance):

@@ -81,7 +81,8 @@ class ChannelOnDemandSettings(BaseAPIObject):
         :rtype: bool
         """
         new_settings = helpers._combine_settings(new_settings_dict=kwargs, default_dict=self._data)
-        new_settings['firstProgramModulo'] = (self._channel_instance.startTime_datetime.timestamp() * 1000) % new_settings['modulo']
+        new_settings['firstProgramModulo'] = (self._channel_instance.startTime_datetime.timestamp() * 1000) % \
+                                             new_settings['modulo']
         if self._dizque_instance.update_channel(channel_number=self._channel_instance.number,
                                                 onDemand=new_settings):
             self._channel_instance.refresh()
@@ -203,7 +204,7 @@ class Schedule(BaseAPIObject):
         """
         new_settings = helpers._combine_settings_add_new(new_settings_dict=kwargs,
                                                          default_dict=(self._data
-                                                                        if self._data else SCHEDULE_SETTINGS_DEFAULT)
+                                                                       if self._data else SCHEDULE_SETTINGS_DEFAULT)
                                                          )
         return self._channel_instance.update_schedule(**new_settings)
 

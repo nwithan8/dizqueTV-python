@@ -6,10 +6,10 @@ from xml.etree import ElementTree
 
 import m3u8
 import plexapi.server
+from objectrest import Response
 from plexapi.audio import Track
 from plexapi.server import PlexServer as PServer
 from plexapi.video import Video, Movie, Episode
-from requests import Response
 
 import dizqueTV.dizquetv_requests as requests
 import dizqueTV.helpers as helpers
@@ -691,7 +691,8 @@ class API:
                                   scheduleBackup=data['schedule'])
         return False
 
-    def _make_random_schedule(self, channel: Channel, schedule: Schedule = None, schedule_settings: dict = None) -> bool:
+    def _make_random_schedule(self, channel: Channel, schedule: Schedule = None,
+                              schedule_settings: dict = None) -> bool:
         """
         Add or update a random schedule to a Channel
 

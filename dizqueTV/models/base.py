@@ -22,6 +22,7 @@ class BaseObject:
         """
         return self._raw_data
 
+
 class BaseAPIObject(BaseObject):
     def __init__(self, data: dict, dizque_instance):
         super().__init__(data)

@@ -18,4 +18,5 @@ def check_for_dizque_instance(func: object):
         if obj._dizque_instance:
             return func(obj, **kwargs)
         raise NotRemoteObjectError(object_type=type(obj).__name__)
+
     return inner

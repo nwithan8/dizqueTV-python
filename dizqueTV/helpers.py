@@ -5,13 +5,14 @@ import random
 from datetime import datetime, timedelta
 from typing import List, Union, Tuple
 
-import dizqueTV.dizquetv_requests as requests
 import numpy.random as numpy_random
-from dizqueTV.exceptions import MissingSettingsError
-from dizqueTV.models.media import Program, Redirect, FillerItem
 from plexapi.audio import Track
 from plexapi.server import PlexServer as PServer
 from plexapi.video import Video, Movie, Episode
+
+import dizqueTV.dizquetv_requests as requests
+from dizqueTV.exceptions import MissingSettingsError
+from dizqueTV.models.media import Program, Redirect, FillerItem
 
 _access_tokens = {}
 _uris = {}

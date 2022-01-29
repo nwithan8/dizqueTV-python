@@ -145,7 +145,8 @@ class PlexUtils:
             return [item for item in results if isinstance(item, result_class)]
         return results
 
-    def search_for_plex_items_with_advanced_filters(self, section_name: str = None, result_class: type = None, **search_terms) -> List[media.Media]:
+    def search_for_plex_items_with_advanced_filters(self, section_name: str = None, result_class: type = None,
+                                                    **search_terms) -> List[media.Media]:
         """
         Search for Plex items
 
@@ -157,7 +158,8 @@ class PlexUtils:
         :return: List of matching Plex media items
         :rtype: List[plexapi.media.Media]
         """
-        return self.search_for_plex_items(section_name=section_name, result_class=result_class, **{'filters': search_terms})
+        return self.search_for_plex_items(section_name=section_name, result_class=result_class,
+                                          **{'filters': search_terms})
 
     def get_dizque_item_on_plex(self, dizque_item, section_name: str = None) -> Union[media.Media, None]:
         """
@@ -186,7 +188,8 @@ class PlexSearch(PlexUtils):
         else:
             self.server = plex_server
 
-    def _search_by_any_match_query_in_sections(self, query_key: str, query_values: list, section_names: List[str] = None) -> List[media.Media]:
+    def _search_by_any_match_query_in_sections(self, query_key: str, query_values: list,
+                                               section_names: List[str] = None) -> List[media.Media]:
         matches = []
         if not section_names:
             section_names = [None]
@@ -196,7 +199,8 @@ class PlexSearch(PlexUtils):
                 matches.extend(self.search_for_plex_items(section_name=section_name, **{query_key: query_value}))
         return list(set(matches))
 
-    def _search_by_any_advanced_filter_match_query_in_sections(self, query_key: str, query_values: list, section_names: List[str] = None) -> List[media.Media]:
+    def _search_by_any_advanced_filter_match_query_in_sections(self, query_key: str, query_values: list,
+                                                               section_names: List[str] = None) -> List[media.Media]:
         matches = []
         if not section_names:
             section_names = [None]
@@ -204,7 +208,8 @@ class PlexSearch(PlexUtils):
         for section_name in section_names:
             for query_value in query_values:
                 matches.extend(
-                    self.search_for_plex_items_with_advanced_filters(section_name=section_name, **{query_key: query_value}))
+                    self.search_for_plex_items_with_advanced_filters(section_name=section_name,
+                                                                     **{query_key: query_value}))
         return list(set(matches))
 
     def search_by_any_keywords_in_summary(self, keywords: List[str], section_names: List[str] = None) -> List[
@@ -219,7 +224,8 @@ class PlexSearch(PlexUtils):
         :return: Matching Plex media item or None
         :rtype: plexapi.media.Media | None
         """
-        return self._search_by_any_match_query_in_sections(query_key='summary__icontains', query_values=keywords, section_names=section_names)
+        return self._search_by_any_match_query_in_sections(query_key='summary__icontains', query_values=keywords,
+                                                           section_names=section_names)
 
     def search_by_any_keyword_in_title(self, keywords: List[str], section_names: List[str] = None) -> List[media.Media]:
         """
@@ -232,7 +238,8 @@ class PlexSearch(PlexUtils):
         :return: Matching Plex media item or None
         :rtype: plexapi.media.Media | None
         """
-        return self._search_by_any_match_query_in_sections(query_key='title__icontains', query_values=keywords, section_names=section_names)
+        return self._search_by_any_match_query_in_sections(query_key='title__icontains', query_values=keywords,
+                                                           section_names=section_names)
 
     def search_by_genre(self, genres: List[str], section_names: List[str] = None) -> List[media.Media]:
         """
@@ -245,5 +252,5 @@ class PlexSearch(PlexUtils):
         :return: Matching Plex media item or None
         :rtype: plexapi.media.Media | None
         """
-        return self._search_by_any_advanced_filter_match_query_in_sections(query_key='genre&', query_values=[genres], section_names=section_names)
-
+        return self._search_by_any_advanced_filter_match_query_in_sections(query_key='genre&', query_values=[genres],
+                                                                           section_names=section_names)

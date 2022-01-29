@@ -1,6 +1,8 @@
-import requests
-import uuid
 import urllib
+import uuid
+
+import objectrest
+
 
 def _time_uuid():
     return uuid.uuid1()
@@ -21,6 +23,7 @@ def _verify_params(params_needed, **included_params):
         if needed_param not in included_params.keys() or included_params.get(needed_param):
             return False
     return True
+
 
 def _string_size(string: str, max_size: int, encoding: str = 'utf-8'):
     return len(string.encode(encoding)) <= max_size
@@ -47,7 +50,7 @@ class GoogleAnalytics:
             return True
         url = _make_url(params_dict=final_params)
         print(url)
-        if requests.get(url=url):
+        if objectrest.get(url=url):
             return True
         return False
 
@@ -77,7 +80,6 @@ class GoogleAnalytics:
         if anonymize_ip or self.anonymize_ip:
             final_params['aip'] = 0
         return self._send(final_params=final_params)
-
 
     def event(self,
               event_category: str,
