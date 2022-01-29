@@ -94,3 +94,8 @@ def test_delete_plex_server():
     sleep(1)
     server = client().get_plex_server(server_name=fake_plex_server['name'])
     assert server is None
+
+
+def test_channel_count():
+    count = client().channel_count
+    assert type(count) == int

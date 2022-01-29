@@ -466,6 +466,7 @@ class API:
         return False
 
     # Channels
+
     @property
     def channels(self) -> List[Channel]:
         """
@@ -474,8 +475,15 @@ class API:
         :return: List of Channel objects
         :rtype: List[Channel]
         """
-        json_data = self._get_json(endpoint='/channels', timeout=5)  # large JSON may take longer, so bigger timeout
-        return [Channel(data=channel, dizque_instance=self) for channel in json_data]
+        # temporary patch until /channels API is fixed. SLOW.
+        numbers = self.channel_numbers
+        channels = []
+        for number in numbers:
+            json_data = self._get_json(endpoint=f'/channel/{number}', timeout=5)
+            # large JSON may take longer, so bigger timeout
+            if json_data:
+                channels.append(Channel(data=json_data, dizque_instance=self))
+        return channels
 
     def get_channel(self, channel_number: int = None, channel_name: str = None) -> Union[Channel, None]:
         """
@@ -546,7 +554,7 @@ class API:
         :return: Int number of channels
         :rtype: int
         """
-        return len(self.channels)
+        return len(self.channel_numbers)
 
     def _fill_in_default_channel_settings(self, settings_dict: dict, handle_errors: bool = False) -> dict:
         """
