@@ -2,6 +2,8 @@ from typing import List, Union
 
 from plexapi import server, media, library, playlist, myplex
 
+from dizqueTV import convert_plex_server_to_dizque_plex_server
+
 
 class PlexUtils:
     def __init__(self, url: str, token: str):
@@ -46,6 +48,15 @@ class PlexUtils:
         :rtype: list[plexapi.library.LibrarySection]
         """
         return self.server.library.sections()
+
+    @property
+    def as_dizquetv_plex_server(self) -> 'dizqueTV.PlexServer':
+        """
+        Get this Plex Media Server to a dizqueTV Plex server
+        :return: dizqueTV Plex server
+        :rtype: dizqueTV.PlexServer
+        """
+        return convert_plex_server_to_dizque_plex_server(self.server)
 
     def user_has_server_access(self, user: myplex.MyPlexUser) -> bool:
         """

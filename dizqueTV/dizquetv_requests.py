@@ -39,7 +39,7 @@ def post(url: str,
             logs.log(message=f"Response: {res}", level=("error" if not res else log))
         return res
         # use json= rather than data= to convert single-quoted dict to double-quoted JSON
-    except objectrest.exceptions.Timeout:
+    except objectrest.exceptions.Timeout as e:
         return None
 
 

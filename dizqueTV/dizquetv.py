@@ -17,14 +17,9 @@ from dizqueTV._analytics import GoogleAnalytics
 from dizqueTV._info import __analytics_id__ as analytics_id
 from dizqueTV.advanced import Advanced
 from dizqueTV.exceptions import MissingParametersError, ChannelCreationError, ItemCreationError, GeneralException
-from dizqueTV.models.channels import Channel, TimeSlot, TimeSlotItem, Schedule
-from dizqueTV.models.custom_show import CustomShow, CustomShowDetails, CustomShowItem
-from dizqueTV.models.fillers import FillerList
-from dizqueTV.models.general import UploadImageResponse
-from dizqueTV.models.guide import Guide
-from dizqueTV.models.media import FillerItem, Program, Redirect
-from dizqueTV.models.plex_server import PlexServer
-from dizqueTV.models.settings import XMLTVSettings, PlexSettings, FFMPEGSettings, HDHomeRunSettings, ServerDetails
+from dizqueTV.models import Channel, TimeSlot, TimeSlotItem, Schedule, CustomShow, CustomShowDetails, CustomShowItem, \
+    FillerList, UploadImageResponse, Guide, FillerItem, Program, Redirect, PlexServer, XMLTVSettings, PlexSettings, \
+    FFMPEGSettings, HDHomeRunSettings, ServerDetails
 from dizqueTV.models.templates import PLEX_SERVER_SETTINGS_TEMPLATE, CHANNEL_SETTINGS_TEMPLATE, \
     CHANNEL_SETTINGS_DEFAULT, \
     FILLER_LIST_SETTINGS_TEMPLATE, WATERMARK_SETTINGS_DEFAULT, CUSTOM_SHOW_TEMPLATE
