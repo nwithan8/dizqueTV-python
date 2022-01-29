@@ -119,7 +119,7 @@ class Watermark(BaseAPIObject):
         :return: True if successful, False if unsuccessful (Channel reloads in-place, Watermark object is destroyed)
         :rtype: bool
         """
-        new_watermark_dict = self._dizque_instance._fill_in_watermark_settings(**kwargs)
+        new_watermark_dict = self._dizque_instance.fill_in_watermark_settings(**kwargs)
         if self._dizque_instance.update_channel(channel_number=self._channel_instance.number,
                                                 watermark=new_watermark_dict):
             self._channel_instance.refresh()

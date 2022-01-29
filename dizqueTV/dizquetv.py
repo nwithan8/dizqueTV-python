@@ -204,6 +204,30 @@ def expand_custom_show_items(programs: List, dizque_instance) -> List:
     return all_items
 
 
+def fill_in_watermark_settings(handle_errors: bool = True, **kwargs) -> dict:
+    """
+    Create complete watermark settings
+
+    :param handle_errors: whether to handle errors or not
+    :type handle_errors: bool
+    :param kwargs: All kwargs, including some related to watermark
+    :return: A complete and valid watermark dict
+    :rtype: dict
+    """
+    final_dict = helpers._combine_settings_add_new(new_settings_dict=kwargs,
+                                                   default_dict=WATERMARK_SETTINGS_DEFAULT)
+    if handle_errors and final_dict['enabled'] is True:
+        if not (0 < final_dict['width'] <= 100):
+            raise GeneralException("Watermark width must greater than 0 and less than 100")
+        if not (final_dict['width'] + final_dict['horizontalMargin'] <= 100):
+            raise GeneralException("Watermark width + horizontalMargin must not be greater than 100")
+        if not (final_dict['verticalMargin'] <= 100):
+            raise GeneralException("Watermark verticalMargin must not be greater than 100")
+        if not (final_dict['duration'] and final_dict['duration'] >= 0):
+            raise GeneralException("Must include a watermark duration. Use 0 for a permanent watermark.")
+    return final_dict
+
+
 class API:
     def __init__(self, url: str, verbose: bool = False, allow_analytics: bool = True, anonymous_analytics: bool = True):
         """
@@ -529,27 +553,6 @@ class API:
         """
         return len(self.channels)
 
-    def _fill_in_watermark_settings(self, handle_errors: bool = True, **kwargs) -> dict:
-        """
-        Create complete watermark settings
-
-        :param kwargs: All kwargs, including some related to watermark
-        :return: A complete and valid watermark dict
-        :rtype: dict
-        """
-        final_dict = helpers._combine_settings_add_new(new_settings_dict=kwargs,
-                                                       default_dict=WATERMARK_SETTINGS_DEFAULT)
-        if handle_errors and final_dict['enabled'] is True:
-            if not (0 < final_dict['width'] <= 100):
-                raise GeneralException("Watermark width must greater than 0 and less than 100")
-            if not (final_dict['width'] + final_dict['horizontalMargin'] <= 100):
-                raise GeneralException("Watermark width + horizontalMargin must not be greater than 100")
-            if not (final_dict['verticalMargin'] <= 100):
-                raise GeneralException("Watermark verticalMargin must not be greater than 100")
-            if not (final_dict['duration'] and final_dict['duration'] >= 0):
-                raise GeneralException("Must include a watermark duration. Use 0 for a permanent watermark.")
-        return final_dict
-
     def _fill_in_default_channel_settings(self, settings_dict: dict, handle_errors: bool = False) -> dict:
         """
         Set some dynamic default values, such as channel number, start time and image URLs
@@ -586,7 +589,7 @@ class API:
             settings_dict['offlinePicture'] = f"{self.url}/images/generic-offline-screen.png"
         # override duration regardless of user input
         settings_dict['duration'] = sum(program['duration'] for program in settings_dict['programs'])
-        settings_dict['watermark'] = self._fill_in_watermark_settings(**settings_dict)
+        settings_dict['watermark'] = fill_in_watermark_settings(**settings_dict)
         return helpers._combine_settings_add_new(new_settings_dict=settings_dict,
                                                  default_dict=CHANNEL_SETTINGS_DEFAULT)
 
