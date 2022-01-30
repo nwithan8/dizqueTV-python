@@ -67,9 +67,11 @@ class Program(MediaItem, Redirect):
         :return: None
         """
         if not data and not program_title and not redirect_channel_number:
-            raise MissingParametersError("Please include either a JSON array, program_title or a redirect_channel_number.")
+            raise MissingParametersError(
+                "Please include either a JSON array, program_title or a redirect_channel_number.")
         if program_title or redirect_channel_number:
-            temp_program = self._channel_instance.get_program(program_title = program_title, redirect_channel_number = redirect_channel_number)
+            temp_program = self._channel_instance.get_program(program_title=program_title,
+                                                              redirect_channel_number=redirect_channel_number)
             if not temp_program:
                 raise Exception("Could not find program.")
             else:
@@ -78,7 +80,6 @@ class Program(MediaItem, Redirect):
                 self._dizque_instance = temp_program._dizque_instance
                 del temp_program
         self.__init__(data=data, channel_instance=self._channel_instance, dizque_instance=self._dizque_instance)
-
 
     @decorators.check_for_dizque_instance
     def update(self, **kwargs) -> bool:
@@ -89,7 +90,6 @@ class Program(MediaItem, Redirect):
         :rtype: bool
         """
         return self._channel_instance.update_program(program=self, **kwargs)
-
 
     @decorators.check_for_dizque_instance
     def delete(self) -> bool:

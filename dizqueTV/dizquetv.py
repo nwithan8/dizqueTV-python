@@ -6,10 +6,10 @@ from xml.etree import ElementTree
 
 import m3u8
 import plexapi.server
+from objectrest import Response
 from plexapi.audio import Track
 from plexapi.server import PlexServer as PServer
 from plexapi.video import Video, Movie, Episode
-from requests import Response
 
 import dizqueTV.dizquetv_requests as requests
 import dizqueTV.helpers as helpers
@@ -17,14 +17,9 @@ from dizqueTV._analytics import GoogleAnalytics
 from dizqueTV._info import __analytics_id__ as analytics_id
 from dizqueTV.advanced import Advanced
 from dizqueTV.exceptions import MissingParametersError, ChannelCreationError, ItemCreationError, GeneralException
-from dizqueTV.models.channels import Channel, TimeSlot, TimeSlotItem, Schedule
-from dizqueTV.models.custom_show import CustomShow, CustomShowDetails, CustomShowItem
-from dizqueTV.models.fillers import FillerList
-from dizqueTV.models.general import UploadImageResponse
-from dizqueTV.models.guide import Guide
-from dizqueTV.models.media import FillerItem, Program, Redirect
-from dizqueTV.models.plex_server import PlexServer
-from dizqueTV.models.settings import XMLTVSettings, PlexSettings, FFMPEGSettings, HDHomeRunSettings, ServerDetails
+from dizqueTV.models import Channel, TimeSlot, TimeSlotItem, Schedule, CustomShow, CustomShowDetails, CustomShowItem, \
+    FillerList, UploadImageResponse, Guide, FillerItem, Program, Redirect, PlexServer, XMLTVSettings, PlexSettings, \
+    FFMPEGSettings, HDHomeRunSettings, ServerDetails
 from dizqueTV.models.templates import PLEX_SERVER_SETTINGS_TEMPLATE, CHANNEL_SETTINGS_TEMPLATE, \
     CHANNEL_SETTINGS_DEFAULT, \
     FILLER_LIST_SETTINGS_TEMPLATE, WATERMARK_SETTINGS_DEFAULT, CUSTOM_SHOW_TEMPLATE
@@ -202,6 +197,30 @@ def expand_custom_show_items(programs: List, dizque_instance) -> List:
             programs = convert_custom_show_to_programs(custom_show=item, dizque_instance=dizque_instance)
             all_items.extend(programs)
     return all_items
+
+
+def fill_in_watermark_settings(handle_errors: bool = True, **kwargs) -> dict:
+    """
+    Create complete watermark settings
+
+    :param handle_errors: whether to handle errors or not
+    :type handle_errors: bool
+    :param kwargs: All kwargs, including some related to watermark
+    :return: A complete and valid watermark dict
+    :rtype: dict
+    """
+    final_dict = helpers._combine_settings_add_new(new_settings_dict=kwargs,
+                                                   default_dict=WATERMARK_SETTINGS_DEFAULT)
+    if handle_errors and final_dict['enabled'] is True:
+        if not (0 < final_dict['width'] <= 100):
+            raise GeneralException("Watermark width must greater than 0 and less than 100")
+        if not (final_dict['width'] + final_dict['horizontalMargin'] <= 100):
+            raise GeneralException("Watermark width + horizontalMargin must not be greater than 100")
+        if not (final_dict['verticalMargin'] <= 100):
+            raise GeneralException("Watermark verticalMargin must not be greater than 100")
+        if not (final_dict['duration'] and final_dict['duration'] >= 0):
+            raise GeneralException("Must include a watermark duration. Use 0 for a permanent watermark.")
+    return final_dict
 
 
 class API:
@@ -447,6 +466,7 @@ class API:
         return False
 
     # Channels
+
     @property
     def channels(self) -> List[Channel]:
         """
@@ -455,8 +475,15 @@ class API:
         :return: List of Channel objects
         :rtype: List[Channel]
         """
-        json_data = self._get_json(endpoint='/channels', timeout=5)  # large JSON may take longer, so bigger timeout
-        return [Channel(data=channel, dizque_instance=self) for channel in json_data]
+        # temporary patch until /channels API is fixed. SLOW.
+        numbers = self.channel_numbers
+        channels = []
+        for number in numbers:
+            json_data = self._get_json(endpoint=f'/channel/{number}', timeout=5)
+            # large JSON may take longer, so bigger timeout
+            if json_data:
+                channels.append(Channel(data=json_data, dizque_instance=self))
+        return channels
 
     def get_channel(self, channel_number: int = None, channel_name: str = None) -> Union[Channel, None]:
         """
@@ -527,28 +554,7 @@ class API:
         :return: Int number of channels
         :rtype: int
         """
-        return len(self.channels)
-
-    def _fill_in_watermark_settings(self, handle_errors: bool = True, **kwargs) -> dict:
-        """
-        Create complete watermark settings
-
-        :param kwargs: All kwargs, including some related to watermark
-        :return: A complete and valid watermark dict
-        :rtype: dict
-        """
-        final_dict = helpers._combine_settings_add_new(new_settings_dict=kwargs,
-                                                       default_dict=WATERMARK_SETTINGS_DEFAULT)
-        if handle_errors and final_dict['enabled'] is True:
-            if not (0 < final_dict['width'] <= 100):
-                raise GeneralException("Watermark width must greater than 0 and less than 100")
-            if not (final_dict['width'] + final_dict['horizontalMargin'] <= 100):
-                raise GeneralException("Watermark width + horizontalMargin must not be greater than 100")
-            if not (final_dict['verticalMargin'] <= 100):
-                raise GeneralException("Watermark verticalMargin must not be greater than 100")
-            if not (final_dict['duration'] and final_dict['duration'] >= 0):
-                raise GeneralException("Must include a watermark duration. Use 0 for a permanent watermark.")
-        return final_dict
+        return len(self.channel_numbers)
 
     def _fill_in_default_channel_settings(self, settings_dict: dict, handle_errors: bool = False) -> dict:
         """
@@ -586,7 +592,7 @@ class API:
             settings_dict['offlinePicture'] = f"{self.url}/images/generic-offline-screen.png"
         # override duration regardless of user input
         settings_dict['duration'] = sum(program['duration'] for program in settings_dict['programs'])
-        settings_dict['watermark'] = self._fill_in_watermark_settings(**settings_dict)
+        settings_dict['watermark'] = fill_in_watermark_settings(**settings_dict)
         return helpers._combine_settings_add_new(new_settings_dict=settings_dict,
                                                  default_dict=CHANNEL_SETTINGS_DEFAULT)
 
@@ -691,7 +697,8 @@ class API:
                                   scheduleBackup=data['schedule'])
         return False
 
-    def _make_random_schedule(self, channel: Channel, schedule: Schedule = None, schedule_settings: dict = None) -> bool:
+    def _make_random_schedule(self, channel: Channel, schedule: Schedule = None,
+                              schedule_settings: dict = None) -> bool:
         """
         Add or update a random schedule to a Channel
 

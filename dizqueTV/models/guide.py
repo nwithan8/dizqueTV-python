@@ -1,6 +1,5 @@
-import json
-from typing import Union, List
 from datetime import datetime
+from typing import Union, List
 
 import dizqueTV.helpers as helpers
 from dizqueTV.models.base import BaseObject, BaseAPIObject

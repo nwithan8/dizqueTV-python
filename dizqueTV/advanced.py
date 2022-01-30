@@ -1,8 +1,7 @@
 from typing import List
 
-from requests import Response
-
 import dizqueTV.dizquetv_requests as requests
+
 
 class Advanced:
     def __init__(self, dizque_instance):
