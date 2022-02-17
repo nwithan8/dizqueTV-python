@@ -2,6 +2,8 @@ from datetime import datetime, timedelta
 from typing import List, Union
 
 from plexapi.audio import Track
+from plexapi.collection import Collection
+from plexapi.playlist import Playlist
 from plexapi.server import PlexServer as PServer
 from plexapi.video import Video, Movie, Episode
 
@@ -556,6 +558,48 @@ class Channel(BaseAPIObject):
             channel_data['programs'].append(program._data)
             channel_data['duration'] += program.duration
         return self.update(**channel_data)
+
+    @decorators.check_for_dizque_instance
+    def add_collection(self,
+                       collection: Collection,
+                       plex_server: PServer) -> bool:
+        """
+        Add a collection to this channel
+
+        :param collection: PlexAPI Collection to add to this channel
+        :type collection: plexapi.collection.Collection
+        :param plex_server: plexapi.server.PlexServer object
+        :type plex_server: plexapi.server.PlexServer
+        :return: True if successful, False if unsuccessful (Channel reloads in place)
+        :rtype: bool
+        """
+        if not collection:
+            raise MissingParametersError("You must provide a collection to add to the channel.")
+        items = collection.items()
+        if not items:
+            raise GeneralException("The collection you provided is empty.")
+        return self.add_programs(programs=items, plex_server=plex_server)
+
+    @decorators.check_for_dizque_instance
+    def add_playlist(self,
+                     playlist: Playlist,
+                     plex_server: PServer) -> bool:
+        """
+        Add a playlist to this channel
+
+        :param playlist: PlexAPI Playlist to add to this channel
+        :type playlist: plexapi.playlist.Playlist
+        :param plex_server: plexapi.server.PlexServer object
+        :type plex_server: plexapi.server.PlexServer
+        :return: True if successful, False if unsuccessful (Channel reloads in place)
+        :rtype: bool
+        """
+        if not playlist:
+            raise MissingParametersError("You must provide a playlist to add to the channel.")
+        items = playlist.items()
+        if not items:
+            raise GeneralException("The playlist you provided is empty.")
+        return self.add_programs(programs=items, plex_server=plex_server)
 
     @decorators.check_for_dizque_instance
     def update_program(self,

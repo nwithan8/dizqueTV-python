@@ -556,6 +556,38 @@ class API:
         """
         return len(self.channel_numbers)
 
+    @property
+    def highest_channel_number(self) -> int:
+        """
+        Get the highest active channel number
+
+        :return: Int number of the highest active channel
+        :rtype: int
+        """
+        return max(self.channel_numbers)
+
+    @property
+    def lowest_channel_number(self) -> int:
+        """
+        Get the lowest active channel number
+
+        :return: Int number of the lowest active channel
+        :rtype: int
+        """
+        return min(self.channel_numbers)
+
+    @property
+    def lowest_available_channel_number(self) -> int:
+        """
+        Get the lowest channel number that doesn't currently exist
+
+        :return: Int number of the lowest available channel
+        :rtype: int
+        """
+        possible = range(1, self.highest_channel_number + 2) # between 1 and highest_channel_number + 1
+        # find the lowest number of the differences in the sets
+        return min(set(possible) - set(self.channel_numbers))
+
     def _fill_in_default_channel_settings(self, settings_dict: dict, handle_errors: bool = False) -> dict:
         """
         Set some dynamic default values, such as channel number, start time and image URLs
@@ -1406,15 +1438,15 @@ class API:
         return final_items
 
     def add_programs_to_channels(self,
-                                 programs: List[Program],
+                                 programs: List[Union[Program, CustomShow, Video, Movie, Episode, Track]],
                                  channels: List[Channel] = None,
                                  channel_numbers: List[int] = None,
                                  plex_server: PServer = None) -> bool:
         """
         Add multiple programs to multiple channels
 
-        :param programs: List of Program objects
-        :type programs: List[Program]
+        :param programs: List of Program, CustomShow plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode or plexapi.audio.Track objects
+        :type programs: List[Union[Program, CustomShow, plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode, plexapi.audio.Track]]
         :param channels: List of Channel objects (optional)
         :type channels: List[Channel], optional
         :param channel_numbers: List of channel numbers
