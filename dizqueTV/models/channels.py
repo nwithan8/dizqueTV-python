@@ -576,9 +576,13 @@ class Channel(BaseAPIObject):
         if not collection:
             raise MissingParametersError("You must provide a collection to add to the channel.")
         items = collection.items()
-        if not items:
+        final_items = []
+        for item in items:
+            if type(item) in [Program, CustomShow, Video, Movie, Episode, Track]:
+                final_items.append(item)
+        if not final_items:
             raise GeneralException("The collection you provided is empty.")
-        return self.add_programs(programs=items, plex_server=plex_server)
+        return self.add_programs(programs=final_items, plex_server=plex_server)
 
     @decorators.check_for_dizque_instance
     def add_playlist(self,
@@ -597,9 +601,13 @@ class Channel(BaseAPIObject):
         if not playlist:
             raise MissingParametersError("You must provide a playlist to add to the channel.")
         items = playlist.items()
-        if not items:
+        final_items = []
+        for item in items:
+            if type(item) in [Program, CustomShow, Video, Movie, Episode, Track]:
+                final_items.append(item)
+        if not final_items:
             raise GeneralException("The playlist you provided is empty.")
-        return self.add_programs(programs=items, plex_server=plex_server)
+        return self.add_programs(programs=final_items, plex_server=plex_server)
 
     @decorators.check_for_dizque_instance
     def update_program(self,
