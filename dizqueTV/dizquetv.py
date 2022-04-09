@@ -1,7 +1,8 @@
 import json
 import logging
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
-from typing import List, Union
+from typing import List, Union, Dict
 from xml.etree import ElementTree
 
 import m3u8
@@ -467,6 +468,10 @@ class API:
 
     # Channels
 
+    def _get_channel_data(self, channel_number: int) -> Union[Dict, None]:
+        # large JSON may take longer, so bigger timeout
+        return self._get_json(endpoint=f'/channel/{channel_number}', timeout=5)
+
     @property
     def channels(self) -> List[Channel]:
         """
@@ -475,14 +480,17 @@ class API:
         :return: List of Channel objects
         :rtype: List[Channel]
         """
-        # temporary patch until /channels API is fixed. SLOW.
+        # temporary patch until /channels API is fixed. Runs concurrently to speed up.
         numbers = self.channel_numbers
         channels = []
-        for number in numbers:
-            json_data = self._get_json(endpoint=f'/channel/{number}', timeout=5)
-            # large JSON may take longer, so bigger timeout
+
+        channels_json_data = helpers._multithread(func=self._get_channel_data, elements=numbers,
+                                                  element_param_name="channel_number")
+
+        for json_data in channels_json_data:
             if json_data:
                 channels.append(Channel(data=json_data, dizque_instance=self))
+
         return channels
 
     def get_channel(self, channel_number: int = None, channel_name: str = None) -> Union[Channel, None]:
@@ -555,6 +563,38 @@ class API:
         :rtype: int
         """
         return len(self.channel_numbers)
+
+    @property
+    def highest_channel_number(self) -> int:
+        """
+        Get the highest active channel number
+
+        :return: Int number of the highest active channel
+        :rtype: int
+        """
+        return max(self.channel_numbers)
+
+    @property
+    def lowest_channel_number(self) -> int:
+        """
+        Get the lowest active channel number
+
+        :return: Int number of the lowest active channel
+        :rtype: int
+        """
+        return min(self.channel_numbers)
+
+    @property
+    def lowest_available_channel_number(self) -> int:
+        """
+        Get the lowest channel number that doesn't currently exist
+
+        :return: Int number of the lowest available channel
+        :rtype: int
+        """
+        possible = range(1, self.highest_channel_number + 2)  # between 1 and highest_channel_number + 1
+        # find the lowest number of the differences in the sets
+        return min(set(possible) - set(self.channel_numbers))
 
     def _fill_in_default_channel_settings(self, settings_dict: dict, handle_errors: bool = False) -> dict:
         """
@@ -1406,15 +1446,15 @@ class API:
         return final_items
 
     def add_programs_to_channels(self,
-                                 programs: List[Program],
+                                 programs: List[Union[Program, CustomShow, Video, Movie, Episode, Track]],
                                  channels: List[Channel] = None,
                                  channel_numbers: List[int] = None,
                                  plex_server: PServer = None) -> bool:
         """
         Add multiple programs to multiple channels
 
-        :param programs: List of Program objects
-        :type programs: List[Program]
+        :param programs: List of Program, CustomShow plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode or plexapi.audio.Track objects
+        :type programs: List[Union[Program, CustomShow, plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode, plexapi.audio.Track]]
         :param channels: List of Channel objects (optional)
         :type channels: List[Channel], optional
         :param channel_numbers: List of channel numbers
