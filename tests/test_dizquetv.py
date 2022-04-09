@@ -59,6 +59,10 @@ class TestGeneral:
         count = client().channel_count
         assert type(count) == int
 
+    def test_channel_list(self):
+        channels = client().channels
+        assert type(channels) == list
+
 
 class TestWithFakePlex:
     def test_add_plex_server(self):

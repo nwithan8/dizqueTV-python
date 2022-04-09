@@ -1,7 +1,8 @@
 import json
 import logging
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
-from typing import List, Union
+from typing import List, Union, Dict
 from xml.etree import ElementTree
 
 import m3u8
@@ -467,6 +468,10 @@ class API:
 
     # Channels
 
+    def _get_channel_data(self, channel_number: int) -> Union[Dict, None]:
+        # large JSON may take longer, so bigger timeout
+        return self._get_json(endpoint=f'/channel/{channel_number}', timeout=5)
+
     @property
     def channels(self) -> List[Channel]:
         """
@@ -475,14 +480,17 @@ class API:
         :return: List of Channel objects
         :rtype: List[Channel]
         """
-        # temporary patch until /channels API is fixed. SLOW.
+        # temporary patch until /channels API is fixed. Runs concurrently to speed up.
         numbers = self.channel_numbers
         channels = []
-        for number in numbers:
-            json_data = self._get_json(endpoint=f'/channel/{number}', timeout=5)
-            # large JSON may take longer, so bigger timeout
+
+        channels_json_data = helpers._multithread(func=self._get_channel_data, elements=numbers,
+                                                  element_param_name="channel_number")
+
+        for json_data in channels_json_data:
             if json_data:
                 channels.append(Channel(data=json_data, dizque_instance=self))
+
         return channels
 
     def get_channel(self, channel_number: int = None, channel_name: str = None) -> Union[Channel, None]:
@@ -584,7 +592,7 @@ class API:
         :return: Int number of the lowest available channel
         :rtype: int
         """
-        possible = range(1, self.highest_channel_number + 2) # between 1 and highest_channel_number + 1
+        possible = range(1, self.highest_channel_number + 2)  # between 1 and highest_channel_number + 1
         # find the lowest number of the differences in the sets
         return min(set(possible) - set(self.channel_numbers))
 

@@ -2,6 +2,7 @@ import collections
 import json
 import os
 import random
+from concurrent.futures import ThreadPoolExecutor, wait, ALL_COMPLETED
 from datetime import datetime, timedelta
 from typing import List, Union, Tuple
 
@@ -19,6 +20,35 @@ _uris = {}
 
 
 # Internal Helpers
+def _multithread(func, elements: List, element_param_name: str, thread_count: int = 20, **kwargs) -> List:
+    """
+    Multithread a function for elements in a list
+
+    :param func: Function to be multithreaded
+    :type func: function
+    :param elements: List of elements to be multithreaded
+    :type elements: list
+    :param element_param_name: Name of the parameter to be passed to the function
+    :type element_param_name: str
+    :param thread_count: Number of threads to use
+    :type thread_count: int, optional
+    :param kwargs: Keyword arguments to be passed to the function
+    :type kwargs: dict, optional
+    :return: List of results from the function
+    :rtype: list
+    """
+    thread_list = []
+    pool = ThreadPoolExecutor(thread_count)
+
+    for element in elements:
+        temp_kwargs = kwargs.copy()
+        temp_kwargs[element_param_name] = element
+        thread_list.append(pool.submit(func, **temp_kwargs))
+
+    wait(thread_list, return_when=ALL_COMPLETED)
+    return [t.result() for t in thread_list]
+
+
 def _combine_settings_add_new(new_settings_dict: dict,
                               default_dict: dict,
                               ignore_keys: List = None) -> dict:
