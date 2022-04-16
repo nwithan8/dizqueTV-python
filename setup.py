@@ -18,7 +18,7 @@ setuptools.setup(
     author=package_info.__author__,  # Type in your name
     author_email=package_info.__author_email__,  # Type in your E-Mail
     url='https://github.com/nwithan8/dizqueTV-python',  # Provide either the link to your github or to your website
-    download_url=f'https://github.com/nwithan8/dizqueTV-python/archive/{package_info.__version__}.tar.gz',
+    download_url=f'https://github.com/nwithan8/dizqueTV-python/archive/refs/tags/{package_info.__version__}.tar.gz',
     keywords=package_info.__keywords__,  # Keywords that define your package best
     install_requires=requirements,
     classifiers=[
