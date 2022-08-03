@@ -572,7 +572,8 @@ class API:
         :return: Int number of the highest active channel
         :rtype: int
         """
-        return max(self.channel_numbers)
+        # if no channels exist, self.channel_numbers is an empty list
+        return max(self.channel_numbers + [0])
 
     @property
     def lowest_channel_number(self) -> int:
