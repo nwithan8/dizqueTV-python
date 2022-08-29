@@ -1,18 +1,18 @@
 import os
 
+import plexapi
 from dotenv import load_dotenv
 
 import dizqueTV
-import plexapi
 
 fake_plex_server = {
-    'name': 'Test',
-    'uri': 'http://localhost:32400',
-    'accessToken': '12345',
-    'index': 0,
-    'arChannels': False,
-    'arGuide': False,
-    '_id': 'myid',
+    "name": "Test",
+    "uri": "http://localhost:32400",
+    "accessToken": "12345",
+    "index": 0,
+    "arChannels": False,
+    "arGuide": False,
+    "_id": "myid",
 }
 
 
@@ -35,7 +35,7 @@ def _make_plex_utils() -> dizqueTV.PlexUtils:
     return dizqueTV.PlexUtils(url=url, token=token)
 
 
-def plex_server() -> 'plexapi.server.PlexServer':
+def plex_server() -> "plexapi.server.PlexServer":
     utils = _make_plex_utils()
     return utils.server
 

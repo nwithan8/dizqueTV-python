@@ -7,7 +7,7 @@ PLEX_SERVER_SETTINGS_TEMPLATE = {
     "index": int,
     "arChannels": bool,
     "arGuide": bool,
-    "_id": str
+    "_id": str,
 }
 
 WATERMARK_SETTINGS_TEMPLATE = {
@@ -19,7 +19,7 @@ WATERMARK_SETTINGS_TEMPLATE = {
     "fixedSize": bool,
     "position": str,
     "url": str,
-    "animated": bool
+    "animated": bool,
 }
 
 WATERMARK_SETTINGS_DEFAULT = {
@@ -31,19 +31,19 @@ WATERMARK_SETTINGS_DEFAULT = {
     "fixedSize": False,
     "position": "bottom-right",
     "url": "",
-    "animated": False
+    "animated": False,
 }
 
 CHANNEL_FFMPEG_SETTINGS_TEMPLATE = {
     "targetResolution": str,
     "videoBitrate": int,
-    "videoBufSize": int
+    "videoBufSize": int,
 }
 
 CHANNEL_FFMPEG_SETTINGS_DEFAULT = {
     "targetResolution": "",
     "videoBitrate": None,
-    "videoBufSize": None
+    "videoBufSize": None,
 }
 
 CHANNEL_ON_DEMAND_SETTINGS_TEMPLATE = {
@@ -62,11 +62,7 @@ CHANNEL_ON_DEMAND_SETTINGS_DEFAULT = {
     "playedOffset": 0,
 }
 
-TIME_SLOT_SETTINGS_TEMPLATE = {
-    "time": int,
-    "showId": str,
-    "order": str
-}
+TIME_SLOT_SETTINGS_TEMPLATE = {"time": int, "showId": str, "order": str}
 
 SCHEDULE_SETTINGS_TEMPLATE = {
     "lateness": int,
@@ -75,7 +71,7 @@ SCHEDULE_SETTINGS_TEMPLATE = {
     "slots": [],
     "pad": int,
     "timeZoneOffset": int,
-    "fake": dict
+    "fake": dict,
 }
 
 SCHEDULE_SETTINGS_DEFAULT = {
@@ -85,9 +81,7 @@ SCHEDULE_SETTINGS_DEFAULT = {
     "slots": [],
     "pad": 1,
     "timeZoneOffset": 0,
-    "fake": {
-        "time": -1
-    }
+    "fake": {"time": -1},
 }
 
 RANDOM_SCHEDULE_SETTINGS_TEMPLATE = {
@@ -99,7 +93,7 @@ RANDOM_SCHEDULE_SETTINGS_TEMPLATE = {
     "padStyle": str,
     "randomDistribution": str,
     "timeZoneOffset": int,
-    "fake": dict
+    "fake": dict,
 }
 
 RANDOM_SCHEDULE_SETTINGS_DEFAULT = {
@@ -111,9 +105,7 @@ RANDOM_SCHEDULE_SETTINGS_DEFAULT = {
     "padStyle": "slot",
     "randomDistribution": "uniform",
     "timeZoneOffset": 0,
-    "fake": {
-        "time": -1
-    }
+    "fake": {"time": -1},
 }
 
 CHANNEL_SETTINGS_TEMPLATE = {
@@ -137,7 +129,7 @@ CHANNEL_SETTINGS_TEMPLATE = {
     "guideFlexPlaceholder": str,
     "stealth": bool,
     "enabled": bool,
-    "groupTitle": str
+    "groupTitle": str,
 }
 
 CHANNEL_SETTINGS_DEFAULT = {
@@ -153,42 +145,25 @@ CHANNEL_SETTINGS_DEFAULT = {
     "guideFlexPlaceholder": "",
     "enabled": True,
     "stealth": False,
-    "groupTitle": "dizqueTV"
+    "groupTitle": "dizqueTV",
 }
 
-FILLER_LIST_SETTINGS_TEMPLATE = {
-    "name": str,
-    "content": List,
-    "id": str
-}
+FILLER_LIST_SETTINGS_TEMPLATE = {"name": str, "content": List, "id": str}
 
-FILLER_LIST_SETTINGS_DEFAULT = {
-    "name": "New List",
-    "content": []
-}
+FILLER_LIST_SETTINGS_DEFAULT = {"name": "New List", "content": []}
 
-FILLER_LIST_CHANNEL_TEMPLATE = {
-    "id": str,
-    "weight": int,
-    "cooldown": int
-}
+FILLER_LIST_CHANNEL_TEMPLATE = {"id": str, "weight": int, "cooldown": int}
 
-FILLER_LIST_CHANNEL_DEFAULT = {
-    "weight": 300,
-    "cooldown": 0
-}
+FILLER_LIST_CHANNEL_DEFAULT = {"weight": 300, "cooldown": 0}
 
 REDIRECT_PROGRAM_TEMPLATE = {
     "isOffline": bool,
     "type": str,
     "duration": int,
-    "channel": int
+    "channel": int,
 }
 
-CUSTOM_SHOW_TEMPLATE = {
-    "name": str,
-    "content": List
-}
+CUSTOM_SHOW_TEMPLATE = {"name": str, "content": List}
 
 MOVIE_PROGRAM_TEMPLATE = {
     "title": str,
@@ -206,7 +181,7 @@ MOVIE_PROGRAM_TEMPLATE = {
     "showTitle": str,
     "episode": int,
     "season": int,
-    "serverKey": str
+    "serverKey": str,
 }
 
 EPISODE_PROGRAM_TEMPLATE = {
@@ -228,7 +203,7 @@ EPISODE_PROGRAM_TEMPLATE = {
     "serverKey": str,
     "showIcon": str,
     "episodeIcon": str,
-    "seasonIcon": str
+    "seasonIcon": str,
 }
 
 TRACK_PROGRAM_TEMPLATE = {
@@ -244,7 +219,7 @@ TRACK_PROGRAM_TEMPLATE = {
     "showTitle": str,
     "episode": int,
     "season": int,
-    "serverKey": str
+    "serverKey": str,
 }
 
 FILLER_ITEM_TEMPLATE = {
@@ -262,12 +237,12 @@ FILLER_ITEM_TEMPLATE = {
     "showTitle": str,
     "episode": int,
     "season": int,
-    "serverKey": str
+    "serverKey": str,
 }
 
 IMAGE_UPLOAD_RESPONSE_TEMPLATE = {
     "name": str,
     "mimetype": str,
     "size": int,
-    "fileUrl": str
+    "fileUrl": str,
 }

@@ -1,11 +1,11 @@
-from typing import Union, List
+from typing import List, Union
 
 from plexapi.audio import Track
 from plexapi.server import PlexServer as PServer
-from plexapi.video import Video, Movie, Episode
+from plexapi.video import Episode, Movie, Video
 
 from dizqueTV import decorators, helpers
-from dizqueTV.exceptions import MissingParametersError, ItemCreationError
+from dizqueTV.exceptions import ItemCreationError, MissingParametersError
 from dizqueTV.models.base import BaseAPIObject
 from dizqueTV.models.media import Program
 
@@ -15,7 +15,7 @@ class CustomShowItem(Program):
         super().__init__(data, dizque_instance, None)
         self._full_data = data
         self.order = order
-        self.durationStr = data.get('durationStr')
+        self.durationStr = data.get("durationStr")
         self._commercials = []
 
     def __repr__(self):
@@ -30,8 +30,8 @@ class CustomShowItem(Program):
         :rtype: dict
         """
         data = self._full_data
-        data.pop('durationStr', None)
-        data.pop('commercials', None)
+        data.pop("durationStr", None)
+        data.pop("commercials", None)
         return data
 
     @property
@@ -50,8 +50,8 @@ class CustomShowItem(Program):
 class CustomShowDetails(BaseAPIObject):
     def __init__(self, data: dict, dizque_instance):
         super().__init__(data, dizque_instance)
-        self.name = data.get('name')
-        self.id = data.get('id')
+        self.name = data.get("name")
+        self.id = data.get("id")
         self._content = []
 
     def __repr__(self):
@@ -67,8 +67,12 @@ class CustomShowDetails(BaseAPIObject):
         """
         if not self._content:
             order = 0
-            for item in self._data.get('content', []):
-                self._content.append(CustomShowItem(data=item, dizque_instance=self._dizque_instance, order=order))
+            for item in self._data.get("content", []):
+                self._content.append(
+                    CustomShowItem(
+                        data=item, dizque_instance=self._dizque_instance, order=order
+                    )
+                )
                 order += 1
         return self._content
 
@@ -78,9 +82,9 @@ class CustomShow(BaseAPIObject):
 
     def __init__(self, data: dict, dizque_instance):
         super().__init__(data, dizque_instance)
-        self.id = data.get('id')
-        self.name = data.get('name')
-        self.count = data.get('count')
+        self.id = data.get("id")
+        self.name = data.get("name")
+        self.count = data.get("count")
         self.type = "customShow"
         self.customShowTag = "customShow"
         self._details = None
@@ -97,7 +101,9 @@ class CustomShow(BaseAPIObject):
         :rtype: CustomShowDetails
         """
         if not self._details:
-            self._details = self._dizque_instance.get_custom_show_details(custom_show_id=self.id)
+            self._details = self._dizque_instance.get_custom_show_details(
+                custom_show_id=self.id
+            )
         return self._details
 
     @property
@@ -144,8 +150,7 @@ class CustomShow(BaseAPIObject):
         return False
 
     @decorators.check_for_dizque_instance
-    def edit(self,
-             **kwargs) -> bool:
+    def edit(self, **kwargs) -> bool:
         """
         Alias for custom_show.update()
 
@@ -156,10 +161,12 @@ class CustomShow(BaseAPIObject):
         return self.update(**kwargs)
 
     @decorators.check_for_dizque_instance
-    def add_program(self,
-                    plex_item: Union[Video, Movie, Episode, Track] = None,
-                    plex_server: PServer = None,
-                    program: Union[Program, CustomShowItem] = None):
+    def add_program(
+        self,
+        plex_item: Union[Video, Movie, Episode, Track] = None,
+        plex_server: PServer = None,
+        program: Union[Program, CustomShowItem] = None,
+    ):
         """
         Add a program to this custom show
 
@@ -175,27 +182,45 @@ class CustomShow(BaseAPIObject):
         custom_show_data = self._data
 
         if not plex_item and not program:
-            raise MissingParametersError("Please include either a program, a plex_item/plex_server combo, or kwargs")
+            raise MissingParametersError(
+                "Please include either a program, a plex_item/plex_server combo, or kwargs"
+            )
         if plex_item:
             if not plex_server:
-                raise ItemCreationError("You must include a plex_server if you are adding PlexAPI Videos, "
-                                        "Movies, Episodes or Tracks as programs")
-            program = self._dizque_instance.convert_plex_item_to_program(plex_item=plex_item, plex_server=plex_server)
-            custom_show_item = self._dizque_instance.convert_program_to_custom_show_item(program=program)
+                raise ItemCreationError(
+                    "You must include a plex_server if you are adding PlexAPI Videos, "
+                    "Movies, Episodes or Tracks as programs"
+                )
+            program = self._dizque_instance.convert_plex_item_to_program(
+                plex_item=plex_item, plex_server=plex_server
+            )
+            custom_show_item = (
+                self._dizque_instance.convert_program_to_custom_show_item(
+                    program=program
+                )
+            )
         elif type(program) != CustomShowItem:
-            custom_show_item = self._dizque_instance.convert_program_to_custom_show_item(program=program)
+            custom_show_item = (
+                self._dizque_instance.convert_program_to_custom_show_item(
+                    program=program
+                )
+            )
         else:
             custom_show_item = program
-        custom_show_data['content'].append(custom_show_item._full_data)
-        custom_show_data['count'] = len(custom_show_data['content'])
-        if custom_show_data.get('duration'):
-            custom_show_data['duration'] += custom_show_item.duration
+        custom_show_data["content"].append(custom_show_item._full_data)
+        custom_show_data["count"] = len(custom_show_data["content"])
+        if custom_show_data.get("duration"):
+            custom_show_data["duration"] += custom_show_item.duration
         return self.update(**custom_show_data)
 
     @decorators.check_for_dizque_instance
-    def add_programs(self,
-                     programs: List[Union[Program, CustomShowItem, Video, Movie, Episode, Track]] = None,
-                     plex_server: PServer = None):
+    def add_programs(
+        self,
+        programs: List[
+            Union[Program, CustomShowItem, Video, Movie, Episode, Track]
+        ] = None,
+        plex_server: PServer = None,
+    ):
         """
         Add multiple programs to this custom show
 
@@ -212,19 +237,30 @@ class CustomShow(BaseAPIObject):
         for program in programs:
             if type(program) not in [Program, CustomShowItem]:
                 if not plex_server:
-                    raise MissingParametersError("Please include a plex_server if you are adding PlexAPI Video, "
-                                                 "Movie, Episode or Track items.")
-                temp_program = self._dizque_instance.convert_plex_item_to_program(plex_item=program,
-                                                                                  plex_server=plex_server)
-                custom_show_item = self._dizque_instance.convert_program_to_custom_show_item(program=temp_program)
+                    raise MissingParametersError(
+                        "Please include a plex_server if you are adding PlexAPI Video, "
+                        "Movie, Episode or Track items."
+                    )
+                temp_program = self._dizque_instance.convert_plex_item_to_program(
+                    plex_item=program, plex_server=plex_server
+                )
+                custom_show_item = (
+                    self._dizque_instance.convert_program_to_custom_show_item(
+                        program=temp_program
+                    )
+                )
             elif type(program) != CustomShowItem:
-                custom_show_item = self._dizque_instance.convert_program_to_custom_show_item(program=program)
+                custom_show_item = (
+                    self._dizque_instance.convert_program_to_custom_show_item(
+                        program=program
+                    )
+                )
             else:
                 custom_show_item = program
-            custom_show_data['content'].append(custom_show_item._full_data)
-            custom_show_data['count'] = len(custom_show_data['content'])
-            if custom_show_data.get('duration'):
-                custom_show_data['duration'] += custom_show_item.duration
+            custom_show_data["content"].append(custom_show_item._full_data)
+            custom_show_data["count"] = len(custom_show_data["content"])
+            if custom_show_data.get("duration"):
+                custom_show_data["duration"] += custom_show_item.duration
         return self.update(**custom_show_data)
 
     @decorators.check_for_dizque_instance
@@ -238,11 +274,11 @@ class CustomShow(BaseAPIObject):
         :rtype: bool
         """
         custom_show_data = self._data
-        for a_program in custom_show_data['content']:
-            if a_program['title'] == program.title:
-                if custom_show_data.get('duration'):
-                    custom_show_data['duration'] -= a_program['duration']
-                custom_show_data['content'].remove(a_program)
+        for a_program in custom_show_data["content"]:
+            if a_program["title"] == program.title:
+                if custom_show_data.get("duration"):
+                    custom_show_data["duration"] -= a_program["duration"]
+                custom_show_data["content"].remove(a_program)
                 return self.update(**custom_show_data)
         return False
 
@@ -255,9 +291,11 @@ class CustomShow(BaseAPIObject):
         :rtype: bool
         """
         custom_show_data = self._data
-        if custom_show_data.get('duration'):
-            custom_show_data['duration'] -= sum(program.duration for program in self.content)
-        custom_show_data['content'] = []
+        if custom_show_data.get("duration"):
+            custom_show_data["duration"] -= sum(
+                program.duration for program in self.content
+            )
+        custom_show_data["content"] = []
         return self.update(**custom_show_data)
 
     # Sort FillerItem

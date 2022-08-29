@@ -1,0 +1,7 @@
+black
+flake8
+isort
+pytest-cov==3.*
+pytest==7.*
+types-requests
+types-urllib3

@@ -2,7 +2,7 @@ from typing import List, Union
 
 from plexapi.audio import Track
 from plexapi.server import PlexServer as PServer
-from plexapi.video import Video, Movie, Episode
+from plexapi.video import Episode, Movie, Video
 
 import dizqueTV.helpers as helpers
 from dizqueTV import decorators
@@ -16,10 +16,10 @@ from dizqueTV.models.templates import FILLER_ITEM_TEMPLATE
 class FillerList(BaseAPIObject):
     def __init__(self, data: dict, dizque_instance):
         super().__init__(data, dizque_instance)
-        self.id = data.get('id')
-        self.name = data.get('name')
-        self.count = data.get('count')
-        self._filler_data = data.get('content')
+        self.id = data.get("id")
+        self.name = data.get("name")
+        self.count = data.get("count")
+        self._filler_data = data.get("content")
         if not self.count and self._filler_data:
             self.count = len(self._filler_data)
 
@@ -63,10 +63,12 @@ class FillerList(BaseAPIObject):
         """
         if not self._filler_data:
             self.refresh()
-        return self._dizque_instance.parse_custom_shows_and_non_custom_shows(items=self._filler_data,
-                                                                             non_custom_show_type=FillerItem,
-                                                                             dizque_instance=self._dizque_instance,
-                                                                             filler_list_instance=self)
+        return self._dizque_instance.parse_custom_shows_and_non_custom_shows(
+            items=self._filler_data,
+            non_custom_show_type=FillerItem,
+            dizque_instance=self._dizque_instance,
+            filler_list_instance=self,
+        )
 
     @property
     @decorators.check_for_dizque_instance
@@ -96,8 +98,7 @@ class FillerList(BaseAPIObject):
         return False
 
     @decorators.check_for_dizque_instance
-    def get_filler_item(self,
-                        filler_item_title: str) -> Union[FillerItem, None]:
+    def get_filler_item(self, filler_item_title: str) -> Union[FillerItem, None]:
         """
         Get a specific program on this channel
 
@@ -112,11 +113,13 @@ class FillerList(BaseAPIObject):
         return None
 
     @decorators.check_for_dizque_instance
-    def add_filler(self,
-                   plex_item: Union[Video, Movie, Episode, Track] = None,
-                   plex_server: PServer = None,
-                   filler: FillerItem = None,
-                   **kwargs) -> bool:
+    def add_filler(
+        self,
+        plex_item: Union[Video, Movie, Episode, Track] = None,
+        plex_server: PServer = None,
+        filler: FillerItem = None,
+        **kwargs
+    ) -> bool:
         """
         Add a filler item to this filler list
 
@@ -131,30 +134,37 @@ class FillerList(BaseAPIObject):
         :rtype: bool
         """
         if not plex_item and not filler and not kwargs:
-            raise MissingParametersError("Please include either a program, a plex_item/plex_server combo, or kwargs")
+            raise MissingParametersError(
+                "Please include either a program, a plex_item/plex_server combo, or kwargs"
+            )
         if plex_item and plex_server:
-            temp_filler = self._dizque_instance.convert_plex_item_to_filler(plex_item=plex_item,
-                                                                            plex_server=plex_server)
+            temp_filler = self._dizque_instance.convert_plex_item_to_filler(
+                plex_item=plex_item, plex_server=plex_server
+            )
             kwargs = temp_filler._data
         if filler:
             if type(filler) == CustomShow:
                 # pass CustomShow handling to add_programs, since multiple programs need to be added
                 return self.add_fillers(fillers=[filler])
             kwargs = filler._data
-        if helpers._settings_are_complete(new_settings_dict=kwargs,
-                                          template_settings_dict=FILLER_ITEM_TEMPLATE,
-                                          ignore_keys=['_id', 'id']):
+        if helpers._settings_are_complete(
+            new_settings_dict=kwargs,
+            template_settings_dict=FILLER_ITEM_TEMPLATE,
+            ignore_keys=["_id", "id"],
+        ):
             filler_list_data = self._data
-            filler_list_data['content'].append(kwargs)
-            if filler_list_data.get('duration'):
-                filler_list_data['duration'] += kwargs['duration']
+            filler_list_data["content"].append(kwargs)
+            if filler_list_data.get("duration"):
+                filler_list_data["duration"] += kwargs["duration"]
             return self.update(**filler_list_data)
         return False
 
     @decorators.check_for_dizque_instance
-    def add_fillers(self,
-                    fillers: List[Union[FillerItem, CustomShow, Video, Movie, Episode, Track]],
-                    plex_server: PServer = None) -> bool:
+    def add_fillers(
+        self,
+        fillers: List[Union[FillerItem, CustomShow, Video, Movie, Episode, Track]],
+        plex_server: PServer = None,
+    ) -> bool:
         """
         Add multiple programs to this channel
 
@@ -167,17 +177,23 @@ class FillerList(BaseAPIObject):
         """
         filler_list_data = self._data
 
-        fillers = self._dizque_instance.expand_custom_show_items(programs=fillers, dizque_instance=self)
+        fillers = self._dizque_instance.expand_custom_show_items(
+            programs=fillers, dizque_instance=self
+        )
 
         for filler in fillers:
             if type(filler) not in [FillerItem, CustomShowItem]:
                 if not plex_server:
-                    raise MissingParametersError("Please include a plex_server if you are adding PlexAPI Video, "
-                                                 "Movie, Episode or Track items.")
-                filler = self._dizque_instance.convert_plex_item_to_filler(plex_item=filler, plex_server=plex_server)
-            filler_list_data['content'].append(filler._data)
-            if filler_list_data.get('duration'):
-                filler_list_data['duration'] += filler.duration
+                    raise MissingParametersError(
+                        "Please include a plex_server if you are adding PlexAPI Video, "
+                        "Movie, Episode or Track items."
+                    )
+                filler = self._dizque_instance.convert_plex_item_to_filler(
+                    plex_item=filler, plex_server=plex_server
+                )
+            filler_list_data["content"].append(filler._data)
+            if filler_list_data.get("duration"):
+                filler_list_data["duration"] += filler.duration
         return self.update(**filler_list_data)
 
     @decorators.check_for_dizque_instance
@@ -192,12 +208,14 @@ class FillerList(BaseAPIObject):
         :rtype: bool
         """
         filler_list_data = self._data
-        for a_filler in filler_list_data['content']:
-            if a_filler['title'] == filler.title:
-                if kwargs.get('duration'):
-                    filler_list_data['duration'] -= a_filler['duration']
-                    filler_list_data['duration'] += kwargs['duration']
-                new_data = helpers._combine_settings(new_settings_dict=kwargs, default_dict=a_filler)
+        for a_filler in filler_list_data["content"]:
+            if a_filler["title"] == filler.title:
+                if kwargs.get("duration"):
+                    filler_list_data["duration"] -= a_filler["duration"]
+                    filler_list_data["duration"] += kwargs["duration"]
+                new_data = helpers._combine_settings(
+                    new_settings_dict=kwargs, default_dict=a_filler
+                )
                 a_filler.update(new_data)
                 return self.update(**filler_list_data)
         return False
@@ -213,11 +231,11 @@ class FillerList(BaseAPIObject):
         :rtype: bool
         """
         filler_list_data = self._data
-        for a_filler in filler_list_data['content']:
-            if a_filler['title'] == filler.title:
-                if filler_list_data.get('duration'):
-                    filler_list_data['duration'] -= a_filler['duration']
-                filler_list_data['content'].remove(a_filler)
+        for a_filler in filler_list_data["content"]:
+            if a_filler["title"] == filler.title:
+                if filler_list_data.get("duration"):
+                    filler_list_data["duration"] -= a_filler["duration"]
+                filler_list_data["content"].remove(a_filler)
                 return self.update(**filler_list_data)
         return False
 
@@ -230,9 +248,11 @@ class FillerList(BaseAPIObject):
         :rtype: bool
         """
         filler_list_data = self._data
-        if filler_list_data.get('duration'):
-            filler_list_data['duration'] -= sum(filler.duration for filler in self.content)
-        filler_list_data['content'] = []
+        if filler_list_data.get("duration"):
+            filler_list_data["duration"] -= sum(
+                filler.duration for filler in self.content
+            )
+        filler_list_data["content"] = []
         return self.update(**filler_list_data)
 
     # Sort FillerItem

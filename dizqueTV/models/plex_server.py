@@ -5,13 +5,13 @@ from dizqueTV.models.base import BaseAPIObject
 class PlexServer(BaseAPIObject):
     def __init__(self, data: dict, dizque_instance):
         super().__init__(data, dizque_instance)
-        self.name = data.get('name')
-        self.uri = data.get('uri')
-        self.accessToken = data.get('accessToken')
-        self.index = data.get('index')
-        self.arChannels = data.get('arChannels')
-        self.arGuide = data.get('arGuide')
-        self._id = data.get('_id')
+        self.name = data.get("name")
+        self.uri = data.get("uri")
+        self.accessToken = data.get("accessToken")
+        self.index = data.get("index")
+        self.arChannels = data.get("arChannels")
+        self.arGuide = data.get("arGuide")
+        self._id = data.get("_id")
 
     def __repr__(self):
         return f"{self.__class__.__name__}({self.name})"
@@ -63,7 +63,9 @@ class PlexServer(BaseAPIObject):
         :rtype: bool
         """
         if self._dizque_instance:
-            if self._dizque_instance.update_plex_server(server_name=self.name, **kwargs):
+            if self._dizque_instance.update_plex_server(
+                server_name=self.name, **kwargs
+            ):
                 self.refresh()
                 return True
         return False

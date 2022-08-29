@@ -19,7 +19,7 @@ class Advanced:
         if channel_number not in self._dizque_instance.channel_numbers:
             raise Exception(f"Channel {channel_number} does not exist.")
         url = f"{self._dizque_instance.url}/playlist?channel={channel_number}"
-        response = requests.get(url=url, log='info')
+        response = requests.get(url=url, log="info")
         if not response:
             return ""
         return response.text
