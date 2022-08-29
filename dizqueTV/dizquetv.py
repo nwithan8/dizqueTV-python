@@ -653,7 +653,10 @@ class API:
         :return: Int number of the highest active channel
         :rtype: int
         """
-        return max(self.channel_numbers)
+        numbers = self.channel_numbers
+        if numbers:
+            return max(numbers)
+        return 0
 
     @property
     def lowest_channel_number(self) -> int:
