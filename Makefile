@@ -38,7 +38,8 @@ format-check: black-check isort-check lint mypy
 ## install - Install the project locally
 install:
 	$(PYTHON_BINARY) -m venv $(VIRTUAL_ENV)
-	$(VIRTUAL_BIN)/pip install -e ."[dev]"
+	$(VIRTUAL_BIN)/pip install -r requirements.txt
+	$(VIRTUAL_BIN)/pip install -r dev_requirements.txt
 
 ## isort - Sorts imports throughout the project
 isort:

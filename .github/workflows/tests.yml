@@ -38,10 +38,7 @@ jobs:
         python-version: 3.9
 
     - name: Install Python dependencies
-      run: |
-        python3 -m pip install --upgrade pip
-        pip3 install -r requirements_test.txt
+      run: make install
 
     - name: Test with pytest
-      run: |
-        pytest --exitfirst --verbose --failed-first
+      run: make test
