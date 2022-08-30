@@ -13,11 +13,7 @@ def warning(message):
     logging.warning(msg=message)
 
 
-level_map = {
-    'info': info,
-    'error': error,
-    'warning': warning
-}
+level_map = {"info": info, "error": error, "warning": warning}
 
 
 def log(message: str, level: str = "info") -> None:
@@ -30,5 +26,5 @@ def log(message: str, level: str = "info") -> None:
     :rtype: None
     """
     if level not in level_map.keys():
-        level = 'info'
+        level = "info"
     level_map[level](message)

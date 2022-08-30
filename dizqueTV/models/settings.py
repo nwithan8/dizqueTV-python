@@ -5,9 +5,9 @@ from dizqueTV.models.base import BaseAPIObject
 class ServerDetails(BaseAPIObject):
     def __init__(self, data: dict, dizque_instance):
         super().__init__(data, dizque_instance)
-        self.server_version = data.get('dizquetv')
-        self.ffmpeg_version = data.get('ffmpeg')
-        self.nodejs_version = data.get('nodejs')
+        self.server_version = data.get("dizquetv")
+        self.ffmpeg_version = data.get("ffmpeg")
+        self.nodejs_version = data.get("nodejs")
 
     def __repr__(self):
         return f"{self.__class__.__name__}({self.server_version})"
@@ -30,10 +30,10 @@ class ServerDetails(BaseAPIObject):
 class XMLTVSettings(BaseAPIObject):
     def __init__(self, data: dict, dizque_instance):
         super().__init__(data, dizque_instance)
-        self.cache = data.get('cache')
-        self.refresh = data.get('refresh')
-        self.file = data.get('file')
-        self._id = data.get('_id')
+        self.cache = data.get("cache")
+        self.refresh = data.get("refresh")
+        self.file = data.get("file")
+        self._id = data.get("_id")
 
     def __repr__(self):
         return f"{self.__class__.__name__}({self._id})"
@@ -85,9 +85,9 @@ class XMLTVSettings(BaseAPIObject):
 class HDHomeRunSettings(BaseAPIObject):
     def __init__(self, data: dict, dizque_instance):
         super().__init__(data, dizque_instance)
-        self.tunerCount = data.get('tunerCount')
-        self.autoDiscovery = data.get('autoDiscovery')
-        self._id = data.get('_id')
+        self.tunerCount = data.get("tunerCount")
+        self.autoDiscovery = data.get("autoDiscovery")
+        self._id = data.get("_id")
 
     def __repr__(self):
         return f"{self.__class__.__name__}({self._id})"
@@ -139,31 +139,31 @@ class HDHomeRunSettings(BaseAPIObject):
 class FFMPEGSettings(BaseAPIObject):
     def __init__(self, data: dict, dizque_instance):
         super().__init__(data, dizque_instance)
-        self.configVersion = data.get('configVersion')
-        self.ffmpegPath = data.get('ffmpegPath')
-        self.threads = data.get('threads')
-        self.concatMuxDelay = data.get('concatMuxDelay')
-        self.logFfmpeg = data.get('logFfmpeg')
-        self.enableFFMPEGTranscoding = data.get('enableFFMPEGTranscoding')
-        self.audioVolumePercent = data.get('audioVolumePercent')
-        self.videoEncoder = data.get('videoEncoder')
-        self.audioEncoder = data.get('audioEncoder')
-        self.targetResolution = data.get('targetResolution')
-        self.videoBitrate = data.get('videoBitrate')
-        self.videoBufSize = data.get('videoBufSize')
-        self.audioBitrate = data.get('audioBitrate')
-        self.audioBufSize = data.get('audioBufSize')
-        self.audioSampleRate = data.get('audioSampleRate')
-        self.audioChannels = data.get('audioChannels')
-        self.errorScreen = data.get('errorScreen')
-        self.errorAudio = data.get('errorAudio')
-        self.normalizeVideoCodec = data.get('normalizeVideoCodec')
-        self.normalizeAudioCodec = data.get('normalizeAudioCodec')
-        self.normalizeResolution = data.get('normalizeResolution')
-        self.normalizeAudio = data.get('normalizeAudio')
-        self.maxFPS = data.get('maxFPS')
-        self.scalingAlgorithm = data.get('scalingAlgorithm')
-        self._id = data.get('_id')
+        self.configVersion = data.get("configVersion")
+        self.ffmpegPath = data.get("ffmpegPath")
+        self.threads = data.get("threads")
+        self.concatMuxDelay = data.get("concatMuxDelay")
+        self.logFfmpeg = data.get("logFfmpeg")
+        self.enableFFMPEGTranscoding = data.get("enableFFMPEGTranscoding")
+        self.audioVolumePercent = data.get("audioVolumePercent")
+        self.videoEncoder = data.get("videoEncoder")
+        self.audioEncoder = data.get("audioEncoder")
+        self.targetResolution = data.get("targetResolution")
+        self.videoBitrate = data.get("videoBitrate")
+        self.videoBufSize = data.get("videoBufSize")
+        self.audioBitrate = data.get("audioBitrate")
+        self.audioBufSize = data.get("audioBufSize")
+        self.audioSampleRate = data.get("audioSampleRate")
+        self.audioChannels = data.get("audioChannels")
+        self.errorScreen = data.get("errorScreen")
+        self.errorAudio = data.get("errorAudio")
+        self.normalizeVideoCodec = data.get("normalizeVideoCodec")
+        self.normalizeAudioCodec = data.get("normalizeAudioCodec")
+        self.normalizeResolution = data.get("normalizeResolution")
+        self.normalizeAudio = data.get("normalizeAudio")
+        self.maxFPS = data.get("maxFPS")
+        self.scalingAlgorithm = data.get("scalingAlgorithm")
+        self._id = data.get("_id")
 
     def __repr__(self):
         return f"{self.__class__.__name__}({self._id})"
@@ -215,26 +215,26 @@ class FFMPEGSettings(BaseAPIObject):
 class PlexSettings(BaseAPIObject):
     def __init__(self, data: dict, dizque_instance):
         super().__init__(data, dizque_instance)
-        self.streamPath = data.get('streamPath')
-        self.debugLogging = data.get('debugLogging')
-        self.directStreamBitrate = data.get('directStreamBitrate')
-        self.transcodeBitrate = data.get('transcodeBitrate')
-        self.mediaBufferSize = data.get('mediaBufferSize')
-        self.transcodeMediaBufferSize = data.get('transcodeMediaBufferSize')
-        self.maxPlayableResolution = data.get('maxPlayableResolution')
-        self.maxTranscodeResolution = data.get('maxTranscodeResolution')
-        self.videoCodecs = data.get('videoCodecs')
-        self.audioCodecs = data.get('audioCodecs')
-        self.maxAudioChannels = data.get('maxAudioChannels')
-        self.audioBoost = data.get('audioBoost')
-        self.enableSubtitles = data.get('enableSubtitles')
-        self.subtitleSize = data.get('subtitleSize')
-        self.updatePlayStatus = data.get('updatePlayStatus')
-        self.streamProtocol = data.get('streamProtocol')
-        self.forceDirectPlay = data.get('forceDirectPlay')
-        self.pathReplace = data.get('pathReplace')
-        self.pathReplaceWith = data.get('pathReplaceWith')
-        self._id = data.get('_id')
+        self.streamPath = data.get("streamPath")
+        self.debugLogging = data.get("debugLogging")
+        self.directStreamBitrate = data.get("directStreamBitrate")
+        self.transcodeBitrate = data.get("transcodeBitrate")
+        self.mediaBufferSize = data.get("mediaBufferSize")
+        self.transcodeMediaBufferSize = data.get("transcodeMediaBufferSize")
+        self.maxPlayableResolution = data.get("maxPlayableResolution")
+        self.maxTranscodeResolution = data.get("maxTranscodeResolution")
+        self.videoCodecs = data.get("videoCodecs")
+        self.audioCodecs = data.get("audioCodecs")
+        self.maxAudioChannels = data.get("maxAudioChannels")
+        self.audioBoost = data.get("audioBoost")
+        self.enableSubtitles = data.get("enableSubtitles")
+        self.subtitleSize = data.get("subtitleSize")
+        self.updatePlayStatus = data.get("updatePlayStatus")
+        self.streamProtocol = data.get("streamProtocol")
+        self.forceDirectPlay = data.get("forceDirectPlay")
+        self.pathReplace = data.get("pathReplace")
+        self.pathReplaceWith = data.get("pathReplaceWith")
+        self._id = data.get("_id")
 
     def __repr__(self):
         return f"{self.__class__.__name__}({self._id})"

@@ -2,25 +2,27 @@ import collections
 import json
 import os
 import random
-from concurrent.futures import ThreadPoolExecutor, wait, ALL_COMPLETED
+from concurrent.futures import ALL_COMPLETED, ThreadPoolExecutor, wait
 from datetime import datetime, timedelta
-from typing import List, Union, Tuple
+from typing import List, Tuple, Union
 
 import numpy.random as numpy_random
 from plexapi.audio import Track
 from plexapi.server import PlexServer as PServer
-from plexapi.video import Video, Movie, Episode
+from plexapi.video import Episode, Movie, Video
 
 import dizqueTV.dizquetv_requests as requests
 from dizqueTV.exceptions import MissingSettingsError
-from dizqueTV.models.media import Program, Redirect, FillerItem
+from dizqueTV.models.media import FillerItem, Program, Redirect
 
 _access_tokens = {}
 _uris = {}
 
 
 # Internal Helpers
-def _multithread(func, elements: List, element_param_name: str, thread_count: int = 20, **kwargs) -> List:
+def _multithread(
+    func, elements: List, element_param_name: str, thread_count: int = 20, **kwargs
+) -> List:
     """
     Multithread a function for elements in a list
 
@@ -49,9 +51,9 @@ def _multithread(func, elements: List, element_param_name: str, thread_count: in
     return [t.result() for t in thread_list]
 
 
-def _combine_settings_add_new(new_settings_dict: dict,
-                              default_dict: dict,
-                              ignore_keys: List = None) -> dict:
+def _combine_settings_add_new(
+    new_settings_dict: dict, default_dict: dict, ignore_keys: List = None
+) -> dict:
     """
     Build a complete dictionary for new settings, using old settings as a base
     Add new keys to template.
@@ -76,9 +78,9 @@ def _combine_settings_add_new(new_settings_dict: dict,
     return default_dict
 
 
-def _combine_settings(new_settings_dict: dict,
-                      default_dict: dict,
-                      ignore_keys: List = None) -> dict:
+def _combine_settings(
+    new_settings_dict: dict, default_dict: dict, ignore_keys: List = None
+) -> dict:
     """
     Build a complete dictionary for new settings, using old settings as a base
     Do not add new keys to template.
@@ -105,10 +107,12 @@ def _combine_settings(new_settings_dict: dict,
     return default_dict
 
 
-def _combine_settings_enforce_types(new_settings_dict: dict,
-                                    default_dict: dict,
-                                    template_dict: dict,
-                                    ignore_keys: List = None) -> dict:
+def _combine_settings_enforce_types(
+    new_settings_dict: dict,
+    default_dict: dict,
+    template_dict: dict,
+    ignore_keys: List = None,
+) -> dict:
     """
     Build a complete dictionary for new settings, using old settings as a base
     Do not add new keys to template
@@ -158,7 +162,9 @@ def _filter_dictionary(new_dictionary: dict, template_dict: dict) -> dict:
     return final_dict
 
 
-def _settings_are_complete(new_settings_dict: dict, template_settings_dict: json, ignore_keys: List = None) -> bool:
+def _settings_are_complete(
+    new_settings_dict: dict, template_settings_dict: json, ignore_keys: List = None
+) -> bool:
     """
     Check that all elements from the settings template are present in the new settings
 
@@ -195,15 +201,15 @@ def convert_icon_position(position_text: str) -> str:
     if type(position_text) == int:
         return str(position_text)
     position_text = position_text.lower()
-    if 'top' in position_text:
-        if 'left' in position_text:
-            return '0'
-        if 'right' in position_text:
-            return '1'
-    if 'bottom' in position_text:
-        if 'left' in position_text:
-            return '2'
-    return '3'
+    if "top" in position_text:
+        if "left" in position_text:
+            return "0"
+        if "right" in position_text:
+            return "1"
+    if "bottom" in position_text:
+        if "left" in position_text:
+            return "2"
+    return "3"
 
 
 def file_exists(file_path: str) -> bool:
@@ -227,7 +233,7 @@ def read_file_bytes(file_path: str):
     :return:
     :rtype:
     """
-    return open(file_path, 'rb')
+    return open(file_path, "rb")
 
 
 def _object_has_attribute(obj: object, attribute_name: str) -> bool:
@@ -247,7 +253,9 @@ def _object_has_attribute(obj: object, attribute_name: str) -> bool:
     return False
 
 
-def _make_program_dict_from_plex_item(plex_item: Union[Video, Movie, Episode, Track], plex_server: PServer) -> dict:
+def _make_program_dict_from_plex_item(
+    plex_item: Union[Video, Movie, Episode, Track], plex_server: PServer
+) -> dict:
     """
     Build a dictionary for a Program using a PlexAPI Video, Movie, Episode or Track object
 
@@ -263,37 +271,58 @@ def _make_program_dict_from_plex_item(plex_item: Union[Video, Movie, Episode, Tr
     plex_uri = get_plex_indirect_uri(plex_server=plex_server)
     plex_token = get_plex_access_token(plex_server=plex_server)
     data = {
-        'title': plex_item.title,
-        'key': plex_item.key,
-        'ratingKey': str(plex_item.ratingKey),
-        'icon': f"{plex_uri}{plex_item.thumb}?X-Plex-Token={plex_token}",
-        'type': item_type,
-        'duration': (plex_item.duration if (hasattr(plex_item, 'duration') and plex_item.duration) else 0),
-        'summary': plex_item.summary,
-        'rating': "" if plex_item.type == 'track' else plex_item.contentRating,
-        'date': (remove_time_from_date(plex_item.originallyAvailableAt)
-                 if (hasattr(plex_item, 'originallyAvailableAt') and plex_item.originallyAvailableAt)
-                 else '1900-01-01'),
-        'year': (get_year_from_date(plex_item.originallyAvailableAt)
-                 if (hasattr(plex_item, 'originallyAvailableAt') and plex_item.originallyAvailableAt)
-                 else '1900'),
-        'plexFile': plex_media_item_part.key,
-        'file': plex_media_item_part.file,
-        'showTitle': (plex_item.title if item_type == 'movie' else plex_item.grandparentTitle),
-        'episode': (1 if item_type == 'movie' else int(plex_item.index)),
-        'season': (1 if item_type == 'movie' else int(plex_item.parentIndex)),
-        'serverKey': plex_server.friendlyName
+        "title": plex_item.title,
+        "key": plex_item.key,
+        "ratingKey": str(plex_item.ratingKey),
+        "icon": f"{plex_uri}{plex_item.thumb}?X-Plex-Token={plex_token}",
+        "type": item_type,
+        "duration": (
+            plex_item.duration
+            if (hasattr(plex_item, "duration") and plex_item.duration)
+            else 0
+        ),
+        "summary": plex_item.summary,
+        "rating": "" if plex_item.type == "track" else plex_item.contentRating,
+        "date": (
+            remove_time_from_date(plex_item.originallyAvailableAt)
+            if (
+                hasattr(plex_item, "originallyAvailableAt")
+                and plex_item.originallyAvailableAt
+            )
+            else "1900-01-01"
+        ),
+        "year": (
+            get_year_from_date(plex_item.originallyAvailableAt)
+            if (
+                hasattr(plex_item, "originallyAvailableAt")
+                and plex_item.originallyAvailableAt
+            )
+            else "1900"
+        ),
+        "plexFile": plex_media_item_part.key,
+        "file": plex_media_item_part.file,
+        "showTitle": (
+            plex_item.title if item_type == "movie" else plex_item.grandparentTitle
+        ),
+        "episode": (1 if item_type == "movie" else int(plex_item.index)),
+        "season": (1 if item_type == "movie" else int(plex_item.parentIndex)),
+        "serverKey": plex_server.friendlyName,
     }
-    if plex_item.type == 'episode':
-        data['episodeIcon'] = f"{plex_uri}{plex_item.thumb}?X-Plex-Token={plex_token}"
+    if plex_item.type == "episode":
+        data["episodeIcon"] = f"{plex_uri}{plex_item.thumb}?X-Plex-Token={plex_token}"
         data[
-            'seasonIcon'] = f"{plex_uri}{plex_item.parentThumb if plex_item.parentThumb else plex_item.grandparentThumb}?X-Plex-Token={plex_token}"
-        data['showIcon'] = f"{plex_uri}{plex_item.grandparentThumb}?X-Plex-Token={plex_token}"
-        data['icon'] = data['showIcon']
+            "seasonIcon"
+        ] = f"{plex_uri}{plex_item.parentThumb if plex_item.parentThumb else plex_item.grandparentThumb}?X-Plex-Token={plex_token}"
+        data[
+            "showIcon"
+        ] = f"{plex_uri}{plex_item.grandparentThumb}?X-Plex-Token={plex_token}"
+        data["icon"] = data["showIcon"]
     return data
 
 
-def _make_filler_dict_from_plex_item(plex_item: Union[Video, Movie, Episode, Track], plex_server: PServer) -> dict:
+def _make_filler_dict_from_plex_item(
+    plex_item: Union[Video, Movie, Episode, Track], plex_server: PServer
+) -> dict:
     """
     Build a dictionary for a FillerItem using a PlexAPI Video, Movie, Episode or Track object
 
@@ -307,36 +336,54 @@ def _make_filler_dict_from_plex_item(plex_item: Union[Video, Movie, Episode, Tra
     item_type = plex_item.type
     plex_media_item_part = plex_item.media[0].parts[0]
     data = {
-        'title': plex_item.title,
-        'key': plex_item.key,
-        'ratingKey': str(plex_item.ratingKey),
-        'icon': plex_item.thumb,
-        'type': item_type,
-        'duration': (plex_item.duration if (hasattr(plex_item, 'duration') and plex_item.duration) else 0),
-        'summary': plex_item.summary,
-        'date': (remove_time_from_date(plex_item.originallyAvailableAt)
-                 if (hasattr(plex_item, 'originallyAvailableAt') and plex_item.originallyAvailableAt)
-                 else '1900-01-01'),
-        'year': (get_year_from_date(plex_item.originallyAvailableAt)
-                 if (hasattr(plex_item, 'originallyAvailableAt') and plex_item.originallyAvailableAt)
-                 else '1900-01-01'),
-        'plexFile': plex_media_item_part.key,
-        'file': plex_media_item_part.file,
-        'showTitle': (plex_item.title if item_type == 'movie' else plex_item.grandparentTitle),
-        'episode': (1 if item_type == 'movie' else int(plex_item.index)),
-        'season': (1 if item_type == 'movie' else int(plex_item.parentIndex)),
-        'serverKey': plex_server.friendlyName
+        "title": plex_item.title,
+        "key": plex_item.key,
+        "ratingKey": str(plex_item.ratingKey),
+        "icon": plex_item.thumb,
+        "type": item_type,
+        "duration": (
+            plex_item.duration
+            if (hasattr(plex_item, "duration") and plex_item.duration)
+            else 0
+        ),
+        "summary": plex_item.summary,
+        "date": (
+            remove_time_from_date(plex_item.originallyAvailableAt)
+            if (
+                hasattr(plex_item, "originallyAvailableAt")
+                and plex_item.originallyAvailableAt
+            )
+            else "1900-01-01"
+        ),
+        "year": (
+            get_year_from_date(plex_item.originallyAvailableAt)
+            if (
+                hasattr(plex_item, "originallyAvailableAt")
+                and plex_item.originallyAvailableAt
+            )
+            else "1900-01-01"
+        ),
+        "plexFile": plex_media_item_part.key,
+        "file": plex_media_item_part.file,
+        "showTitle": (
+            plex_item.title if item_type == "movie" else plex_item.grandparentTitle
+        ),
+        "episode": (1 if item_type == "movie" else int(plex_item.index)),
+        "season": (1 if item_type == "movie" else int(plex_item.parentIndex)),
+        "serverKey": plex_server.friendlyName,
     }
-    if plex_item.type == 'episode':
-        data['episodeIcon'] = plex_item.thumb
-        data['seasonIcon'] = plex_item.parentThumb
-        data['showIcon'] = plex_item.grandparentThumb
+    if plex_item.type == "episode":
+        data["episodeIcon"] = plex_item.thumb
+        data["seasonIcon"] = plex_item.parentThumb
+        data["showIcon"] = plex_item.grandparentThumb
     return data
 
 
-def _make_server_dict_from_plex_server(plex_server: PServer,
-                                       auto_reload_channels: bool = False,
-                                       auto_reload_guide: bool = True) -> dict:
+def _make_server_dict_from_plex_server(
+    plex_server: PServer,
+    auto_reload_channels: bool = False,
+    auto_reload_guide: bool = True,
+) -> dict:
     """
     Build a dictionary for a PlexServer using a PlexAPI server
 
@@ -350,11 +397,11 @@ def _make_server_dict_from_plex_server(plex_server: PServer,
     :rtype: dict
     """
     data = {
-        'name': plex_server.friendlyName,
-        'uri': get_plex_indirect_uri(plex_server=plex_server),
-        'accessToken': get_plex_access_token(plex_server=plex_server),
-        'arChannels': auto_reload_channels,
-        'arGuide': auto_reload_guide
+        "name": plex_server.friendlyName,
+        "uri": get_plex_indirect_uri(plex_server=plex_server),
+        "accessToken": get_plex_access_token(plex_server=plex_server),
+        "arChannels": auto_reload_channels,
+        "arGuide": auto_reload_guide,
     }
     return data
 
@@ -391,8 +438,14 @@ def get_items_of_type(item_type: str, items: List) -> List:
     :return: list of items with 'type' = X
     :rtype: list
     """
-    return [item for item in items if
-            (_object_has_attribute(obj=item, attribute_name='type') and item.type == item_type)]
+    return [
+        item
+        for item in items
+        if (
+            _object_has_attribute(obj=item, attribute_name="type")
+            and item.type == item_type
+        )
+    ]
 
 
 def get_items_of_not_type(item_type: str, items: List) -> List:
@@ -406,8 +459,14 @@ def get_items_of_not_type(item_type: str, items: List) -> List:
     :return: list of items without 'type' = X
     :rtype: list
     """
-    return [item for item in items if
-            (_object_has_attribute(obj=item, attribute_name='type') and item.type != item_type)]
+    return [
+        item
+        for item in items
+        if (
+            _object_has_attribute(obj=item, attribute_name="type")
+            and item.type != item_type
+        )
+    ]
 
 
 def get_non_shows(media_items: List) -> List:
@@ -419,9 +478,20 @@ def get_non_shows(media_items: List) -> List:
     :return: list of non-show MediaItem objects
     :rtype: list
     """
-    return [item for item in media_items if
-            ((_object_has_attribute(obj=item, attribute_name='type') and item.type != 'episode') or
-             (_object_has_attribute(obj=item, attribute_name='season') and not item.season))]
+    return [
+        item
+        for item in media_items
+        if (
+            (
+                _object_has_attribute(obj=item, attribute_name="type")
+                and item.type != "episode"
+            )
+            or (
+                _object_has_attribute(obj=item, attribute_name="season")
+                and not item.season
+            )
+        )
+    ]
 
 
 def make_show_dict(media_items: List) -> dict:
@@ -436,7 +506,11 @@ def make_show_dict(media_items: List) -> dict:
     """
     show_dict = {}
     for item in media_items:
-        if _object_has_attribute(obj=item, attribute_name='type') and item.type == 'episode' and item.episode:
+        if (
+            _object_has_attribute(obj=item, attribute_name="type")
+            and item.type == "episode"
+            and item.episode
+        ):
             if item.showTitle in show_dict.keys():
                 if item.season in show_dict[item.showTitle].keys():
                     show_dict[item.showTitle][item.season][item.episode] = item
@@ -460,13 +534,21 @@ def order_show_dict(show_dict: dict) -> dict:
     for show_name, seasons in show_dict.items():
         episode_ordered_dict[show_name] = {}
         for season_number, episodes in seasons.items():
-            ordered_episodes = {episode_number: episode for episode_number, episode in
-                                sorted(episodes.items(), key=lambda item: item[0])}
+            ordered_episodes = {
+                episode_number: episode
+                for episode_number, episode in sorted(
+                    episodes.items(), key=lambda item: item[0]
+                )
+            }
             episode_ordered_dict[show_name][season_number] = ordered_episodes
     season_ordered_dict = {}
     for show_name, seasons in episode_ordered_dict.items():
-        ordered_seasons = {season_number: episodes for season_number, episodes in
-                           sorted(seasons.items(), key=lambda item: item[0])}
+        ordered_seasons = {
+            season_number: episodes
+            for season_number, episodes in sorted(
+                seasons.items(), key=lambda item: item[0]
+            )
+        }
         season_ordered_dict[show_name] = ordered_seasons
     return season_ordered_dict
 
@@ -482,14 +564,21 @@ def add_durations_to_show_dict(show_dict: dict) -> dict:
     """
     sorted_shows = {}
     for show_name, seasons in show_dict.items():
-        sorted_shows[show_name] = {'seasons': {}, 'duration': 0}
+        sorted_shows[show_name] = {"seasons": {}, "duration": 0}
         for season_number, episodes in seasons.items():
-            sorted_shows[show_name]['seasons'][season_number] = {'episodes': {}, 'duration': 0}
+            sorted_shows[show_name]["seasons"][season_number] = {
+                "episodes": {},
+                "duration": 0,
+            }
             for episode_number, episode in episodes.items():
-                episode_dict = {'episode': episode, 'duration': episode.duration}
-                sorted_shows[show_name]['seasons'][season_number]['episodes'][episode_number] = episode_dict
-                sorted_shows[show_name]['seasons'][season_number]['duration'] += episode.duration
-                sorted_shows[show_name]['duration'] += episode.duration
+                episode_dict = {"episode": episode, "duration": episode.duration}
+                sorted_shows[show_name]["seasons"][season_number]["episodes"][
+                    episode_number
+                ] = episode_dict
+                sorted_shows[show_name]["seasons"][season_number][
+                    "duration"
+                ] += episode.duration
+                sorted_shows[show_name]["duration"] += episode.duration
     return sorted_shows
 
 
@@ -504,14 +593,14 @@ def condense_show_dict(show_dict: dict) -> dict:
     :return: dict object with all episodes arranged by show-episode
     :rtype: dict
     """
-    sorted_shows = {'count': 0, 'shows': {}}
+    sorted_shows = {"count": 0, "shows": {}}
     for show_name, seasons in show_dict.items():
-        sorted_shows['shows'][show_name] = {'episodes': [], 'count': 0}
+        sorted_shows["shows"][show_name] = {"episodes": [], "count": 0}
         for season_number, episodes in seasons.items():
             for episode_number, episode in episodes.items():
-                sorted_shows['shows'][show_name]['episodes'].append(episode)
-                sorted_shows['shows'][show_name]['count'] += 1
-                sorted_shows['count'] += 1
+                sorted_shows["shows"][show_name]["episodes"].append(episode)
+                sorted_shows["shows"][show_name]["count"] += 1
+                sorted_shows["count"] += 1
     return sorted_shows
 
 
@@ -544,7 +633,9 @@ def get_year_from_date(date_string: Union[datetime, str]) -> int:
     return int(date_string.strftime("%Y"))
 
 
-def string_to_datetime(date_string: str, template: str = "%Y-%m-%dT%H:%M:%S") -> datetime:
+def string_to_datetime(
+    date_string: str, template: str = "%Y-%m-%dT%H:%M:%S"
+) -> datetime:
     """
     Convert a datetime string to a datetime.datetime object
 
@@ -555,12 +646,14 @@ def string_to_datetime(date_string: str, template: str = "%Y-%m-%dT%H:%M:%S") ->
     :return: datetime.datetime object
     :rtype: datetime.datetime
     """
-    if date_string.endswith('Z'):
+    if date_string.endswith("Z"):
         date_string = date_string[:-5]
     return datetime.strptime(date_string, template)
 
 
-def datetime_to_string(datetime_object: datetime, template: str = "%Y-%m-%dT%H:%M:%S.000Z") -> str:
+def datetime_to_string(
+    datetime_object: datetime, template: str = "%Y-%m-%dT%H:%M:%S.000Z"
+) -> str:
     """
     Convert a datetime.datetime object to a string
 
@@ -585,7 +678,7 @@ def string_to_time(time_string: str, template: str = "%H:%M:%S") -> datetime:
     :return: datetime.datetime object
     :rtype: datetime.datetime
     """
-    if time_string.endswith('Z'):
+    if time_string.endswith("Z"):
         time_string = time_string[:-5]
     return datetime.strptime(time_string, template)
 
@@ -642,13 +735,15 @@ def hours_difference_in_timezone() -> int:
     return int((datetime.utcnow() - datetime.now()).total_seconds() / 60 / 60)
 
 
-def shift_time(starting_time: datetime,
-               seconds: int = 0,
-               minutes: int = 0,
-               hours: int = 0,
-               days: int = 0,
-               months: int = 0,
-               years: int = 0) -> datetime:
+def shift_time(
+    starting_time: datetime,
+    seconds: int = 0,
+    minutes: int = 0,
+    hours: int = 0,
+    days: int = 0,
+    months: int = 0,
+    years: int = 0,
+) -> datetime:
     """
     Shift a time forward or backwards
 
@@ -670,7 +765,9 @@ def shift_time(starting_time: datetime,
     :rtype: datetime.datetime
     """
     days = days + (30 * months) + (365 * years)
-    return starting_time + timedelta(seconds=seconds, minutes=minutes, hours=hours, days=days)
+    return starting_time + timedelta(
+        seconds=seconds, minutes=minutes, hours=hours, days=days
+    )
 
 
 def get_nearest_30_minute_mark() -> str:
@@ -697,14 +794,16 @@ def convert_24_time_to_milliseconds_past_midnight(time_string: str) -> int:
     :return: int of milliseconds since midnight
     :rtype: int
     """
-    hour_minute_second = time_string.split(':')
+    hour_minute_second = time_string.split(":")
     if len(hour_minute_second) < 2 or len(hour_minute_second) > 4:
         raise Exception("Time string must be in two-digit format hour:minute:second")
     if len(hour_minute_second) == 2:
         time_string += ":00"
     time_in_datetime = string_to_time(time_string=time_string)
     midnight = string_to_time(time_string="00:00:00")
-    return get_milliseconds_between_two_datetimes(start_datetime=midnight, end_datetime=time_in_datetime)
+    return get_milliseconds_between_two_datetimes(
+        start_datetime=midnight, end_datetime=time_in_datetime
+    )
 
 
 def get_milliseconds_between_two_hours(start_hour: int, end_hour: int) -> int:
@@ -726,7 +825,9 @@ def get_milliseconds_between_two_hours(start_hour: int, end_hour: int) -> int:
     return int((end_date - start_date).total_seconds()) * 1000
 
 
-def get_milliseconds_between_two_datetimes(start_datetime: datetime, end_datetime: datetime) -> int:
+def get_milliseconds_between_two_datetimes(
+    start_datetime: datetime, end_datetime: datetime
+) -> int:
     """
     Get how many milliseconds between two datetime.datetime objects
 
@@ -740,7 +841,9 @@ def get_milliseconds_between_two_datetimes(start_datetime: datetime, end_datetim
     return int((end_datetime - start_datetime).total_seconds()) * 1000
 
 
-def get_needed_flex_time(item_time_milliseconds: int, allowed_minutes_time_frame: int) -> int:
+def get_needed_flex_time(
+    item_time_milliseconds: int, allowed_minutes_time_frame: int
+) -> int:
     """
     Get how many milliseconds needed to stretch an item's runtime to a specific interval length
 
@@ -751,17 +854,24 @@ def get_needed_flex_time(item_time_milliseconds: int, allowed_minutes_time_frame
     :return: int of milliseconds needed to stretch item
     :rtype: int
     """
-    minute_start = (30 if datetime.utcnow().minute >= 30 else 0)
+    minute_start = 30 if datetime.utcnow().minute >= 30 else 0
 
-    allowed_milliseconds_time_frame = (allowed_minutes_time_frame + (minute_start % allowed_minutes_time_frame)) * \
-                                      60 * 1000
-    remainder = allowed_milliseconds_time_frame - (item_time_milliseconds % allowed_milliseconds_time_frame)
+    allowed_milliseconds_time_frame = (
+        (allowed_minutes_time_frame + (minute_start % allowed_minutes_time_frame))
+        * 60
+        * 1000
+    )
+    remainder = allowed_milliseconds_time_frame - (
+        item_time_milliseconds % allowed_milliseconds_time_frame
+    )
     if remainder == allowed_milliseconds_time_frame:
         return 0
     return remainder
 
 
-def get_plex_indirect_uri(plex_server: PServer, force_update: bool = False) -> Union[str, None]:
+def get_plex_indirect_uri(
+    plex_server: PServer, force_update: bool = False
+) -> Union[str, None]:
     """
     Get the indirect URI (ex. http://192.168.1.1-xxxxxxxxxxxxxxxx.plex.direct) for a Plex server
 
@@ -775,24 +885,28 @@ def get_plex_indirect_uri(plex_server: PServer, force_update: bool = False) -> U
     if _uris.get(plex_server.friendlyName) and not force_update:
         return _uris[plex_server.friendlyName]
     headers = {
-        'Accept': 'application/json',
-        'X-Plex-Product': 'dizqueTV-Python',
-        'X-Plex-Version': 'Plex OAuth',
-        'X-Plex-Client-Identifier': 'dizqueTV-Python',
-        'X-Plex-Model': 'Plex OAuth',
-        'X-Plex-Token': plex_server._token
+        "Accept": "application/json",
+        "X-Plex-Product": "dizqueTV-Python",
+        "X-Plex-Version": "Plex OAuth",
+        "X-Plex-Client-Identifier": "dizqueTV-Python",
+        "X-Plex-Model": "Plex OAuth",
+        "X-Plex-Token": plex_server._token,
     }
-    response = requests.get(url="https://plex.tv/api/v2/resources?includeHttps=1", headers=headers)
+    response = requests.get(
+        url="https://plex.tv/api/v2/resources?includeHttps=1", headers=headers
+    )
     if response:
         json_data = response.json()
         for server in json_data:
-            if server['name'] == plex_server.friendlyName:
-                _uris[plex_server.friendlyName] = server['connections'][0]['uri']
-                return server['connections'][0]['uri']
+            if server["name"] == plex_server.friendlyName:
+                _uris[plex_server.friendlyName] = server["connections"][0]["uri"]
+                return server["connections"][0]["uri"]
     return None
 
 
-def get_plex_access_token(plex_server: PServer, force_update: bool = False) -> Union[str, None]:
+def get_plex_access_token(
+    plex_server: PServer, force_update: bool = False
+) -> Union[str, None]:
     """
     Get the access token for a Plex server
 
@@ -806,19 +920,21 @@ def get_plex_access_token(plex_server: PServer, force_update: bool = False) -> U
     if not force_update:
         return plex_server._token
     headers = {
-        'Accept': 'application/json',
-        'X-Plex-Product': 'dizqueTV-Python',
-        'X-Plex-Version': 'Plex OAuth',
-        'X-Plex-Client-Identifier': 'dizqueTV-Python',
-        'X-Plex-Model': 'Plex OAuth',
-        'X-Plex-Token': plex_server._token
+        "Accept": "application/json",
+        "X-Plex-Product": "dizqueTV-Python",
+        "X-Plex-Version": "Plex OAuth",
+        "X-Plex-Client-Identifier": "dizqueTV-Python",
+        "X-Plex-Model": "Plex OAuth",
+        "X-Plex-Token": plex_server._token,
     }
-    response = requests.get(url="https://plex.tv/api/v2/resources?includeHttps=1", headers=headers)
+    response = requests.get(
+        url="https://plex.tv/api/v2/resources?includeHttps=1", headers=headers
+    )
     if response:
         json_data = response.json()
         for server in json_data:
-            if server['name'] == plex_server.friendlyName:
-                return server['accessToken']
+            if server["name"] == plex_server.friendlyName:
+                return server["accessToken"]
     return None
 
 
@@ -969,7 +1085,9 @@ def remove_duplicates_by_attribute(items: List, attribute_name: str) -> List:
     return filtered
 
 
-def sort_media_alphabetically(media_items: List[Union[Program, FillerItem]]) -> List[Union[Program, FillerItem]]:
+def sort_media_alphabetically(
+    media_items: List[Union[Program, FillerItem]]
+) -> List[Union[Program, FillerItem]]:
     """
     Sort media items alphabetically.
     Note: Shows will be grouped and sorted by series title, but episodes may be out of order.
@@ -980,14 +1098,20 @@ def sort_media_alphabetically(media_items: List[Union[Program, FillerItem]]) -> 
     :return: List of Program and FillerItem objects
     :rtype: List[Union[Program, FillerItem]]
     """
-    items_with_titles, items_without_titles = _separate_with_and_without(items=media_items,
-                                                                         attribute_name='title')
-    sorted_items = sorted(items_with_titles, key=lambda x: (x.showTitle if x.type == 'episode' else x.title))
+    items_with_titles, items_without_titles = _separate_with_and_without(
+        items=media_items, attribute_name="title"
+    )
+    sorted_items = sorted(
+        items_with_titles,
+        key=lambda x: (x.showTitle if x.type == "episode" else x.title),
+    )
     sorted_items.extend(items_without_titles)
     return sorted_items
 
 
-def sort_media_by_release_date(media_items: List[Union[Program, FillerItem]]) -> List[Union[Program, FillerItem]]:
+def sort_media_by_release_date(
+    media_items: List[Union[Program, FillerItem]]
+) -> List[Union[Program, FillerItem]]:
     """
     Sort media items by release date.
     Note: Items without release dates are appended (alphabetically) at the end of the list
@@ -997,9 +1121,12 @@ def sort_media_by_release_date(media_items: List[Union[Program, FillerItem]]) ->
     :return: List of Program and FillerItem objects
     :rtype: List[Union[Program, FillerItem]]
     """
-    items_with_dates, items_without_dates = _separate_with_and_without(items=media_items,
-                                                                       attribute_name='date')
-    sorted_items = sorted(items_with_dates, key=lambda x: datetime.strptime(x.date, "%Y-%m-%d"))
+    items_with_dates, items_without_dates = _separate_with_and_without(
+        items=media_items, attribute_name="date"
+    )
+    sorted_items = sorted(
+        items_with_dates, key=lambda x: datetime.strptime(x.date, "%Y-%m-%d")
+    )
     sorted_items.extend(sort_media_alphabetically(media_items=items_without_dates))
     return sorted_items
 
@@ -1017,15 +1144,21 @@ def _sort_shows_by_season_order(shows_dict: dict) -> List[Union[Program, FillerI
     sorted_list = []
     sorted_shows = sorted(shows_dict.items(), key=lambda show_name: show_name)
     for show in sorted_shows:
-        sorted_seasons = sorted(show[1].items(), key=lambda season_number: season_number)
+        sorted_seasons = sorted(
+            show[1].items(), key=lambda season_number: season_number
+        )
         for season in sorted_seasons:
-            sorted_episodes = sorted(season[1].items(), key=lambda episode_number: episode_number)
+            sorted_episodes = sorted(
+                season[1].items(), key=lambda episode_number: episode_number
+            )
             for item in sorted_episodes:
                 sorted_list.append(item[1])
     return sorted_list
 
 
-def sort_media_by_season_order(media_items: List[Union[Program, FillerItem]]) -> List[Union[Program, FillerItem]]:
+def sort_media_by_season_order(
+    media_items: List[Union[Program, FillerItem]]
+) -> List[Union[Program, FillerItem]]:
     """
     Sort media items by season order.
     Note: Series are ordered alphabetically, movies appended (alphabetically) at the end of the list.
@@ -1043,7 +1176,9 @@ def sort_media_by_season_order(media_items: List[Union[Program, FillerItem]]) ->
     return sorted_all
 
 
-def sort_media_by_duration(media_items: List[Union[Program, FillerItem]]) -> List[Union[Program, FillerItem]]:
+def sort_media_by_duration(
+    media_items: List[Union[Program, FillerItem]]
+) -> List[Union[Program, FillerItem]]:
     """
     Sort media by duration.
     Note: Automatically removes redirect items
@@ -1053,15 +1188,22 @@ def sort_media_by_duration(media_items: List[Union[Program, FillerItem]]) -> Lis
     :return: List of Program and FillerItem objects
     :rtype: List[Union[Program, FillerList]]
     """
-    non_redirects = [item for item in media_items if
-                     (_object_has_attribute(obj=item, attribute_name='duration')
-                      and _object_has_attribute(obj=item, attribute_name='type')
-                      and item.type != 'redirect')]
+    non_redirects = [
+        item
+        for item in media_items
+        if (
+            _object_has_attribute(obj=item, attribute_name="duration")
+            and _object_has_attribute(obj=item, attribute_name="type")
+            and item.type != "redirect"
+        )
+    ]
     sorted_media = sorted(non_redirects, key=lambda x: x.duration)
     return sorted_media
 
 
-def sort_media_randomly(media_items: List[Union[Program, FillerItem]]) -> List[Union[Program, FillerItem]]:
+def sort_media_randomly(
+    media_items: List[Union[Program, FillerItem]]
+) -> List[Union[Program, FillerItem]]:
     """
     Sort media randomly.
 
@@ -1074,7 +1216,9 @@ def sort_media_randomly(media_items: List[Union[Program, FillerItem]]) -> List[U
     return media_items
 
 
-def sort_media_cyclical_shuffle(media_items: List[Union[Program, FillerItem]]) -> List[Union[Program, FillerItem]]:
+def sort_media_cyclical_shuffle(
+    media_items: List[Union[Program, FillerItem]]
+) -> List[Union[Program, FillerItem]]:
     """
     Sort media cyclically.
     Note: Automatically removes FillerItem objects
@@ -1103,24 +1247,29 @@ def sort_media_cyclical_shuffle(media_items: List[Union[Program, FillerItem]]) -
         show_list[index] = show_cyclical_order
         index_list.append(index)
         index += 1
-    show_list['remaining_episode_count'] = total_episode_count
+    show_list["remaining_episode_count"] = total_episode_count
     final_list = []
     while len(final_list) != total_item_count:
         categories_and_sizes = {
-            'show': show_list['remaining_episode_count'],
-            'non_show': len(non_shows)
+            "show": show_list["remaining_episode_count"],
+            "non_show": len(non_shows),
         }
-        if 'non_show' in categories_and_sizes.keys() and len(non_shows) == 0:
-            del categories_and_sizes['non_show']
-        if 'show' in categories_and_sizes.keys() and show_list['remaining_episode_count'] == 0:
-            del categories_and_sizes['show']
+        if "non_show" in categories_and_sizes.keys() and len(non_shows) == 0:
+            del categories_and_sizes["non_show"]
+        if (
+            "show" in categories_and_sizes.keys()
+            and show_list["remaining_episode_count"] == 0
+        ):
+            del categories_and_sizes["show"]
         if not categories_and_sizes:
             break
-        show_or_non_show = weighted_choice_by_sizes_dict(items_and_sizes=categories_and_sizes)
-        if show_or_non_show == 'show':
+        show_or_non_show = weighted_choice_by_sizes_dict(
+            items_and_sizes=categories_and_sizes
+        )
+        if show_or_non_show == "show":
             random_index = random_choice(items=index_list)  # failure 1
             new_item = show_list[random_index].pop(0)
-            show_list['remaining_episode_count'] -= 1
+            show_list["remaining_episode_count"] -= 1
             final_list.append(new_item)
             if len(show_list[random_index]) == 0:
                 index_list.remove(random_index)
@@ -1130,9 +1279,11 @@ def sort_media_cyclical_shuffle(media_items: List[Union[Program, FillerItem]]) -
     return final_list
 
 
-def sort_media_block_shuffle(media_items: List[Union[Program, FillerItem]],
-                             block_length: int = 1,
-                             randomize: bool = False) -> List[Union[Program, FillerItem]]:
+def sort_media_block_shuffle(
+    media_items: List[Union[Program, FillerItem]],
+    block_length: int = 1,
+    randomize: bool = False,
+) -> List[Union[Program, FillerItem]]:
     """
     Sort media with block shuffle.
     Default: Items are alternated one at a time, alphabetically
@@ -1152,30 +1303,35 @@ def sort_media_block_shuffle(media_items: List[Union[Program, FillerItem]],
     ordered_show_dict = order_show_dict(show_dict=show_dict)
     condensed_show_dict = condense_show_dict(show_dict=ordered_show_dict)
     final_show_list = []
-    target_length = condensed_show_dict['count']
+    target_length = condensed_show_dict["count"]
     if randomize:
         while len(final_show_list) < target_length:
-            random_show_name = random.choice(list(condensed_show_dict['shows'].keys()))
+            random_show_name = random.choice(list(condensed_show_dict["shows"].keys()))
             for _ in range(0, random.randint(1, block_length)):
-                if len(condensed_show_dict['shows'][random_show_name]['episodes']) > 0:
-                    final_show_list.append(condensed_show_dict['shows'][random_show_name]['episodes'].pop(0))
+                if len(condensed_show_dict["shows"][random_show_name]["episodes"]) > 0:
+                    final_show_list.append(
+                        condensed_show_dict["shows"][random_show_name]["episodes"].pop(
+                            0
+                        )
+                    )
                 else:
-                    del condensed_show_dict['shows'][random_show_name]
+                    del condensed_show_dict["shows"][random_show_name]
                     break
     else:
         while len(final_show_list) < target_length:
-            for show_name, data in condensed_show_dict['shows'].items():
+            for show_name, data in condensed_show_dict["shows"].items():
                 for _ in range(0, block_length):
-                    if len(data['episodes']) > 0:
-                        final_show_list.append(data['episodes'].pop(0))
+                    if len(data["episodes"]) > 0:
+                        final_show_list.append(data["episodes"].pop(0))
                     else:
                         break
     final_list = final_show_list + non_shows
     return final_list
 
 
-def balance_shows(media_items: List[Union[Program, FillerItem]], margin_of_correction: float = 0.1) -> \
-        List[Union[Program, FillerItem]]:
+def balance_shows(
+    media_items: List[Union[Program, FillerItem]], margin_of_correction: float = 0.1
+) -> List[Union[Program, FillerItem]]:
     """
     Balance weights of the shows. Movies are untouched.
 
@@ -1189,26 +1345,32 @@ def balance_shows(media_items: List[Union[Program, FillerItem]], margin_of_corre
     non_shows = get_non_shows(media_items=media_items)
     show_dict = make_show_dict(media_items=media_items)
     ordered_show_dict = order_show_dict(show_dict=show_dict)
-    ordered_show_dict_with_durations = add_durations_to_show_dict(show_dict=ordered_show_dict)
+    ordered_show_dict_with_durations = add_durations_to_show_dict(
+        show_dict=ordered_show_dict
+    )
     show_durations = []
     for show_name in ordered_show_dict_with_durations.keys():
-        show_durations.append(ordered_show_dict_with_durations[show_name]['duration'])
+        show_durations.append(ordered_show_dict_with_durations[show_name]["duration"])
     shortest_show_length = min(show_durations)
     margin = 1 + margin_of_correction
     final_shows = []
     for show_name, show_data in ordered_show_dict_with_durations.items():
         show_running_duration = 0
         continue_with_show = True
-        for season_number, season_data in show_data['seasons'].items():
+        for season_number, season_data in show_data["seasons"].items():
             if not continue_with_show:
                 break
-            for episode_number, episode_data in season_data['episodes'].items():
+            for episode_number, episode_data in season_data["episodes"].items():
                 if not continue_with_show:
                     break
-                potential_show_duration = show_running_duration + episode_data['duration']
-                if (float(potential_show_duration) / float(shortest_show_length)) <= margin:
-                    final_shows.append(episode_data['episode'])
-                    show_running_duration += episode_data['duration']
+                potential_show_duration = (
+                    show_running_duration + episode_data["duration"]
+                )
+                if (
+                    float(potential_show_duration) / float(shortest_show_length)
+                ) <= margin:
+                    final_shows.append(episode_data["episode"])
+                    show_running_duration += episode_data["duration"]
                 else:
                     continue_with_show = False
     sorted_movies = sort_media_alphabetically(media_items=non_shows)
@@ -1216,7 +1378,9 @@ def balance_shows(media_items: List[Union[Program, FillerItem]], margin_of_corre
     return sorted_all
 
 
-def remove_non_programs(media_items: List[Union[Program, Redirect, FillerItem]]) -> List[Union[Program, FillerItem]]:
+def remove_non_programs(
+    media_items: List[Union[Program, Redirect, FillerItem]]
+) -> List[Union[Program, FillerItem]]:
     """
     Remove all non-programs from list of media items.
 
@@ -1225,13 +1389,19 @@ def remove_non_programs(media_items: List[Union[Program, Redirect, FillerItem]])
     :return: List of Program and FillerItem objects
     :rtype: List[Union[Program, FillerList]]
     """
-    return [item for item in media_items if
-            (_object_has_attribute(obj=item, attribute_name='type')
-             and item.type != 'redirect')]
+    return [
+        item
+        for item in media_items
+        if (
+            _object_has_attribute(obj=item, attribute_name="type")
+            and item.type != "redirect"
+        )
+    ]
 
 
-def remove_duplicate_media_items(media_items: List[Union[Program, Redirect, FillerItem]]) -> \
-        List[Union[Program, FillerItem]]:
+def remove_duplicate_media_items(
+    media_items: List[Union[Program, Redirect, FillerItem]]
+) -> List[Union[Program, FillerItem]]:
     """
     Remove duplicate items from list of media items.
     Check by ratingKey.
@@ -1243,11 +1413,14 @@ def remove_duplicate_media_items(media_items: List[Union[Program, Redirect, Fill
     :rtype: List[Union[Program, FillerList]]
     """
     non_redirects = remove_non_programs(media_items=media_items)
-    return remove_duplicates_by_attribute(items=non_redirects, attribute_name='ratingKey')
+    return remove_duplicates_by_attribute(
+        items=non_redirects, attribute_name="ratingKey"
+    )
 
 
-def _get_first_x_minutes_of_programs(programs: List[Union[Program, Redirect, FillerItem]],
-                                     minutes: int) -> Tuple[List[Union[Program, Redirect, FillerItem]], int]:
+def _get_first_x_minutes_of_programs(
+    programs: List[Union[Program, Redirect, FillerItem]], minutes: int
+) -> Tuple[List[Union[Program, Redirect, FillerItem]], int]:
     """
     Keep building a list of programs in order until a duration limit is met.
 
@@ -1270,10 +1443,13 @@ def _get_first_x_minutes_of_programs(programs: List[Union[Program, Redirect, Fil
     return programs_to_return, running_total
 
 
-def _get_first_x_minutes_of_programs_return_unused(programs: List[Union[Program, Redirect, FillerItem]],
-                                                   minutes: int) -> Tuple[List[Union[Program, Redirect, FillerItem]],
-                                                                          int,
-                                                                          List[Union[Program, Redirect, FillerItem]]]:
+def _get_first_x_minutes_of_programs_return_unused(
+    programs: List[Union[Program, Redirect, FillerItem]], minutes: int
+) -> Tuple[
+    List[Union[Program, Redirect, FillerItem]],
+    int,
+    List[Union[Program, Redirect, FillerItem]],
+]:
     """
     Keep building a list of programs in order until a duration limit is met.
 

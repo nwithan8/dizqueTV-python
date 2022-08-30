@@ -1,20 +1,20 @@
 from datetime import datetime
-from typing import Union, List
+from typing import List, Union
 
 import dizqueTV.helpers as helpers
-from dizqueTV.models.base import BaseObject, BaseAPIObject
+from dizqueTV.models.base import BaseAPIObject, BaseObject
 
 
 class GuideProgram(BaseObject):
     def __init__(self, data):
         super().__init__(data)
-        self.start = data.get('start')
-        self.stop = data.get('stop')
-        self.summary = data.get('summary')
-        self.date = data.get('date')
-        self.rating = data.get('rating')
-        self.icon = data.get('icon')
-        self.title = data.get('title')
+        self.start = data.get("start")
+        self.stop = data.get("stop")
+        self.summary = data.get("summary")
+        self.date = data.get("date")
+        self.rating = data.get("rating")
+        self.icon = data.get("icon")
+        self.title = data.get("title")
 
     def __repr__(self):
         return f"{self.__class__.__name__}({self.title})"
@@ -23,9 +23,9 @@ class GuideProgram(BaseObject):
 class GuideChannel(BaseAPIObject):
     def __init__(self, data, programs, dizque_instance):
         super().__init__(data, dizque_instance)
-        self.name = data.get('name')
-        self.icon = data.get('icon')
-        self.number = data.get('number')
+        self.name = data.get("name")
+        self.icon = data.get("icon")
+        self.number = data.get("number")
         self.programs = programs
 
     def __repr__(self):
@@ -43,12 +43,17 @@ class GuideChannel(BaseAPIObject):
         :rtype: list[GuideProgram]
         """
         params = {
-            'dateFrom': helpers.datetime_to_string(datetime_object=from_date),
-            'dateTo': helpers.datetime_to_string(datetime_object=to_date)
+            "dateFrom": helpers.datetime_to_string(datetime_object=from_date),
+            "dateTo": helpers.datetime_to_string(datetime_object=to_date),
         }
-        json_data = self._dizque_instance._get_json(endpoint=f'/guide/channels/{self.number}', params=params)
-        if json_data.get('programs'):
-            return [GuideProgram(data=program_data) for program_data in json_data['programs']]
+        json_data = self._dizque_instance._get_json(
+            endpoint=f"/guide/channels/{self.number}", params=params
+        )
+        if json_data.get("programs"):
+            return [
+                GuideProgram(data=program_data)
+                for program_data in json_data["programs"]
+            ]
         return []
 
 
@@ -69,8 +74,14 @@ class Guide(BaseAPIObject):
         """
         channels = []
         for channel_number, data in self._data.items():
-            programs = [GuideProgram(data=program_data) for program_data in data['programs']]
-            channel = GuideChannel(data=data['channel'], programs=programs, dizque_instance=self._dizque_instance)
+            programs = [
+                GuideProgram(data=program_data) for program_data in data["programs"]
+            ]
+            channel = GuideChannel(
+                data=data["channel"],
+                programs=programs,
+                dizque_instance=self._dizque_instance,
+            )
             channels.append(channel)
         return channels
 
@@ -82,7 +93,7 @@ class Guide(BaseAPIObject):
         :return: datetime.datetime object
         :rtype: datetime.datetime
         """
-        data = self._dizque_instance._get_json(endpoint='/guide/status')
-        if data and data.get('lastUpdate'):
-            return helpers.string_to_datetime(date_string=data['lastUpdate'])
+        data = self._dizque_instance._get_json(endpoint="/guide/status")
+        if data and data.get("lastUpdate"):
+            return helpers.string_to_datetime(date_string=data["lastUpdate"])
         return None

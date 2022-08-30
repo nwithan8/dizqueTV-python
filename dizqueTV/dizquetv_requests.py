@@ -6,11 +6,13 @@ import objectrest
 import dizqueTV.dizquetv_logging as logs
 
 
-def get(url: str,
-        params: dict = None,
-        headers: dict = None,
-        timeout: int = 2,
-        log: str = None) -> Union[objectrest.Response, None]:
+def get(
+    url: str,
+    params: dict = None,
+    headers: dict = None,
+    timeout: int = 2,
+    log: str = None,
+) -> Union[objectrest.Response, None]:
     if params:
         url += f"?{urlencode(params)}"
     try:
@@ -23,32 +25,38 @@ def get(url: str,
         return None
 
 
-def post(url: str,
-         params: dict = None,
-         headers: dict = None,
-         data: dict = None,
-         files: dict = None,
-         timeout: int = 2,
-         log: str = None) -> Union[objectrest.Response, None]:
+def post(
+    url: str,
+    params: dict = None,
+    headers: dict = None,
+    data: dict = None,
+    files: dict = None,
+    timeout: int = 2,
+    log: str = None,
+) -> Union[objectrest.Response, None]:
     if params:
         url += f"?{urlencode(params)}"
     try:
-        res = objectrest.post(url=url, json=data, files=files, headers=headers, timeout=timeout)
+        res = objectrest.post(
+            url=url, json=data, files=files, headers=headers, timeout=timeout
+        )
         if log:
             logs.log(message=f"POST {url}, Body: {data}", level=log)
             logs.log(message=f"Response: {res}", level=("error" if not res else log))
         return res
         # use json= rather than data= to convert single-quoted dict to double-quoted JSON
-    except objectrest.exceptions.Timeout as e:
+    except objectrest.exceptions.Timeout:
         return None
 
 
-def put(url: str,
-        params: dict = None,
-        headers: dict = None,
-        data: dict = None,
-        timeout: int = 2,
-        log: str = None) -> Union[objectrest.Response, None]:
+def put(
+    url: str,
+    params: dict = None,
+    headers: dict = None,
+    data: dict = None,
+    timeout: int = 2,
+    log: str = None,
+) -> Union[objectrest.Response, None]:
     if params:
         url += f"?{urlencode(params)}"
     try:
@@ -62,12 +70,14 @@ def put(url: str,
         return None
 
 
-def delete(url: str,
-           params: dict = None,
-           headers: dict = None,
-           data: dict = None,
-           timeout: int = 2,
-           log: str = None) -> Union[objectrest.Response, None]:
+def delete(
+    url: str,
+    params: dict = None,
+    headers: dict = None,
+    data: dict = None,
+    timeout: int = 2,
+    log: str = None,
+) -> Union[objectrest.Response, None]:
     if params:
         url += f"?{urlencode(params)}"
     try:

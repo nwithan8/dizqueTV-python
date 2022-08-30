@@ -7,6 +7,9 @@ with open("README.md", "r") as fh:
 with open("requirements.txt", 'r') as fh:
     requirements = fh.read().splitlines()
 
+with open("dev_requirements.txt", 'r') as fh:
+    dev_requirements = fh.read().splitlines()
+
 setuptools.setup(
     name=package_info.__title__,  # How you named your package folder (MyLib)
     packages=setuptools.find_packages(),  # Choose the same as "name"
@@ -18,9 +21,12 @@ setuptools.setup(
     author=package_info.__author__,  # Type in your name
     author_email=package_info.__author_email__,  # Type in your E-Mail
     url='https://github.com/nwithan8/dizqueTV-python',  # Provide either the link to your github or to your website
-    download_url=f'https://github.com/nwithan8/dizqueTV-python/archive/{package_info.__version__}.tar.gz',
+    download_url=f'https://github.com/nwithan8/dizqueTV-python/archive/refs/tags/{package_info.__version__}.tar.gz',
     keywords=package_info.__keywords__,  # Keywords that define your package best
     install_requires=requirements,
+    extras_require={
+        "dev": dev_requirements,
+    },
     classifiers=[
         'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
         'Development Status :: 4 - Beta',
