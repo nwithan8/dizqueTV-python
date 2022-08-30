@@ -166,10 +166,13 @@ class TimeSlot(BaseObject):
         """
         Edit this TimeSlot object
 
-        :param time_string: time in readable 24-hour format (ex. 00:00:00 = 12:00:00 A.M., 05:15:00 = 5:15 A.M., 20:08:12 = 8:08:12 P.M.) (Optional if time=<milliseconds_since_midnight> not included in kwargs)
+        :param time_string: time in readable 24-hour format
+        (ex. 00:00:00 = 12:00:00 A.M., 05:15:00 = 5:15 A.M., 20:08:12 = 8:08:12 P.M.)
+        (Optional if time=<milliseconds_since_midnight> not included in kwargs)
         :type time_string: str, optional
         :param kwargs: Keyword arguments for the edited time slot (time, showId and order)
-        :return: True if successful, False if unsuccessful (Channel reloads in-place, this TimeSlot and its parent Schedule object are destroyed)
+        :return: True if successful, False if unsuccessful
+        (Channel reloads in-place, this TimeSlot and its parent Schedule object are destroyed)
         :rtype: bool
         """
         if not self._schedule_instance:
@@ -817,7 +820,8 @@ class Channel(BaseAPIObject):
         :type list_of_episodes: List[Union[Program, plexapi.video.Episode]]
         :param plex_server: plexapi.server.PlexServer, needed if adding plexapi.media.Episode objects
         :type plex_server: plexapi.server.PlexServer, optional
-        :param allow_overtime: Allow adding one more episode, even if total time would go over. Otherwise, don't add any more if total time would exceed duration_in_milliseconds (default: False)
+        :param allow_overtime: Allow adding one more episode, even if total time would go over.
+        Otherwise, don't add any more if total time would exceed duration_in_milliseconds (default: False)
         :type allow_overtime: bool, optional
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
         :rtype: bool
@@ -1029,7 +1033,8 @@ class Channel(BaseAPIObject):
         """
         Update the schedule for this channel
 
-        :param kwargs: keyword arguments for schedule settings (slots data included if needed) (include random=true to use random time slots)
+        :param kwargs: keyword arguments for schedule settings (slots data included if needed)
+        (include random=true to use random time slots)
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
         :rtype: bool
         """
@@ -1278,7 +1283,9 @@ class Channel(BaseAPIObject):
         """
         Add padding between programs on a channel, so programs start at specific intervals
 
-        :param start_every_x_minutes: Programs start every X minutes past the hour (ex. 10 for :00, :10, :20, :30, :40 & :50; 15 for :00, :15, :30 & :45; 20 for :00, :20 & :40; 30 for :00 & :30; 60 or 0 for :00)
+        :param start_every_x_minutes: Programs start every X minutes past the hour
+        (ex. 10 for :00, :10, :20, :30, :40 & :50; 15 for :00, :15,
+        :30 & :45; 20 for :00, :20 & :40; 30 for :00 & :30; 60 or 0 for :00)
         :type start_every_x_minutes: int
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
         :rtype: bool

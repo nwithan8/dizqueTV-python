@@ -1,6 +1,5 @@
 import json
 import logging
-from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 from typing import Dict, List, Union
 from xml.etree import ElementTree
@@ -210,6 +209,8 @@ def expand_custom_show_items(programs: List, dizque_instance) -> List:
 
     :param programs: List of programs (i.e. Program, Movie, Video, Track, CustomShow)
     :type programs: list
+    :param dizque_instance: DizqueTV API instance
+    :type dizque_instance: API
     :return: list of all programs (including custom show programs)
     :rtype: list
     """
@@ -358,7 +359,7 @@ class API:
 
     def _get_json(
         self, endpoint: str, params: dict = None, headers: dict = None, timeout: int = 2
-    ) -> json:
+    ) -> Union[dict, list, str]:
         response = self._get(
             endpoint=endpoint, params=params, headers=headers, timeout=timeout
         )
@@ -734,7 +735,7 @@ class API:
 
     def add_channel(
         self,
-        programs: List[Union[Program, Redirect, Video, Movie, Episode, Track]] = [],
+        programs: List[Union[Program, Redirect, Video, Movie, Episode, Track]] = None,
         plex_server: PServer = None,
         handle_errors: bool = True,
         **kwargs,
@@ -753,6 +754,7 @@ class API:
         :rtype: Channel
         """
         kwargs["programs"] = []
+        programs = programs or []
         for item in programs:
             if type(item) in [Program, Redirect]:
                 kwargs["programs"].append(item._data)
@@ -1404,35 +1406,35 @@ class API:
         return None
 
     @property
-    def m3u(self) -> m3u8:
+    def m3u(self) -> m3u8.model.M3U8:
         """
         Get dizqueTV's m3u playlist
         Without m3u8, this method currently produces an error.
 
         :return: m3u8 object
-        :rtype: m3u8
+        :rtype: m3u8.model.M3U8
         """
         return m3u8.load(f"{self.url}/api/channels.m3u")
 
     @property
-    def hls_m3u(self) -> m3u8:
+    def hls_m3u(self) -> m3u8.model.M3U8:
         """
         Get dizqueTV's hls.m3u playlist
         Without m3u8, this method currently produces an error.
 
         :return: m3u8 object
-        :rtype: m3u8
+        :rtype: m3u8.model.M3U8
         """
         return m3u8.load(f"{self.url}/api/hls.m3u")
 
-    def get_channel_m3u(self, channel_number: int) -> m3u8:
+    def get_channel_m3u(self, channel_number: int) -> m3u8.model.M3U8:
         """
         Get a channel-specific m3u playlist
 
         :param channel_number: Number of channel to get M3U playlist
         :type channel_number: int
         :return: m3u8 object
-        :rtype: m3u8
+        :rtype: m3u8.model.M3U8
         """
         if channel_number not in self.channel_numbers:
             raise Exception(f"Channel {channel_number} does not exist.")
