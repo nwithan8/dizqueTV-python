@@ -33,7 +33,7 @@ from dizqueTV.models.templates import (CHANNEL_SETTINGS_DEFAULT,
 
 
 def make_time_slot_from_dizque_program(
-    program: Union[Program, Redirect], time: str, order: str
+        program: Union[Program, Redirect], time: str, order: str
 ) -> Union[TimeSlot, None]:
     """
     Convert a DizqueTV Program or Redirect into a TimeSlot object for use in scheduling
@@ -65,7 +65,7 @@ def make_time_slot_from_dizque_program(
 
 
 def convert_program_to_custom_show_item(
-    program: Program, dizque_instance
+        program: Program, dizque_instance
 ) -> CustomShowItem:
     """
     Convert a dizqueTV Program to a dizqueTV CustomShowItem (add durationStr and commercials)
@@ -86,7 +86,7 @@ def convert_program_to_custom_show_item(
 
 
 def convert_custom_show_to_programs(
-    custom_show: CustomShow, dizque_instance
+        custom_show: CustomShow, dizque_instance
 ) -> List[Program]:
     """
     Convert a CustomShow into a list of Program objects
@@ -111,7 +111,7 @@ def convert_custom_show_to_programs(
 
 
 def convert_plex_item_to_program(
-    plex_item: Union[Video, Movie, Episode, Track], plex_server: PServer
+        plex_item: Union[Video, Movie, Episode, Track], plex_server: PServer
 ) -> Program:
     """
     Convert a PlexAPI Video, Movie, Episode or Track object into a Program
@@ -130,7 +130,7 @@ def convert_plex_item_to_program(
 
 
 def convert_plex_item_to_filler_item(
-    plex_item: Union[Video, Movie, Episode, Track], plex_server: PServer
+        plex_item: Union[Video, Movie, Episode, Track], plex_server: PServer
 ) -> FillerItem:
     """
     Convert a PlexAPI Video, Movie, Episode or Track object into a FillerItem
@@ -261,11 +261,11 @@ def fill_in_watermark_settings(handle_errors: bool = True, **kwargs) -> dict:
 
 class API:
     def __init__(
-        self,
-        url: str,
-        verbose: bool = False,
-        allow_analytics: bool = True,
-        anonymous_analytics: bool = True,
+            self,
+            url: str,
+            verbose: bool = False,
+            allow_analytics: bool = True,
+            anonymous_analytics: bool = True,
     ):
         """
         Interact with dizqueTV's API
@@ -296,7 +296,7 @@ class API:
         return f"{self.__class__.__name__}({self.url})"
 
     def _get(
-        self, endpoint: str, params: dict = None, headers: dict = None, timeout: int = 2
+            self, endpoint: str, params: dict = None, headers: dict = None, timeout: int = 2
     ) -> Union[Response, None]:
         if not endpoint.startswith("/"):
             endpoint = f"/{endpoint}"
@@ -306,13 +306,13 @@ class API:
         )
 
     def _post(
-        self,
-        endpoint: str,
-        params: dict = None,
-        headers: dict = None,
-        data: dict = None,
-        files: dict = None,
-        timeout: int = 2,
+            self,
+            endpoint: str,
+            params: dict = None,
+            headers: dict = None,
+            data: dict = None,
+            files: dict = None,
+            timeout: int = 2,
     ) -> Union[Response, None]:
         if not endpoint.startswith("/"):
             endpoint = f"/{endpoint}"
@@ -328,12 +328,12 @@ class API:
         )
 
     def _put(
-        self,
-        endpoint: str,
-        params: dict = None,
-        headers: dict = None,
-        data: dict = None,
-        timeout: int = 2,
+            self,
+            endpoint: str,
+            params: dict = None,
+            headers: dict = None,
+            data: dict = None,
+            timeout: int = 2,
     ) -> Union[Response, None]:
         if not endpoint.startswith("/"):
             endpoint = f"/{endpoint}"
@@ -348,7 +348,7 @@ class API:
         )
 
     def _delete(
-        self, endpoint: str, params: dict = None, data: dict = None, timeout: int = 2
+            self, endpoint: str, params: dict = None, data: dict = None, timeout: int = 2
     ) -> Union[Response, None]:
         if not endpoint.startswith("/"):
             endpoint = f"/{endpoint}"
@@ -358,7 +358,7 @@ class API:
         )
 
     def _get_json(
-        self, endpoint: str, params: dict = None, headers: dict = None, timeout: int = 2
+            self, endpoint: str, params: dict = None, headers: dict = None, timeout: int = 2
     ) -> Union[dict, list, str]:
         response = self._get(
             endpoint=endpoint, params=params, headers=headers, timeout=timeout
@@ -443,7 +443,7 @@ class API:
         :rtype: bool
         """
         if self._post(
-            endpoint="/plex-servers/foreignstatus", data={"name": server_name}
+                endpoint="/plex-servers/foreignstatus", data={"name": server_name}
         ):
             return True
         return False
@@ -471,15 +471,15 @@ class API:
         :rtype: PlexServer
         """
         if helpers._settings_are_complete(
-            new_settings_dict=kwargs,
-            template_settings_dict=PLEX_SERVER_SETTINGS_TEMPLATE,
-            ignore_keys=["_id", "id"],
+                new_settings_dict=kwargs,
+                template_settings_dict=PLEX_SERVER_SETTINGS_TEMPLATE,
+                ignore_keys=["_id", "id"],
         ) and self._put(endpoint="/plex-servers", data=kwargs):
             return self.get_plex_server(server_name=kwargs["name"])
         return None
 
     def add_plex_server_from_plexapi(
-        self, plex_server: PServer
+            self, plex_server: PServer
     ) -> Union[PlexServer, None]:
         """
         Convert and add a plexapi.PlexServer as a Plex Media Server to dizqueTV
@@ -570,7 +570,7 @@ class API:
         return channels
 
     def get_channel(
-        self, channel_number: int = None, channel_name: str = None
+            self, channel_number: int = None, channel_name: str = None
     ) -> Union[Channel, None]:
         """
         Get a specific dizqueTV channel by number or name
@@ -614,14 +614,12 @@ class API:
         return None
 
     def get_channel_programs(
-        self, channel_number: int
+            self, channel_number: int
     ) -> List[Union[Program, CustomShow]]:
-        channel_data = self._get_json(endpoint=f"/channel/programs/{channel_number}")
-        if channel_data:
-            channel = Channel(data=channel_data, dizque_instance=self)
-            if channel:
-                return channel.programs
-        return []
+        channel = self.get_channel_without_programs(channel_number=channel_number)
+        programs_data = self._get_json(endpoint=f"/channel/programs/{channel_number}")
+        return [Program(data=program_data, dizque_instance=self, channel_instance=channel)
+                for program_data in programs_data]
 
     @property
     def channel_numbers(self) -> List[int]:
@@ -684,7 +682,7 @@ class API:
         return min(set(possible) - set(self.channel_numbers))
 
     def _fill_in_default_channel_settings(
-        self, settings_dict: dict, handle_errors: bool = False
+            self, settings_dict: dict, handle_errors: bool = False
     ) -> dict:
         """
         Set some dynamic default values, such as channel number, start time and image URLs
@@ -734,11 +732,11 @@ class API:
         )
 
     def add_channel(
-        self,
-        programs: List[Union[Program, Redirect, Video, Movie, Episode, Track]] = None,
-        plex_server: PServer = None,
-        handle_errors: bool = True,
-        **kwargs,
+            self,
+            programs: List[Union[Program, Redirect, Video, Movie, Episode, Track]] = None,
+            plex_server: PServer = None,
+            handle_errors: bool = True,
+            **kwargs,
     ) -> Union[Channel, None]:
         """
         Add a channel to dizqueTV
@@ -777,9 +775,9 @@ class API:
             settings_dict=kwargs, handle_errors=handle_errors
         )
         if helpers._settings_are_complete(
-            new_settings_dict=kwargs,
-            template_settings_dict=CHANNEL_SETTINGS_TEMPLATE,
-            ignore_keys=["_id", "id"],
+                new_settings_dict=kwargs,
+                template_settings_dict=CHANNEL_SETTINGS_TEMPLATE,
+                ignore_keys=["_id", "id"],
         ) and self._put(endpoint="/channel", data=kwargs):
             return self.get_channel(channel_number=kwargs["number"])
         return None
@@ -821,10 +819,10 @@ class API:
         return False
 
     def _make_schedule(
-        self,
-        channel: Channel,
-        schedule: Schedule = None,
-        schedule_settings: dict = None,
+            self,
+            channel: Channel,
+            schedule: Schedule = None,
+            schedule_settings: dict = None,
     ) -> bool:
         """
         Add or update a schedule to a Channel
@@ -861,10 +859,10 @@ class API:
         return False
 
     def _make_random_schedule(
-        self,
-        channel: Channel,
-        schedule: Schedule = None,
-        schedule_settings: dict = None,
+            self,
+            channel: Channel,
+            schedule: Schedule = None,
+            schedule_settings: dict = None,
     ) -> bool:
         """
         Add or update a random schedule to a Channel
@@ -972,7 +970,7 @@ class API:
         ]
 
     def _fill_in_default_filler_list_settings(
-        self, settings_dict: dict, handle_errors: bool = False
+            self, settings_dict: dict, handle_errors: bool = False
     ) -> dict:
         """
         Set some dynamic default values, such as filler list name
@@ -998,11 +996,11 @@ class API:
         )
 
     def add_filler_list(
-        self,
-        content: List[Union[Program, Video, Movie, Episode, Track]],
-        plex_server: PServer = None,
-        handle_errors: bool = False,
-        **kwargs,
+            self,
+            content: List[Union[Program, Video, Movie, Episode, Track]],
+            plex_server: PServer = None,
+            handle_errors: bool = False,
+            **kwargs,
     ) -> Union[FillerList, None]:
         """
         Add a filler list to dizqueTV
@@ -1037,9 +1035,9 @@ class API:
             settings_dict=kwargs, handle_errors=handle_errors
         )
         if helpers._settings_are_complete(
-            new_settings_dict=kwargs,
-            template_settings_dict=FILLER_LIST_SETTINGS_TEMPLATE,
-            ignore_keys=["_id", "id"],
+                new_settings_dict=kwargs,
+                template_settings_dict=FILLER_LIST_SETTINGS_TEMPLATE,
+                ignore_keys=["_id", "id"],
         ):
             response = self._put(endpoint="/filler", data=kwargs)
             if response:
@@ -1107,7 +1105,7 @@ class API:
         return None
 
     def get_custom_show_details(
-        self, custom_show_id: str
+            self, custom_show_id: str
     ) -> Union[CustomShowDetails, None]:
         """
         Get the details of a custom show
@@ -1123,10 +1121,10 @@ class API:
         return None
 
     def add_custom_show(
-        self,
-        name: str,
-        content: List[Union[Program, Video, Movie, Episode, Track]],
-        plex_server: PServer = None,
+            self,
+            name: str,
+            content: List[Union[Program, Video, Movie, Episode, Track]],
+            plex_server: PServer = None,
     ) -> Union[CustomShow, None]:
         kwargs = {"name": name, "content": []}
         for item in content:
@@ -1148,7 +1146,7 @@ class API:
                 )
             kwargs["content"].append(custom_show_item._full_data)
         if helpers._settings_are_complete(
-            new_settings_dict=kwargs, template_settings_dict=CUSTOM_SHOW_TEMPLATE
+                new_settings_dict=kwargs, template_settings_dict=CUSTOM_SHOW_TEMPLATE
         ):
             response = self._put(endpoint="/show", data=kwargs)
             if response:
@@ -1534,7 +1532,7 @@ class API:
 
     # Other Functions
     def convert_plex_item_to_program(
-        self, plex_item: Union[Video, Movie, Episode, Track], plex_server: PServer
+            self, plex_item: Union[Video, Movie, Episode, Track], plex_server: PServer
     ) -> Program:
         """
         Convert a PlexAPI Video, Movie, Episode or Track object into a Program
@@ -1551,7 +1549,7 @@ class API:
         )
 
     def convert_plex_item_to_filler_item(
-        self, plex_item: Union[Video, Movie, Episode, Track], plex_server: PServer
+            self, plex_item: Union[Video, Movie, Episode, Track], plex_server: PServer
     ) -> FillerItem:
         """
         Convert a PlexAPI Video, Movie, Episode or Track object into a FillerItem
@@ -1592,7 +1590,7 @@ class API:
         return expand_custom_show_items(programs=programs, dizque_instance=self)
 
     def create_custom_show_with_programs(
-        self, custom_show_programs: list
+            self, custom_show_programs: list
     ) -> CustomShow:
         custom_show_data = {
             "name": custom_show_programs[0]["customShowName"],
@@ -1602,7 +1600,7 @@ class API:
         return CustomShow(data=custom_show_data, dizque_instance=self)
 
     def parse_custom_shows_and_non_custom_shows(
-        self, items: list, non_custom_show_type, **kwargs
+            self, items: list, non_custom_show_type, **kwargs
     ):
         custom_show_programs = []
         current_custom_show_id = None
@@ -1610,12 +1608,12 @@ class API:
         final_items = []
         for item in items:
             if item.get(
-                "customShowId"
+                    "customShowId"
             ):  # came across an item that belongs to a custom show
                 if not current_custom_show_id:  # initialize the first custom show
                     current_custom_show_id = item.get("customShowId")
                 if (
-                    item.get("customShowId") == current_custom_show_id
+                        item.get("customShowId") == current_custom_show_id
                 ):  # item belongs to the same custom show
                     custom_show_programs.append(item)
                 else:  # item belong to a new custom show
@@ -1630,7 +1628,7 @@ class API:
                 parsing_custom_show = True
             else:  # came across an item that does not belong to a custom show
                 if (
-                    parsing_custom_show
+                        parsing_custom_show
                 ):  # was tracking a custom show, have reached the end
                     # create and save a custom show with the items we collected
                     custom_show = self.create_custom_show_with_programs(
@@ -1651,11 +1649,11 @@ class API:
         return final_items
 
     def add_programs_to_channels(
-        self,
-        programs: List[Union[Program, CustomShow, Video, Movie, Episode, Track]],
-        channels: List[Channel] = None,
-        channel_numbers: List[int] = None,
-        plex_server: PServer = None,
+            self,
+            programs: List[Union[Program, CustomShow, Video, Movie, Episode, Track]],
+            channels: List[Channel] = None,
+            channel_numbers: List[int] = None,
+            plex_server: PServer = None,
     ) -> bool:
         """
         Add multiple programs to multiple channels
@@ -1685,10 +1683,10 @@ class API:
         return True
 
     def add_filler_lists_to_channels(
-        self,
-        filler_lists: List[FillerList],
-        channels: List[Channel] = None,
-        channel_numbers: List[int] = None,
+            self,
+            filler_lists: List[FillerList],
+            channels: List[Channel] = None,
+            channel_numbers: List[int] = None,
     ) -> bool:
         """
         Add multiple filler lists to multiple channels
