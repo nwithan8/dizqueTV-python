@@ -3,18 +3,24 @@ from time import sleep
 import pytest
 
 import dizqueTV
-from tests.setup import (client, fake_plex_server, plex_server,
+from tests.setup import (client,
+                         fake_plex_server,
+                         plex_server,
+                         _plex_vars_exist,
                          plex_server_as_dizquetv_server)
 
 REAL_PLEX_SERVER_ADDED = False
 
 
-@pytest.fixture()
 def use_real_plex():
     if not client().get_plex_server(plex_server().friendlyName):
         yield client().add_plex_server_from_plexapi(plex_server())
     else:
         yield client().get_plex_server(plex_server().friendlyName)
+
+
+def should_use_real_plex() -> bool:
+    return _plex_vars_exist()
 
 
 class TestGeneral:
@@ -64,6 +70,18 @@ class TestGeneral:
         channels = client().channels
         assert type(channels) == list
 
+    def test_channel_programs_property(self):
+        channels = client().channels
+        for channel in channels:
+            programs = channel.programs
+            assert type(programs) == list
+
+    def test_channel_programs_method(self):
+        channels = client().channels
+        for channel in channels:
+            programs = client().get_channel_programs(channel_number=channel.number)
+            assert type(programs) == list
+
 
 class TestWithFakePlex:
     def test_add_plex_server(self):
@@ -112,7 +130,9 @@ class TestWithFakePlex:
 
 
 class TestWithRealPlex:
-    def test_use_real_plex(self, use_real_plex):
+    def test_use_real_plex(self):
+        if not should_use_real_plex():
+            pytest.skip("No real Plex server found")
         server = use_real_plex
         assert server is not None
         assert type(server) == dizqueTV.PlexServer
