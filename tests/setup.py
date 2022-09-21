@@ -24,6 +24,13 @@ def client() -> dizqueTV.API:
     return dizqueTV.API(url=url, verbose=True)
 
 
+def _plex_vars_exist() -> bool:
+    load_dotenv()
+    url = os.getenv("PLEX_URL")
+    token = os.getenv("PLEX_TOKEN")
+    return url is not None and token is not None
+
+
 def _make_plex_utils() -> dizqueTV.PlexUtils:
     load_dotenv()
     url = os.getenv("PLEX_URL")
