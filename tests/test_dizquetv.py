@@ -64,6 +64,18 @@ class TestGeneral:
         channels = client().channels
         assert type(channels) == list
 
+    def test_channel_programs_property(self):
+        channels = client().channels
+        for channel in channels:
+            programs = channel.programs
+            assert type(programs) == list
+
+    def test_channel_programs_method(self):
+        channels = client().channels
+        for channel in channels:
+            programs = client().get_channel_programs(channel_number=channel.number)
+            assert type(programs) == list
+
 
 class TestWithFakePlex:
     def test_add_plex_server(self):
