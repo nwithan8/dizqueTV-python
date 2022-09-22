@@ -335,7 +335,7 @@ class Schedule(BaseAPIObject):
 class Channel(BaseAPIObject):
     def __init__(self, data: dict, dizque_instance, plex_server: PServer = None):
         super().__init__(data, dizque_instance)
-        self._program_data = data.get("programs")
+        self._program_data = data.get("programs", [])
         self._fillerCollections_data = data.get("fillerCollections")
         self.fillerRepeatCooldown = data.get("fillerRepeatCooldown")
         self.startTime = data.get("startTime")
@@ -592,8 +592,10 @@ class Channel(BaseAPIObject):
             ignore_keys=["_id", "id"],
         ):
             channel_data = self._data
-            if not channel_data["duration"]:
+            if not channel_data.get("duration"):
                 channel_data["duration"] = 0
+            if not channel_data.get("programs", []):
+                channel_data["programs"] = []
             channel_data["programs"].append(kwargs)
             channel_data["duration"] += kwargs.get("duration", 0)
             return self.update(**channel_data)

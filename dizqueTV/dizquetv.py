@@ -694,7 +694,7 @@ class API:
         :return: Dictionary of settings with defaults filled in
         :rtype: dict
         """
-        if not settings_dict.get("programs"):  # empty or doesn't exist
+        if not settings_dict.get("programs", []):  # empty or doesn't exist
             if handle_errors:
                 settings_dict["programs"] = [{"duration": 600000, "isOffline": True}]
             else:
@@ -724,7 +724,7 @@ class API:
             ] = f"{self.url}/images/generic-offline-screen.png"
         # override duration regardless of user input
         settings_dict["duration"] = sum(
-            program["duration"] for program in settings_dict["programs"]
+            program["duration"] for program in settings_dict.get("programs", [])
         )
         settings_dict["watermark"] = fill_in_watermark_settings(**settings_dict)
         return helpers._combine_settings_add_new(
@@ -852,9 +852,9 @@ class API:
         if res:
             schedule_json = res.json()
             return channel.update(
-                programs=schedule_json["programs"],
-                startTime=schedule_json["startTime"],
-                scheduleBackup=data["schedule"],
+                programs=schedule_json.get("programs", []),
+                startTime=schedule_json.get("startTime", ""),
+                scheduleBackup=data.get("schedule", {}),
             )
         return False
 
@@ -1600,8 +1600,8 @@ class API:
         return CustomShow(data=custom_show_data, dizque_instance=self)
 
     def parse_custom_shows_and_non_custom_shows(
-            self, items: list, non_custom_show_type, **kwargs
-    ):
+            self, items: List, non_custom_show_type, **kwargs
+    ) -> List[Union[Program, CustomShow]]:
         custom_show_programs = []
         current_custom_show_id = None
         parsing_custom_show = False

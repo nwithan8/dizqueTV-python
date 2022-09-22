@@ -49,12 +49,10 @@ class GuideChannel(BaseAPIObject):
         json_data = self._dizque_instance._get_json(
             endpoint=f"/guide/channels/{self.number}", params=params
         )
-        if json_data.get("programs"):
-            return [
+        return [
                 GuideProgram(data=program_data)
-                for program_data in json_data["programs"]
+                for program_data in json_data.get("programs", [])
             ]
-        return []
 
 
 class Guide(BaseAPIObject):
@@ -75,10 +73,10 @@ class Guide(BaseAPIObject):
         channels = []
         for channel_number, data in self._data.items():
             programs = [
-                GuideProgram(data=program_data) for program_data in data["programs"]
+                GuideProgram(data=program_data) for program_data in data.get("programs", [])
             ]
             channel = GuideChannel(
-                data=data["channel"],
+                data=data.get("channel", {}),
                 programs=programs,
                 dizque_instance=self._dizque_instance,
             )
