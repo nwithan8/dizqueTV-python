@@ -21,7 +21,7 @@ _uris = {}
 
 # Internal Helpers
 def _multithread(
-    func, elements: List, element_param_name: str, thread_count: int = 20, **kwargs
+    func, elements: List, element_param_name: str, thread_count: int = None, **kwargs
 ) -> List:
     """
     Multithread a function for elements in a list
@@ -39,6 +39,11 @@ def _multithread(
     :return: List of results from the function
     :rtype: list
     """
+    # Thread count is the smallest of the following:
+    # - Number of elements in the list
+    # - Number of CPU cores * 8 (arbitrary)
+    # Or override with thread_count
+    thread_count = thread_count or min(len(element_param_name), (os.cpu_count() * 8))
     thread_list = []
     pool = ThreadPoolExecutor(thread_count)
 
