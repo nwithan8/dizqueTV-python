@@ -43,6 +43,12 @@ class MediaItem(BaseMediaItem):
     def __repr__(self):
         return f"{self.__class__.__name__}({self.title})"
 
+    @property
+    def full_name(self):
+        if self.type == "episode":
+            return f"{self.showTitle} - s{self.season}e{self.episode} - {self.title}"
+        return self.title
+
 
 class Redirect(BaseMediaItem):
     def __init__(self, data: dict, dizque_instance, channel_instance):
