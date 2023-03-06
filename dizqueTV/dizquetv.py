@@ -208,7 +208,7 @@ def repeat_and_shuffle_list(items: List, how_many_times: int) -> List:
 
 def expand_custom_show_items(
         programs: List[Union[Program, Redirect, FillerItem, CustomShow, Video, Movie, Episode, Track]], dizque_instance) \
-        -> List[Program, Redirect, FillerItem, Video, Movie, Episode, Track]:
+        -> List[Union[Program, Redirect, FillerItem, Video, Movie, Episode, Track]]:
     """
     Expand all custom shows in a list out to their individual programs
 
@@ -1599,7 +1599,7 @@ class API:
 
     def expand_custom_show_items(self,
                                  programs: List[Union[Program, FillerItem, CustomShow, Video, Movie, Episode, Track]]) \
-            -> List[Program, FillerItem, Redirect, Video, Movie, Episode, Track]:
+            -> List[Union[Program, FillerItem, Redirect, Video, Movie, Episode, Track]]:
         """
         Expand all custom shows in a list out to their individual programs
 

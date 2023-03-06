@@ -623,7 +623,7 @@ class Channel(BaseAPIObject):
                 "You must provide at least one program to add to the channel."
             )
 
-        programs: List[Program, Redirect, FillerItem, Video, Movie, Episode, Track] = \
+        programs: List[Union[Program, Redirect, FillerItem, Video, Movie, Episode, Track]] = \
             self._dizque_instance.expand_custom_show_items(programs=programs)
 
         for program in programs:
