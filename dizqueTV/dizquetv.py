@@ -48,8 +48,10 @@ def make_time_slot_from_dizque_program(
     :rtype: TimeSlot
     """
     if program.type == "redirect":
+        program: Redirect = program
         item = TimeSlotItem(item_type="redirect", item_value=program.channel)
     elif program.showTitle:
+        program: Program = program
         if program.type == "movie":
             item = TimeSlotItem(item_type="movie", item_value=program.showTitle)
         else:
@@ -104,6 +106,7 @@ def convert_custom_show_to_programs(
         data["customShowId"] = custom_show.id
         data["customShowName"] = custom_show.name
         data["customOrder"] = program.order
+        data["customShowTag"] = None  # need to remove the tag to avoid this being converted back to a custom show
         programs.append(
             Program(data=data, dizque_instance=dizque_instance, channel_instance=None)
         )
@@ -203,7 +206,9 @@ def repeat_and_shuffle_list(items: List, how_many_times: int) -> List:
     return final_list
 
 
-def expand_custom_show_items(programs: List, dizque_instance) -> List:
+def expand_custom_show_items(
+        programs: List[Union[Program, Redirect, FillerItem, CustomShow, Video, Movie, Episode, Track]], dizque_instance) \
+        -> List[Union[Program, Redirect, FillerItem, Video, Movie, Episode, Track]]:
     """
     Expand all custom shows in a list out to their individual programs
 
@@ -216,13 +221,15 @@ def expand_custom_show_items(programs: List, dizque_instance) -> List:
     """
     all_items = []
     for item in programs:
-        if not helpers._object_has_attribute(obj=item, attribute_name="customShowTag"):
-            all_items.append(item)
-        else:
-            programs = convert_custom_show_to_programs(
+        if helpers._object_has_attribute(obj=item, attribute_name="customShowTag"):
+            # this is a custom show
+            programs: List[Program] = convert_custom_show_to_programs(
                 custom_show=item, dizque_instance=dizque_instance
             )
             all_items.extend(programs)
+        else:
+            # this is not a custom show
+            all_items.append(item)
     return all_items
 
 
@@ -1126,10 +1133,22 @@ class API:
             content: List[Union[Program, Video, Movie, Episode, Track]],
             plex_server: PServer = None,
     ) -> Union[CustomShow, None]:
+        """
+        Add a dizqueTV custom show
+
+        :param name: Name of custom show to add
+        :type name: str
+        :param content: List of content to add to custom show
+        :type content: List[Union[Program, Video, Movie, Episode, Track]]
+        :param plex_server: plexapi.server.PlexServer object (required if adding PlexAPI Video, Movie, Episode or Track objects)
+        :type plex_server: plexapi.server.PlexServer, optional
+        :return: New CustomShow object if successful, None if unsuccessful
+        :rtype: CustomShow or None
+        """
         kwargs = {"name": name, "content": []}
         for item in content:
             if type(item) == Program:
-                custom_show_item = convert_program_to_custom_show_item(
+                custom_show_item: CustomShowItem = convert_program_to_custom_show_item(
                     program=item, dizque_instance=self
                 )
             else:
@@ -1138,10 +1157,10 @@ class API:
                         "You must include a plex_server if you are adding PlexAPI Videos, "
                         "Movies, Episodes or Tracks as programs"
                     )
-                program = convert_plex_item_to_program(
+                program: Program = convert_plex_item_to_program(
                     plex_item=item, plex_server=plex_server
                 )
-                custom_show_item = convert_program_to_custom_show_item(
+                custom_show_item: CustomShowItem = convert_program_to_custom_show_item(
                     program=program, dizque_instance=self
                 )
             kwargs["content"].append(custom_show_item._full_data)
@@ -1578,7 +1597,9 @@ class API:
             program=program, dizque_instance=self
         )
 
-    def expand_custom_show_items(self, programs: List) -> List:
+    def expand_custom_show_items(self,
+                                 programs: List[Union[Program, FillerItem, CustomShow, Video, Movie, Episode, Track]]) \
+            -> List[Union[Program, FillerItem, Redirect, Video, Movie, Episode, Track]]:
         """
         Expand all custom shows in a list out to their individual programs
 

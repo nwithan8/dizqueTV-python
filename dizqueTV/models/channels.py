@@ -57,7 +57,7 @@ class ChannelFFMPEGSettings(BaseAPIObject):
                 new_settings_dict=kwargs, default_dict=self._data
             )
         if self._dizque_instance.update_channel(
-            channel_number=self._channel_instance.number, transcoding=new_settings
+                channel_number=self._channel_instance.number, transcoding=new_settings
         ):
             self._channel_instance.refresh()
             del self
@@ -93,10 +93,10 @@ class ChannelOnDemandSettings(BaseAPIObject):
             new_settings_dict=kwargs, default_dict=self._data
         )
         new_settings["firstProgramModulo"] = (
-            self._channel_instance.startTime_datetime.timestamp() * 1000
-        ) % new_settings["modulo"]
+                                                     self._channel_instance.startTime_datetime.timestamp() * 1000
+                                             ) % new_settings["modulo"]
         if self._dizque_instance.update_channel(
-            channel_number=self._channel_instance.number, onDemand=new_settings
+                channel_number=self._channel_instance.number, onDemand=new_settings
         ):
             self._channel_instance.refresh()
             del self
@@ -133,7 +133,7 @@ class Watermark(BaseAPIObject):
         """
         new_watermark_dict = self._dizque_instance.fill_in_watermark_settings(**kwargs)
         if self._dizque_instance.update_channel(
-            channel_number=self._channel_instance.number, watermark=new_watermark_dict
+                channel_number=self._channel_instance.number, watermark=new_watermark_dict
         ):
             self._channel_instance.refresh()
             del self
@@ -151,7 +151,7 @@ class TimeSlotItem:
 
 class TimeSlot(BaseObject):
     def __init__(
-        self, data: dict, program: TimeSlotItem = None, schedule_instance=None
+            self, data: dict, program: TimeSlotItem = None, schedule_instance=None
     ):
         super().__init__(data)
         self.time = data.get("time")
@@ -229,7 +229,7 @@ class Schedule(BaseAPIObject):
         return self._channel_instance.update_schedule(**new_settings)
 
     def add_time_slot(
-        self, time_slot: TimeSlot = None, time_string: str = None, **kwargs
+            self, time_slot: TimeSlot = None, time_string: str = None, **kwargs
     ) -> bool:
         """
         Add a time slot to this Schedule
@@ -253,8 +253,8 @@ class Schedule(BaseAPIObject):
                 new_dictionary=kwargs, template_dict=TIME_SLOT_SETTINGS_TEMPLATE
             )
             if not helpers._settings_are_complete(
-                new_settings_dict=new_settings_filtered,
-                template_settings_dict=TIME_SLOT_SETTINGS_TEMPLATE,
+                    new_settings_dict=new_settings_filtered,
+                    template_settings_dict=TIME_SLOT_SETTINGS_TEMPLATE,
             ):
                 raise GeneralException("Missing settings required to make a time slot.")
 
@@ -273,7 +273,7 @@ class Schedule(BaseAPIObject):
         return self.update(slots=slots)
 
     def edit_time_slot(
-        self, time_slot: TimeSlot, time_string: str = None, **kwargs
+            self, time_slot: TimeSlot, time_string: str = None, **kwargs
     ) -> bool:
         """
         Edit a time slot from this Schedule
@@ -410,8 +410,8 @@ class Channel(BaseAPIObject):
         schedulable_items = []
         for program in self.programs:
             if (
-                program.type == "customShow"
-            ):  # custom shows not schedulable at this time
+                    program.type == "customShow"
+            ):  # custom shows not scheduleable at this time
                 pass
             elif program.type == "redirect" and program.channel not in used_titles:
                 schedulable_items.append(
@@ -450,7 +450,7 @@ class Channel(BaseAPIObject):
 
     @decorators.check_for_dizque_instance
     def get_program(
-        self, program_title: str = None, redirect_channel_number: int = None
+            self, program_title: str = None, redirect_channel_number: int = None
     ) -> Union[Program, None]:
         """
         Get a specific program on this channel
@@ -468,7 +468,7 @@ class Channel(BaseAPIObject):
             )
         for program in self.programs:
             if (program_title and program.title == program_title) or (
-                redirect_channel_number and redirect_channel_number == program.channel
+                    redirect_channel_number and redirect_channel_number == program.channel
             ):
                 return program
         return None
@@ -544,11 +544,11 @@ class Channel(BaseAPIObject):
 
     @decorators.check_for_dizque_instance
     def add_program(
-        self,
-        plex_item: Union[Video, Movie, Episode, Track] = None,
-        plex_server: PServer = None,
-        program: Union[Program, CustomShow] = None,
-        **kwargs,
+            self,
+            plex_item: Union[Video, Movie, Episode, Track] = None,
+            plex_server: PServer = None,
+            program: Union[Program, CustomShow] = None,
+            **kwargs,
     ) -> bool:
         """
         Add a program to this channel
@@ -587,9 +587,9 @@ class Channel(BaseAPIObject):
         elif kwargs["type"] == "redirect":
             template = REDIRECT_PROGRAM_TEMPLATE
         if helpers._settings_are_complete(
-            new_settings_dict=kwargs,
-            template_settings_dict=template,
-            ignore_keys=["_id", "id"],
+                new_settings_dict=kwargs,
+                template_settings_dict=template,
+                ignore_keys=["_id", "id"],
         ):
             channel_data = self._data
             if not channel_data.get("duration"):
@@ -603,9 +603,9 @@ class Channel(BaseAPIObject):
 
     @decorators.check_for_dizque_instance
     def add_programs(
-        self,
-        programs: List[Union[Program, CustomShow, Video, Movie, Episode, Track]],
-        plex_server: PServer = None,
+            self,
+            programs: List[Union[Program, Redirect, FillerItem, CustomShow, Video, Movie, Episode, Track]],
+            plex_server: PServer = None,
     ) -> bool:
         """
         Add multiple programs to this channel
@@ -623,10 +623,12 @@ class Channel(BaseAPIObject):
                 "You must provide at least one program to add to the channel."
             )
 
-        programs = self._dizque_instance.expand_custom_show_items(programs=programs)
+        programs: List[Union[Program, Redirect, FillerItem, Video, Movie, Episode, Track]] = \
+            self._dizque_instance.expand_custom_show_items(programs=programs)
 
         for program in programs:
-            if type(program) not in [Program, Redirect, CustomShowItem]:
+            if type(program) not in [Program, Redirect, FillerItem]:
+                # plex item needs to be converted to program
                 if not plex_server and not self.plex_server:
                     raise MissingParametersError(
                         "Please include a plex_server if you are adding PlexAPI Video, "
@@ -704,7 +706,7 @@ class Channel(BaseAPIObject):
         channel_data = self._data
         for a_program in channel_data["programs"]:
             if (program.type == "redirect" and a_program["type"] == "redirect") or (
-                a_program["title"] == program.title
+                    a_program["title"] == program.title
             ):
                 if kwargs.get("duration"):
                     channel_data["duration"] -= a_program["duration"]
@@ -729,7 +731,7 @@ class Channel(BaseAPIObject):
         channel_data = self._data
         for a_program in channel_data["programs"]:
             if (program.type == "redirect" and a_program["type"] == "redirect") or (
-                a_program["title"] == program.title
+                    a_program["title"] == program.title
             ):
                 channel_data["duration"] -= a_program["duration"]
                 channel_data["programs"].remove(a_program)
@@ -770,10 +772,10 @@ class Channel(BaseAPIObject):
 
     @decorators.check_for_dizque_instance
     def add_x_number_of_show_episodes(
-        self,
-        number_of_episodes: int,
-        list_of_episodes: List[Union[Program, Episode]],
-        plex_server: PServer = None,
+            self,
+            number_of_episodes: int,
+            list_of_episodes: List[Union[Program, Episode]],
+            plex_server: PServer = None,
     ) -> bool:
         """
         Add the first X number of items from a list of programs to a dizqueTV channel
@@ -807,11 +809,11 @@ class Channel(BaseAPIObject):
 
     @decorators.check_for_dizque_instance
     def add_x_duration_of_show_episodes(
-        self,
-        duration_in_milliseconds: int,
-        list_of_episodes: List[Union[Program, Episode]],
-        plex_server: PServer = None,
-        allow_overtime: bool = False,
+            self,
+            duration_in_milliseconds: int,
+            list_of_episodes: List[Union[Program, Episode]],
+            plex_server: PServer = None,
+            allow_overtime: bool = False,
     ) -> bool:
         """
         Add an X duration of items from a list of programs to a dizqueTV channel
@@ -845,7 +847,7 @@ class Channel(BaseAPIObject):
                     plex_server=(plex_server if plex_server else self.plex_server),
                 )
             if (
-                total_runtime + list_of_episodes[list_index].duration
+                    total_runtime + list_of_episodes[list_index].duration
             ) > duration_in_milliseconds:
                 if allow_overtime:
                     channel_data["programs"].append(list_of_episodes[list_index]._data)
@@ -890,11 +892,11 @@ class Channel(BaseAPIObject):
 
     @decorators.check_for_dizque_instance
     def add_filler_list(
-        self,
-        filler_list: FillerList = None,
-        filler_list_id: str = None,
-        weight: int = 300,
-        cooldown: int = 0,
+            self,
+            filler_list: FillerList = None,
+            filler_list_id: str = None,
+            weight: int = 300,
+            cooldown: int = 0,
     ) -> bool:
         """
         Add a filler list to this channel
@@ -922,9 +924,9 @@ class Channel(BaseAPIObject):
             "cooldown": cooldown,
         }
         if helpers._settings_are_complete(
-            new_settings_dict=new_settings_dict,
-            template_settings_dict=FILLER_LIST_CHANNEL_TEMPLATE,
-            ignore_keys=["_id", "id"],
+                new_settings_dict=new_settings_dict,
+                template_settings_dict=FILLER_LIST_CHANNEL_TEMPLATE,
+                ignore_keys=["_id", "id"],
         ):
             channel_data = self._data
             channel_data["fillerCollections"].append(new_settings_dict)
@@ -934,7 +936,7 @@ class Channel(BaseAPIObject):
 
     @decorators.check_for_dizque_instance
     def delete_filler_list(
-        self, filler_list: FillerList = None, filler_list_id: str = None
+            self, filler_list: FillerList = None, filler_list_id: str = None
     ) -> bool:
         """
         Delete a program from this channel
@@ -991,8 +993,8 @@ class Channel(BaseAPIObject):
             template_dict=SCHEDULE_SETTINGS_TEMPLATE,
         )
         if helpers._settings_are_complete(
-            new_settings_dict=schedule_settings,
-            template_settings_dict=SCHEDULE_SETTINGS_TEMPLATE,
+                new_settings_dict=schedule_settings,
+                template_settings_dict=SCHEDULE_SETTINGS_TEMPLATE,
         ):
             schedule = Schedule(
                 data=schedule_settings, dizque_instance=None, channel_instance=self
@@ -1019,8 +1021,8 @@ class Channel(BaseAPIObject):
             template_dict=RANDOM_SCHEDULE_SETTINGS_TEMPLATE,
         )
         if helpers._settings_are_complete(
-            new_settings_dict=schedule_settings,
-            template_settings_dict=RANDOM_SCHEDULE_SETTINGS_TEMPLATE,
+                new_settings_dict=schedule_settings,
+                template_settings_dict=RANDOM_SCHEDULE_SETTINGS_TEMPLATE,
         ):
             schedule = Schedule(
                 data=schedule_settings, dizque_instance=None, channel_instance=self
@@ -1243,8 +1245,8 @@ class Channel(BaseAPIObject):
         non_redirects = []
         for item in self.programs:
             if (
-                not helpers._object_has_attribute(obj=item, attribute_name="type")
-                or item.type != "redirect"
+                    not helpers._object_has_attribute(obj=item, attribute_name="type")
+                    or item.type != "redirect"
             ):
                 non_redirects.append(item)
         if non_redirects and self.delete_all_programs():
@@ -1264,16 +1266,16 @@ class Channel(BaseAPIObject):
             item
             for item in self.programs
             if (
-                helpers._object_has_attribute(obj=item, attribute_name="type")
-                and item.type != "redirect"
+                    helpers._object_has_attribute(obj=item, attribute_name="type")
+                    and item.type != "redirect"
             )
         ]
         non_specials = [
             item
             for item in non_redirects
             if (
-                helpers._object_has_attribute(obj=item, attribute_name="season")
-                and item.season != 0
+                    helpers._object_has_attribute(obj=item, attribute_name="season")
+                    and item.season != 0
             )
         ]
         if non_specials and self.delete_all_programs():
@@ -1314,7 +1316,7 @@ class Channel(BaseAPIObject):
 
     @decorators.check_for_dizque_instance
     def add_reruns(
-        self, start_time: datetime, length_hours: int, times_to_repeat: int
+            self, start_time: datetime, length_hours: int, times_to_repeat: int
     ) -> bool:
         """
         Add a block of reruns to a dizqueTV channel
@@ -1355,7 +1357,7 @@ class Channel(BaseAPIObject):
 
     @decorators.check_for_dizque_instance
     def add_channel_at_night(
-        self, night_channel_number: int, start_hour: int, end_hour: int
+            self, night_channel_number: int, start_hour: int, end_hour: int
     ) -> bool:
         """
         Add a Channel at Night to a dizqueTV channel
@@ -1434,7 +1436,7 @@ class Channel(BaseAPIObject):
 
     @decorators.check_for_dizque_instance
     def add_channel_at_night_alt(
-        self, night_channel_number: int, start_hour: int, end_hour: int
+            self, night_channel_number: int, start_hour: int, end_hour: int
     ) -> bool:
         """
         Add a Channel at Night to a dizqueTV channel
@@ -1477,10 +1479,10 @@ class Channel(BaseAPIObject):
             programs=all_programs, minutes=int(time_until_night_block_start / 1000 / 60)
         )
         if len(programs_to_add) == len(
-            all_programs
+                all_programs
         ):  # all programs can play before night channel even starts
             if (
-                total_running_time < time_until_night_block_start
+                    total_running_time < time_until_night_block_start
             ):  # add flex time between last item and night channel
                 time_needed = time_until_night_block_start - total_running_time
                 programs_to_add.append(
@@ -1515,7 +1517,7 @@ class Channel(BaseAPIObject):
                 minutes=int(time_until_night_block_start / 1000 / 60),
             )
             if (
-                total_running_time < time_until_night_block_start
+                    total_running_time < time_until_night_block_start
             ):  # add flex time between last item and night channel
                 time_needed = time_until_night_block_start - total_running_time
                 programs_to_add.append(
@@ -1595,13 +1597,13 @@ class Channel(BaseAPIObject):
 
     @decorators.check_for_dizque_instance
     def fast_forward(
-        self,
-        seconds: int = 0,
-        minutes: int = 0,
-        hours: int = 0,
-        days: int = 0,
-        months: int = 0,
-        years: int = 0,
+            self,
+            seconds: int = 0,
+            minutes: int = 0,
+            hours: int = 0,
+            days: int = 0,
+            months: int = 0,
+            years: int = 0,
     ) -> bool:
         """
         Fast forward the channel start time by an amount of time
@@ -1640,13 +1642,13 @@ class Channel(BaseAPIObject):
 
     @decorators.check_for_dizque_instance
     def rewind(
-        self,
-        seconds: int = 0,
-        minutes: int = 0,
-        hours: int = 0,
-        days: int = 0,
-        months: int = 0,
-        years: int = 0,
+            self,
+            seconds: int = 0,
+            minutes: int = 0,
+            hours: int = 0,
+            days: int = 0,
+            months: int = 0,
+            years: int = 0,
     ) -> bool:
         """
         Fast forward the channel start time by an amount of time
