@@ -7,9 +7,9 @@ from xml.etree import ElementTree
 import m3u8
 import plexapi.server
 from objectrest import Response
-from plexapi.audio import Track
+from plexapi.audio import Track, Artist, Album
 from plexapi.server import PlexServer as PServer
-from plexapi.video import Episode, Movie, Video
+from plexapi.video import Episode, Movie, Video, Show, Season, Clip
 
 import dizqueTV.dizquetv_requests as requests
 import dizqueTV.helpers as helpers
@@ -130,6 +130,34 @@ def convert_plex_item_to_program(
         plex_item=plex_item, plex_server=plex_server
     )
     return Program(data=data, dizque_instance=None, channel_instance=None)
+
+
+def extract_episodes(plex_item: Union[Show, Season]) -> List[Episode]:
+    """
+    Extract all PlexAPI Episodes from a PlexAPI Show or Season
+
+    :param plex_item: plexapi.video.Show or plexapi.video.Season object
+    :type plex_item: Union[plexapi.video.Show, plexapi.video.Season]
+    :return: List of plexapi.video.Episode objects
+    :rtype: List[plexapi.video.Episode]
+    """
+    if plex_item.type in ['show', 'season']:
+        return plex_item.episodes()
+    return []
+
+
+def extract_tracks(plex_item: Union[Album, Artist]) -> List[Track]:
+    """
+    Extract all PlexAPI Tracks from a PlexAPI Album or Artist
+
+    :param plex_item: plexapi.audio.Album or plexapi.audio.Artist object
+    :type plex_item: Union[plexapi.audio.Album, plexapi.audio.Artist]
+    :return: List of plexapi.audio.Track objects
+    :rtype: List[plexapi.audio.Track]
+    """
+    if plex_item.type in ['artist', 'album']:
+        return plex_item.tracks()
+    return []
 
 
 def convert_plex_item_to_filler_item(
@@ -1566,6 +1594,28 @@ class API:
         return convert_plex_item_to_program(
             plex_item=plex_item, plex_server=plex_server
         )
+
+    def extract_episodes(self, plex_item: Union[Show, Season]) -> List[Episode]:
+        """
+        Extract all PlexAPI Episodes from a PlexAPI Show or Season
+
+        :param plex_item: plexapi.video.Show or plexapi.video.Season object
+        :type plex_item: Union[plexapi.video.Show, plexapi.video.Season]
+        :return: List of plexapi.video.Episode objects
+        :rtype: List[plexapi.video.Episode]
+        """
+        return extract_episodes(plex_item=plex_item)
+
+    def extract_tracks(self, plex_item: Union[Album, Artist]) -> List[Track]:
+        """
+        Extract all PlexAPI Tracks from a PlexAPI Album or Artist
+
+        :param plex_item: plexapi.audio.Album or plexapi.audio.Artist object
+        :type plex_item: Union[plexapi.audio.Album, plexapi.audio.Artist]
+        :return: List of plexapi.audio.Track objects
+        :rtype: List[plexapi.audio.Track]
+        """
+        return extract_tracks(plex_item=plex_item)
 
     def convert_plex_item_to_filler_item(
             self, plex_item: Union[Video, Movie, Episode, Track], plex_server: PServer
