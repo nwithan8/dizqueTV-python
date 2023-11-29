@@ -163,6 +163,7 @@ class FFMPEGSettings(BaseAPIObject):
         self.normalizeAudio = data.get("normalizeAudio")
         self.maxFPS = data.get("maxFPS")
         self.scalingAlgorithm = data.get("scalingAlgorithm")
+        self.disablePreludes = data.get("disablePreludes")
         self._id = data.get("_id")
 
     def __repr__(self):
