@@ -123,7 +123,7 @@ class FillerList(BaseAPIObject):
         """
         Add a filler item to this filler list
 
-        :param plex_item: plexapi.video.Video, plexapi.video.Moviem plexapi.video.Episode or plexapi.audio.Track object (optional)
+        :param plex_item: plexapi.video.Video, plexapi.video.Movie plexapi.video.Episode or plexapi.audio.Track object (optional)
         :type plex_item: Union[plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode, plexapi.audio.Track], optional
         :param plex_server: plexapi.server.PlexServer object (optional)
         :type plex_server: plexapi.server.PlexServer, optional
