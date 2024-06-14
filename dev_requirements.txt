@@ -6,3 +6,4 @@ pytest==7.*
 types-requests
 types-urllib3
 python-dotenv
+setuptools
