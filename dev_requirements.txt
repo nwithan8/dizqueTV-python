@@ -7,3 +7,5 @@ types-requests
 types-urllib3
 python-dotenv
 setuptools
+wheel
+twine
