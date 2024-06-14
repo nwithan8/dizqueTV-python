@@ -178,7 +178,7 @@ class FillerList(BaseAPIObject):
         filler_list_data = self._data
 
         fillers = self._dizque_instance.expand_custom_show_items(
-            programs=fillers, dizque_instance=self
+            programs=fillers
         )
 
         for filler in fillers:
