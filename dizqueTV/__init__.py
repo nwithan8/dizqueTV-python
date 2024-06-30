@@ -13,5 +13,4 @@ from dizqueTV.dizquetv import (API,
 from dizqueTV.models import PlexServer
 from dizqueTV.plex_utils import PlexUtils
 
-from ._info import (__author__, __author_email__, __copyright__, __license__,
-                    __version__)
+from ._info import __version__

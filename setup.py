@@ -4,7 +4,8 @@ from typing import List
 
 import setuptools
 
-__version__ = 'VERSIONADDEDBYGITHUB'
+from dizqueTV._info import __version__
+
 
 __title__ = "dizqueTV"
 __author__ = 'Nate Harris'
