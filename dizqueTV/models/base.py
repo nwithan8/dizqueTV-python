@@ -5,7 +5,7 @@ class BaseObject:
     @property
     def json(self) -> dict:
         """
-        Get raw JSON
+        Get raw JSON.
 
         :return: JSON data for object
         :rtype: dict
@@ -15,7 +15,7 @@ class BaseObject:
     @property
     def _data(self) -> dict:
         """
-        Get raw JSON
+        Get raw JSON.
 
         :return: JSON data for object
         :rtype: dict

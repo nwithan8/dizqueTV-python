@@ -9,7 +9,7 @@ class Advanced:
 
     def get_ffmpeg_urls_raw(self, channel_number: int) -> str:
         """
-        Get raw FFMPEG URL list for channel
+        Get raw FFMPEG URL list for channel.
 
         :param channel_number: Number of channel to get playlist for
         :type channel_number: int
@@ -26,7 +26,7 @@ class Advanced:
 
     def get_ffmpeg_urls(self, channel_number: int) -> List[str]:
         """
-        Get FFMPEG URL list for channel
+        Get FFMPEG URL list for channel.
 
         :param channel_number: Number of channel to get playlist for
         :type channel_number: int
@@ -42,7 +42,7 @@ class Advanced:
 
     def get_ffmpeg_url(self, channel_number: int) -> str:
         """
-        Get first FFMPEG URL for channel
+        Get first FFMPEG URL for channel.
 
         :param channel_number: Number of channel to get playlist for
         :type channel_number: int

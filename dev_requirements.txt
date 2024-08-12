@@ -10,3 +10,5 @@ setuptools
 wheel
 twine
 pre-commit
+sphinx
+sphinx_rtd_theme

@@ -41,8 +41,9 @@ class ChannelFFMPEGSettings(BaseAPIObject):
     @decorators.check_for_dizque_instance
     def update(self, use_global_settings: bool = False, **kwargs) -> bool:
         """
-        Edit this channel's FFMPEG settings on dizqueTV
-        Automatically refreshes associated Channel object
+        Edit this channel's FFMPEG settings on dizqueTV.
+
+        Automatically refreshes associated Channel object.
 
         :param use_global_settings: Use global dizqueTV FFMPEG settings (default: False)
         :type use_global_settings: bool, optional
@@ -81,8 +82,9 @@ class ChannelOnDemandSettings(BaseAPIObject):
     @decorators.check_for_dizque_instance
     def update(self, **kwargs) -> bool:
         """
-        Edit this channel's OnDemand settings on dizqueTV
-        Automatically refreshes associated Channel object
+        Edit this channel's OnDemand settings on dizqueTV.
+
+        Automatically refreshes associated Channel object.
 
 
         :param kwargs: keyword arguments of Channel FFMPEG settings names and values
@@ -124,8 +126,9 @@ class Watermark(BaseAPIObject):
     @decorators.check_for_dizque_instance
     def update(self, **kwargs) -> bool:
         """
-        Edit this Watermark on dizqueTV
-        Automatically refreshes associated Channel object
+        Edit this Watermark on dizqueTV.
+
+        Automatically refreshes associated Channel object.
 
         :param kwargs: keyword arguments of Watermark settings names and values
         :return: True if successful, False if unsuccessful (Channel reloads in-place, Watermark object is destroyed)
@@ -164,15 +167,12 @@ class TimeSlot(BaseObject):
 
     def edit(self, time_string: str = None, **kwargs) -> bool:
         """
-        Edit this TimeSlot object
+        Edit this TimeSlot object.
 
-        :param time_string: time in readable 24-hour format
-        (ex. 00:00:00 = 12:00:00 A.M., 05:15:00 = 5:15 A.M., 20:08:12 = 8:08:12 P.M.)
-        (Optional if time=<milliseconds_since_midnight> not included in kwargs)
+        :param time_string: time in readable 24-hour format (ex. 00:00:00 = 12:00:00 A.M., 05:15:00 = 5:15 A.M., 20:08:12 = 8:08:12 P.M.) (Optional if time=<milliseconds_since_midnight> not included in kwargs)
         :type time_string: str, optional
         :param kwargs: Keyword arguments for the edited time slot (time, showId and order)
-        :return: True if successful, False if unsuccessful
-        (Channel reloads in-place, this TimeSlot and its parent Schedule object are destroyed)
+        :return: True if successful, False if unsuccessful (Channel reloads in-place, this TimeSlot and its parent Schedule object are destroyed)
         :rtype: bool
         """
         if not self._schedule_instance:
@@ -183,7 +183,7 @@ class TimeSlot(BaseObject):
 
     def delete(self) -> bool:
         """
-        Delete this TimeSlot object from the schedule
+        Delete this TimeSlot object from the schedule.
 
         :return: True if successful, False if unsuccessful (Channel reloads in-place, this TimeSlot and its parent Schedule object are destroyed)
         :rtype: bool
@@ -215,8 +215,9 @@ class Schedule(BaseAPIObject):
     @decorators.check_for_dizque_instance
     def update(self, **kwargs):
         """
-        Edit this Schedule on dizqueTV
-        Automatically refreshes associated Channel object
+        Edit this Schedule on dizqueTV.
+
+        Automatically refreshes associated Channel object.
 
         :param kwargs: keyword arguments of Schedule settings names and values
         :return: True if successful, False if unsuccessful (Channel reloads in-place, this Schedule object is destroyed)
@@ -232,7 +233,7 @@ class Schedule(BaseAPIObject):
             self, time_slot: TimeSlot = None, time_string: str = None, **kwargs
     ) -> bool:
         """
-        Add a time slot to this Schedule
+        Add a time slot to this Schedule.
 
         :param time_slot: TimeSlot object to add (Optional)
         :type time_slot: TimeSlot, optional
@@ -276,7 +277,7 @@ class Schedule(BaseAPIObject):
             self, time_slot: TimeSlot, time_string: str = None, **kwargs
     ) -> bool:
         """
-        Edit a time slot from this Schedule
+        Edit a time slot from this Schedule.
 
         :param time_slot: TimeSlot object to edit
         :type time_slot: TimeSlot
@@ -305,7 +306,7 @@ class Schedule(BaseAPIObject):
     @decorators.check_for_dizque_instance
     def delete_time_slot(self, time_slot: TimeSlot) -> bool:
         """
-        Delete a time slot from this Schedule
+        Delete a time slot from this Schedule.
 
         :param time_slot: TimeSlot object to remove
         :type time_slot: TimeSlot
@@ -323,8 +324,9 @@ class Schedule(BaseAPIObject):
     @decorators.check_for_dizque_instance
     def delete(self) -> bool:
         """
-        Delete this channel's Schedule
-        Removes all duplicate programs, adds random shuffle
+        Delete this channel's Schedule.
+
+        Removes all duplicate programs, adds random shuffle.
 
         :return: True if successful, False if unsuccessful (Channel reloads in-place, this Schedule object is destroyed)
         :rtype: bool
@@ -401,7 +403,7 @@ class Channel(BaseAPIObject):
 
     def _get_schedulable_items(self) -> List[TimeSlotItem]:
         """
-        Get all programs able to be scheduled for this channel
+        Get all programs able to be scheduled for this channel.
 
         :return: List of TimeSlotItem objects
         :rtype: List[TimeSlotItem]
@@ -436,7 +438,7 @@ class Channel(BaseAPIObject):
     @property
     def programs(self) -> List[Union[Program, CustomShow]]:
         """
-        Get all programs on this channel
+        Get all programs on this channel.
 
         :return: List of Program and CustomShow objects
         :rtype: List[Union[Program, CustomShow]]
@@ -453,7 +455,7 @@ class Channel(BaseAPIObject):
             self, program_title: str = None, redirect_channel_number: int = None
     ) -> Union[Program, None]:
         """
-        Get a specific program on this channel
+        Get a specific program on this channel.
 
         :param program_title: Title of program
         :type program_title: str, optional
@@ -476,7 +478,7 @@ class Channel(BaseAPIObject):
     @property
     def filler_lists(self) -> List[FillerList]:
         """
-        Get all filler lists on this channel
+        Get all filler lists on this channel.
 
         :return: List of FillerList objects
         :rtype: List[FillerList]
@@ -489,7 +491,7 @@ class Channel(BaseAPIObject):
     @decorators.check_for_dizque_instance
     def get_filler_list(self, filler_list_title: str) -> Union[FillerList, None]:
         """
-        Get a specific filler list on this channel
+        Get a specific filler list on this channel.
 
         :param filler_list_title: Title of filler list
         :type filler_list_title: str
@@ -505,8 +507,9 @@ class Channel(BaseAPIObject):
     @decorators.check_for_dizque_instance
     def refresh(self):
         """
-        Reload current Channel object
-        Use to update program and filler data
+        Reload current Channel object.
+
+        Use to update program and filler data.
 
         :return: None
         """
@@ -519,8 +522,9 @@ class Channel(BaseAPIObject):
     @decorators.check_for_dizque_instance
     def update(self, **kwargs) -> bool:
         """
-        Edit this Channel on dizqueTV
-        Automatically refreshes current Channel object
+        Edit this Channel on dizqueTV.
+
+        Automatically refreshes current Channel object.
 
         :param kwargs: keyword arguments of Channel settings names and values
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
@@ -534,7 +538,7 @@ class Channel(BaseAPIObject):
     @decorators.check_for_dizque_instance
     def edit(self, **kwargs) -> bool:
         """
-        Alias for channels.update()
+        Alias for channels.update().
 
         :param kwargs: keyword arguments of Channel settings names and values
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
@@ -551,7 +555,7 @@ class Channel(BaseAPIObject):
             **kwargs,
     ) -> bool:
         """
-        Add a program to this channel
+        Add a program to this channel.
 
         :param plex_item: plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode or plexapi.audio.Track object (optional)
         :type plex_item: Union[plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode, plexapi.audio.Track], optional
@@ -608,7 +612,7 @@ class Channel(BaseAPIObject):
             plex_server: PServer = None,
     ) -> bool:
         """
-        Add multiple programs to this channel
+        Add multiple programs to this channel.
 
         :param programs: List of Program, CustomShow plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode or plexapi.audio.Track objects
         :type programs: List[Union[Program, CustomShow, plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode, plexapi.audio.Track]]
@@ -645,7 +649,7 @@ class Channel(BaseAPIObject):
     @decorators.check_for_dizque_instance
     def add_collection(self, collection: Collection, plex_server: PServer) -> bool:
         """
-        Add a collection to this channel
+        Add a collection to this channel.
 
         :param collection: PlexAPI Collection to add to this channel
         :type collection: plexapi.collection.Collection
@@ -670,7 +674,7 @@ class Channel(BaseAPIObject):
     @decorators.check_for_dizque_instance
     def add_playlist(self, playlist: Playlist, plex_server: PServer) -> bool:
         """
-        Add a playlist to this channel
+        Add a playlist to this channel.
 
         :param playlist: PlexAPI Playlist to add to this channel
         :type playlist: plexapi.playlist.Playlist
@@ -695,7 +699,7 @@ class Channel(BaseAPIObject):
     @decorators.check_for_dizque_instance
     def update_program(self, program: Program, **kwargs) -> bool:
         """
-        Update a program from this channel
+        Update a program from this channel.
 
         :param program: Program object to update
         :type program: Program
@@ -721,7 +725,7 @@ class Channel(BaseAPIObject):
     @decorators.check_for_dizque_instance
     def delete_program(self, program: Program) -> bool:
         """
-        Delete a program from this channel
+        Delete a program from this channel.
 
         :param program: Program object to delete
         :type program: Program
@@ -741,7 +745,7 @@ class Channel(BaseAPIObject):
     @decorators.check_for_dizque_instance
     def delete_show(self, show_name: str, season_number: int = None) -> bool:
         """
-        Delete all episodes of a specific show
+        Delete all episodes of a specific show.
 
         :param show_name: Name of show to delete
         :type show_name: str
@@ -778,7 +782,7 @@ class Channel(BaseAPIObject):
             plex_server: PServer = None,
     ) -> bool:
         """
-        Add the first X number of items from a list of programs to a dizqueTV channel
+        Add the first X number of items from a list of programs to a dizqueTV channel.
 
         :param number_of_episodes: number of items to add from the list
         :type number_of_episodes: int
@@ -816,7 +820,7 @@ class Channel(BaseAPIObject):
             allow_overtime: bool = False,
     ) -> bool:
         """
-        Add an X duration of items from a list of programs to a dizqueTV channel
+        Add an X duration of items from a list of programs to a dizqueTV channel.
 
         :param duration_in_milliseconds: length of time to add
         :type duration_in_milliseconds: int
@@ -824,8 +828,7 @@ class Channel(BaseAPIObject):
         :type list_of_episodes: List[Union[Program, plexapi.video.Episode]]
         :param plex_server: plexapi.server.PlexServer, needed if adding plexapi.media.Episode objects
         :type plex_server: plexapi.server.PlexServer, optional
-        :param allow_overtime: Allow adding one more episode, even if total time would go over.
-        Otherwise, don't add any more if total time would exceed duration_in_milliseconds (default: False)
+        :param allow_overtime: Allow adding one more episode, even if total time would go over. Otherwise, don't add any more if total time would exceed duration_in_milliseconds (default: False)
         :type allow_overtime: bool, optional
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
         :rtype: bool
@@ -864,7 +867,7 @@ class Channel(BaseAPIObject):
     @decorators.check_for_dizque_instance
     def delete_all_programs(self) -> bool:
         """
-        Delete all programs from this channel
+        Delete all programs from this channel.
 
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
         :rtype: bool
@@ -877,7 +880,7 @@ class Channel(BaseAPIObject):
     @decorators.check_for_dizque_instance
     def _delete_all_offline_times(self) -> bool:
         """
-        Delete all offline program in a channel
+        Delete all offline program in a channel.
 
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
         :rtype: bool
@@ -899,7 +902,7 @@ class Channel(BaseAPIObject):
             cooldown: int = 0,
     ) -> bool:
         """
-        Add a filler list to this channel
+        Add a filler list to this channel.
 
         :param filler_list: FillerList object (optional)
         :type filler_list: FillerList, optional
@@ -939,7 +942,7 @@ class Channel(BaseAPIObject):
             self, filler_list: FillerList = None, filler_list_id: str = None
     ) -> bool:
         """
-        Delete a program from this channel
+        Delete a program from this channel.
 
         :param filler_list: FillerList object to delete
         :type filler_list: FillerList, optional
@@ -964,7 +967,7 @@ class Channel(BaseAPIObject):
     @decorators.check_for_dizque_instance
     def delete_all_filler_lists(self) -> bool:
         """
-        Delete all filler lists from this channel
+        Delete all filler lists from this channel.
 
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
         :rtype: bool
@@ -977,7 +980,7 @@ class Channel(BaseAPIObject):
     @decorators.check_for_dizque_instance
     def add_schedule(self, time_slots: List[TimeSlot], **kwargs) -> bool:
         """
-        Add a schedule to this channel
+        Add a schedule to this channel.
 
         :param time_slots: List of TimeSlot objects
         :type time_slots: List[TimeSlot]
@@ -1005,7 +1008,7 @@ class Channel(BaseAPIObject):
     @decorators.check_for_dizque_instance
     def add_random_schedule(self, time_slots: List[TimeSlot], **kwargs) -> bool:
         """
-        Add a random schedule to this channel
+        Add a random schedule to this channel.
 
         :param time_slots: List of TimeSlot objects
         :type time_slots: List[TimeSlot]
@@ -1035,10 +1038,9 @@ class Channel(BaseAPIObject):
     @decorators.check_for_dizque_instance
     def update_schedule(self, **kwargs) -> bool:
         """
-        Update the schedule for this channel
+        Update the schedule for this channel.
 
-        :param kwargs: keyword arguments for schedule settings (slots data included if needed)
-        (include random=true to use random time slots)
+        :param kwargs: keyword arguments for schedule settings (slots data included if needed) (include random=true to use random time slots)
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
         :rtype: bool
         """
@@ -1049,8 +1051,9 @@ class Channel(BaseAPIObject):
     @decorators.check_for_dizque_instance
     def delete_schedule(self) -> bool:
         """
-        Delete this channel's Schedule
-        Removes all offline times, removes duplicate programs (and all redirects), random shuffles remaining items
+        Delete this channel's Schedule.
+
+        Removes all offline times, removes duplicate programs (and all redirects), random shuffles remaining items.
 
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
         :rtype: bool
@@ -1064,7 +1067,7 @@ class Channel(BaseAPIObject):
     @decorators.check_for_dizque_instance
     def sort_programs_by_release_date(self) -> bool:
         """
-        Sort all programs on this channel by release date
+        Sort all programs on this channel by release date.
 
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
         :rtype: bool
@@ -1077,8 +1080,9 @@ class Channel(BaseAPIObject):
     @decorators.check_for_dizque_instance
     def sort_programs_by_season_order(self) -> bool:
         """
-        Sort all programs on this channel by season order
-        Movies are added at the end of the list
+        Sort all programs on this channel by season order.
+
+        Movies are added at the end of the list.
 
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
         :rtype: bool
@@ -1091,7 +1095,7 @@ class Channel(BaseAPIObject):
     @decorators.check_for_dizque_instance
     def sort_programs_alphabetically(self) -> bool:
         """
-        Sort all programs on this channel in alphabetical order
+        Sort all programs on this channel in alphabetical order.
 
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
         :rtype: bool
@@ -1104,7 +1108,7 @@ class Channel(BaseAPIObject):
     @decorators.check_for_dizque_instance
     def sort_programs_by_duration(self) -> bool:
         """
-        Sort all programs on this channel by duration
+        Sort all programs on this channel by duration.
 
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
         :rtype: bool
@@ -1117,7 +1121,7 @@ class Channel(BaseAPIObject):
     @decorators.check_for_dizque_instance
     def sort_programs_randomly(self) -> bool:
         """
-        Sort all programs on this channel randomly
+        Sort all programs on this channel randomly.
 
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
         :rtype: bool
@@ -1130,7 +1134,7 @@ class Channel(BaseAPIObject):
     @decorators.check_for_dizque_instance
     def cyclical_shuffle(self) -> bool:
         """
-        Sort TV shows on this channel cyclically
+        Sort TV shows on this channel cyclically.
 
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
         :rtype: bool
@@ -1143,7 +1147,7 @@ class Channel(BaseAPIObject):
     @decorators.check_for_dizque_instance
     def block_shuffle(self, block_length: int, randomize: bool = False) -> bool:
         """
-        Sort TV shows on this channel cyclically
+        Sort TV shows on this channel cyclically.
 
         :param block_length: Length of each block
         :type block_length: int
@@ -1162,7 +1166,8 @@ class Channel(BaseAPIObject):
     @decorators.check_for_dizque_instance
     def replicate(self, how_many_times: int) -> bool:
         """
-        Replicate/repeat the channel lineup x number of times
+        Replicate/repeat the channel lineup x number of times.
+
         Items will remain in the same order.
         Ex. [A, B, C] x3 -> [A, B, C, A, B, C, A, B, C]
 
@@ -1183,7 +1188,8 @@ class Channel(BaseAPIObject):
     @decorators.check_for_dizque_instance
     def replicate_and_shuffle(self, how_many_times: int) -> bool:
         """
-        Replicate/repeat the channel lineup, shuffled, x number of times
+        Replicate/repeat the channel lineup, shuffled, x number of times.
+
         Items will be shuffled in each repeat group.
         Ex. [A, B, C] x3 -> [A, B, C, B, A, C, C, A, B]
 
@@ -1206,8 +1212,9 @@ class Channel(BaseAPIObject):
     @decorators.check_for_dizque_instance
     def remove_duplicate_programs(self) -> bool:
         """
-        Delete duplicate programs on this channel
-        NOTE: Removes all redirects
+        Delete duplicate programs on this channel.
+
+        NOTE: Removes all redirects.
 
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
         :rtype: bool
@@ -1222,7 +1229,7 @@ class Channel(BaseAPIObject):
     @decorators.check_for_dizque_instance
     def remove_duplicate_redirects(self) -> bool:
         """
-        Delete duplicate redirects on this channel
+        Delete duplicate redirects on this channel.
 
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
         :rtype: bool
@@ -1237,7 +1244,7 @@ class Channel(BaseAPIObject):
     @decorators.check_for_dizque_instance
     def remove_redirects(self) -> bool:
         """
-        Delete all redirects from a channel, preserving offline times, programs and filler items
+        Delete all redirects from a channel, preserving offline times, programs and filler items.
 
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
         :rtype: bool
@@ -1256,8 +1263,9 @@ class Channel(BaseAPIObject):
     @decorators.check_for_dizque_instance
     def remove_specials(self) -> bool:
         """
-        Delete all specials from this channel
-        Note: Removes all redirects
+        Delete all specials from this channel.
+
+        Note: Removes all redirects.
 
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
         :rtype: bool
@@ -1285,11 +1293,9 @@ class Channel(BaseAPIObject):
     @decorators.check_for_dizque_instance
     def pad_times(self, start_every_x_minutes: int) -> bool:
         """
-        Add padding between programs on a channel, so programs start at specific intervals
+        Add padding between programs on a channel, so programs start at specific intervals.
 
-        :param start_every_x_minutes: Programs start every X minutes past the hour
-        (ex. 10 for :00, :10, :20, :30, :40 & :50; 15 for :00, :15,
-        :30 & :45; 20 for :00, :20 & :40; 30 for :00 & :30; 60 or 0 for :00)
+        :param start_every_x_minutes: Programs start every X minutes past the hour (ex. 10 for :00, :10, :20, :30, :40 & :50; 15 for :00, :15, :30 & :45; 20 for :00, :20 & :40; 30 for :00 & :30; 60 or 0 for :00)
         :type start_every_x_minutes: int
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
         :rtype: bool
@@ -1319,7 +1325,7 @@ class Channel(BaseAPIObject):
             self, start_time: datetime, length_hours: int, times_to_repeat: int
     ) -> bool:
         """
-        Add a block of reruns to a dizqueTV channel
+        Add a block of reruns to a dizqueTV channel.
 
         :param start_time: datetime.datetime object, what time the reruns start
         :type start_time: datetime.datetime
@@ -1360,7 +1366,7 @@ class Channel(BaseAPIObject):
             self, night_channel_number: int, start_hour: int, end_hour: int
     ) -> bool:
         """
-        Add a Channel at Night to a dizqueTV channel
+        Add a Channel at Night to a dizqueTV channel.
 
         :param night_channel_number: number of the channel to redirect to
         :type night_channel_number: int
@@ -1439,7 +1445,7 @@ class Channel(BaseAPIObject):
             self, night_channel_number: int, start_hour: int, end_hour: int
     ) -> bool:
         """
-        Add a Channel at Night to a dizqueTV channel
+        Add a Channel at Night to a dizqueTV channel.
 
         :param night_channel_number: number of the channel to redirect to
         :type night_channel_number: int
@@ -1606,7 +1612,7 @@ class Channel(BaseAPIObject):
             years: int = 0,
     ) -> bool:
         """
-        Fast forward the channel start time by an amount of time
+        Fast-forward this channel start time by an amount of time.
 
         :param seconds: how many seconds
         :type seconds: int, optional
@@ -1651,7 +1657,7 @@ class Channel(BaseAPIObject):
             years: int = 0,
     ) -> bool:
         """
-        Fast forward the channel start time by an amount of time
+        Rewind this channel start time by an amount of time.
 
         :param seconds: how many seconds
         :type seconds: int, optional
@@ -1681,7 +1687,7 @@ class Channel(BaseAPIObject):
     @decorators.check_for_dizque_instance
     def delete(self) -> bool:
         """
-        Delete this channel
+        Delete this channel.
 
         :return: True if successful, False if unsuccessful
         :rtype: bool

@@ -8,7 +8,7 @@ from dizqueTV import convert_plex_server_to_dizque_plex_server
 class PlexUtils:
     def __init__(self, url: str, token: str):
         """
-        Work with the Plex API
+        Work with the Plex API.
 
         :param url: Plex Media Server url
         :type url: str
@@ -22,7 +22,7 @@ class PlexUtils:
     @property
     def users(self) -> List[myplex.MyPlexUser]:
         """
-        Get all users on a Plex Media Server
+        Get all users on a Plex Media Server.
 
         :return: List of Plex users
         :rtype: list[plexapi.myplex.MyPlexUser]
@@ -32,7 +32,7 @@ class PlexUtils:
     @property
     def playlists(self) -> List[playlist.Playlist]:
         """
-        Get all playlists on a Plex Media Server
+        Get all playlists on a Plex Media Server.
 
         :return: List of Plex playlists
         :rtype: list[plexapi.playlist.Playlist]
@@ -42,7 +42,7 @@ class PlexUtils:
     @property
     def library_sections(self) -> List[library.LibrarySection]:
         """
-        Get all library sections on a Plex Media Server
+        Get all library sections on a Plex Media Server.
 
         :return: list of Plex library sections
         :rtype: list[plexapi.library.LibrarySection]
@@ -52,7 +52,7 @@ class PlexUtils:
     @property
     def as_dizquetv_plex_server(self) -> "dizqueTV.PlexServer":
         """
-        Get this Plex Media Server to a dizqueTV Plex server
+        Get this Plex Media Server to a dizqueTV Plex server.
         :return: dizqueTV Plex server
         :rtype: dizqueTV.PlexServer
         """
@@ -60,7 +60,7 @@ class PlexUtils:
 
     def user_has_server_access(self, user: myplex.MyPlexUser) -> bool:
         """
-        Check if a user has access to a Plex Media Server
+        Check if a user has access to a Plex Media Server.
 
         :param user: User to check access for
         :type user: plexapi.myplex.MyPlexUser
@@ -74,7 +74,7 @@ class PlexUtils:
 
     def get_playlist(self, playlist_name: str) -> Union[playlist.Playlist, None]:
         """
-        Get a specific Plex playlist
+        Get a specific Plex playlist.
 
         :param playlist_name: Name of the Plex playlist
         :type playlist_name: str
@@ -88,7 +88,7 @@ class PlexUtils:
 
     def create_new_playlist(self, playlist_name: str, items: List[media.Media]) -> bool:
         """
-        Create a new Plex playlist
+        Create a new Plex playlist.
 
         :param playlist_name: Name of the new Plex playlist
         :type playlist_name: str
@@ -105,7 +105,7 @@ class PlexUtils:
 
     def reset_playlist(self, playlist_name: str, items: List[media.Media]) -> bool:
         """
-        Reset a Plex playlist (recreate it with new content)
+        Reset a Plex playlist (recreate it with new content).
 
         :param playlist_name: Name of the Plex playlist
         :type playlist_name: str
@@ -127,8 +127,9 @@ class PlexUtils:
         self, section: library.LibrarySection
     ) -> List[media.Media]:
         """
-        Get all Plex media items in a specific library section
-        NOTE: May be slow on large library sections
+        Get all Plex media items in a specific library section.
+
+        NOTE: May be slow on large library sections.
 
         :param section: Plex library section to load items from
         :type section: plexapi.library.LibrarySection
@@ -141,7 +142,7 @@ class PlexUtils:
         self, section_name: str = None, result_class: type = None, **search_terms
     ) -> List[media.Media]:
         """
-        Search for Plex items
+        Search for Plex items.
 
         :param section_name: Name of section to search in, optional
         :type section_name: str
@@ -163,7 +164,7 @@ class PlexUtils:
         self, section_name: str = None, result_class: type = None, **search_terms
     ) -> List[media.Media]:
         """
-        Search for Plex items
+        Search for Plex items.
 
         :param section_name: Name of section to search in, optional
         :type section_name: str
@@ -183,7 +184,7 @@ class PlexUtils:
         self, dizque_item, section_name: str = None
     ) -> Union[media.Media, None]:
         """
-        Locate a dizqueTV item on Plex
+        Locate a dizqueTV item on Plex.
 
         :param dizque_item: dizqueTV item to find on Plex
         :param section_name: Name of Plex library section to search for item, optional
@@ -250,7 +251,7 @@ class PlexSearch(PlexUtils):
         self, keywords: List[str], section_names: List[str] = None
     ) -> List[media.Media]:
         """
-        Find Plex media items with any of the keywords in their summary
+        Find Plex media items with any of the keywords in their summary.
 
         :param keywords: List of keywords to search for. If any of these keywords are found in the summary, the item is considered a match.
         :type keywords: List[str]
@@ -269,7 +270,7 @@ class PlexSearch(PlexUtils):
         self, keywords: List[str], section_names: List[str] = None
     ) -> List[media.Media]:
         """
-        Find Plex media items with any of the keywords in their title
+        Find Plex media items with any of the keywords in their title.
 
         :param keywords: List of keywords to search for. If any of these keywords are found in the title, the item is considered a match.
         :type keywords: List[str]
@@ -288,7 +289,7 @@ class PlexSearch(PlexUtils):
         self, genres: List[str], section_names: List[str] = None
     ) -> List[media.Media]:
         """
-        Find Plex media items with any of the keywords in their title
+        Find Plex media items with any of the keywords in their title.
 
         :param genres: List of genres to search for. If any of these genres are found on the item, the item is considered a match.
         :type genres: List[str]

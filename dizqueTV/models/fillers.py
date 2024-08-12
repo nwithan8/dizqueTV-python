@@ -46,7 +46,7 @@ class FillerList(BaseAPIObject):
     @decorators.check_for_dizque_instance
     def details(self) -> dict:
         """
-        Get FillerList JSON
+        Get FillerList JSON.
 
         :return: JSON data for FillerList object
         :rtype: dict
@@ -56,7 +56,7 @@ class FillerList(BaseAPIObject):
     @property
     def content(self) -> List[Union[FillerItem, CustomShow]]:
         """
-        Get all filler items on this list
+        Get all filler items on this list.
 
         :return: List of FillerItem and CustomShow objects
         :rtype: List[Union[FillerItem, CustomShow]]
@@ -74,7 +74,7 @@ class FillerList(BaseAPIObject):
     @decorators.check_for_dizque_instance
     def channels(self) -> List:
         """
-        Get all channels this filler list is used on
+        Get all channels this filler list is used on.
 
         :return: List of Channel objects
         :rtype: List[Channel]
@@ -85,8 +85,9 @@ class FillerList(BaseAPIObject):
     @decorators.check_for_dizque_instance
     def update(self, **kwargs) -> bool:
         """
-        Edit this FillerList on dizqueTV
-        Automatically refreshes current FillerList object
+        Edit this FillerList on dizqueTV.
+
+        Automatically refreshes current FillerList object.
 
         :param kwargs: keyword arguments of FillerList settings names and values
         :return: True if successful, False if unsuccessful (FillerList reloads in-place)
@@ -100,7 +101,7 @@ class FillerList(BaseAPIObject):
     @decorators.check_for_dizque_instance
     def get_filler_item(self, filler_item_title: str) -> Union[FillerItem, None]:
         """
-        Get a specific program on this channel
+        Get a specific program on this channel.
 
         :param filler_item_title: Title of filler item
         :type filler_item_title: str, optional
@@ -121,7 +122,7 @@ class FillerList(BaseAPIObject):
         **kwargs
     ) -> bool:
         """
-        Add a filler item to this filler list
+        Add a filler item to this filler list.
 
         :param plex_item: plexapi.video.Video, plexapi.video.Movie plexapi.video.Episode or plexapi.audio.Track object (optional)
         :type plex_item: Union[plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode, plexapi.audio.Track], optional
@@ -166,7 +167,7 @@ class FillerList(BaseAPIObject):
         plex_server: PServer = None,
     ) -> bool:
         """
-        Add multiple programs to this channel
+        Add multiple programs to this channel.
 
         :param fillers: List of FillerItem, CustomShow, plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode or plexapi.audio.Track objects
         :type fillers: List[Union[FillerItem, CustomShow, plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode, plexapi.audio.Track]]
@@ -199,7 +200,7 @@ class FillerList(BaseAPIObject):
     @decorators.check_for_dizque_instance
     def update_filler(self, filler: FillerItem, **kwargs) -> bool:
         """
-        Update a filler item on this filler list
+        Update a filler item on this filler list.
 
         :param filler: FillerItem object to update
         :type filler: FillerItem
@@ -223,7 +224,7 @@ class FillerList(BaseAPIObject):
     @decorators.check_for_dizque_instance
     def delete_filler(self, filler: FillerItem) -> bool:
         """
-        Delete a filler item from this filler list
+        Delete a filler item from this filler list.
 
         :param filler: FillerItem object to delete
         :type filler: FillerItem
@@ -242,7 +243,7 @@ class FillerList(BaseAPIObject):
     @decorators.check_for_dizque_instance
     def delete_all_fillers(self) -> bool:
         """
-        Delete all filler items from this filler list
+        Delete all filler items from this filler list.
 
         :return: True if successful, False if unsuccessful (FillerList reloads in-place)
         :rtype: bool
@@ -259,7 +260,7 @@ class FillerList(BaseAPIObject):
     @decorators.check_for_dizque_instance
     def sort_filler_by_duration(self) -> bool:
         """
-        Sort all filler items on this filler list by duration
+        Sort all filler items on this filler list by duration.
 
         :return: True if successful, False if unsuccessful (FillerList reloads in-place)
         :rtype: bool
@@ -272,7 +273,7 @@ class FillerList(BaseAPIObject):
     @decorators.check_for_dizque_instance
     def sort_filler_randomly(self) -> bool:
         """
-        Sort all filler items on this filler list randomly
+        Sort all filler items on this filler list randomly.
 
         :return: True if successful, False if unsuccessful (FillerList reloads in-place)
         :rtype: bool
@@ -285,7 +286,7 @@ class FillerList(BaseAPIObject):
     @decorators.check_for_dizque_instance
     def remove_duplicate_fillers(self) -> bool:
         """
-        Delete duplicate filler items on this filler list
+        Delete duplicate filler items on this filler list.
 
         :return: True if successful, False if unsuccessful (FillerList reloads in-place)
         :rtype: bool
@@ -299,7 +300,7 @@ class FillerList(BaseAPIObject):
     @decorators.check_for_dizque_instance
     def delete(self) -> bool:
         """
-        Delete this filler list
+        Delete this filler list.
 
         :return: True if successful, False if unsuccessful
         :rtype: bool

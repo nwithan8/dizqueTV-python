@@ -20,7 +20,7 @@ class PlexServer(BaseAPIObject):
     @decorators.check_for_dizque_instance
     def status(self) -> bool:
         """
-        Check if this Plex Media Server is accessible
+        Check if this Plex Media Server is accessible.
 
         :return: True if active, False if not active
         :rtype: bool
@@ -40,7 +40,7 @@ class PlexServer(BaseAPIObject):
     @decorators.check_for_dizque_instance
     def refresh(self):
         """
-        Reload this Plex Media Server
+        Reload this Plex Media Server.
 
         :return: None
         :rtype: None
@@ -55,8 +55,9 @@ class PlexServer(BaseAPIObject):
     @decorators.check_for_dizque_instance
     def update(self, **kwargs) -> bool:
         """
-        Edit this Plex Media Server on dizqueTV
-        Automatically refreshes current PlexServer object
+        Edit this Plex Media Server on dizqueTV.
+
+        Automatically refreshes current PlexServer object.
 
         :param kwargs: keyword arguments of setting names and values
         :return: True if successful, False if unsuccessful
@@ -73,7 +74,7 @@ class PlexServer(BaseAPIObject):
     @decorators.check_for_dizque_instance
     def delete(self) -> bool:
         """
-        Remove this Plex Media Server from dizqueTV
+        Remove this Plex Media Server from dizqueTV.
 
         :return: True if successful, False if unsuccessful
         :rtype: bool

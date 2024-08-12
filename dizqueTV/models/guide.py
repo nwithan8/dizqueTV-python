@@ -33,7 +33,7 @@ class GuideChannel(BaseAPIObject):
 
     def get_lineup(self, from_date: datetime, to_date: datetime) -> List[GuideProgram]:
         """
-        Get guide channel lineup for a certain time range
+        Get guide channel lineup for a certain time range.
 
         :param from_date: datetime.datetime object to start time frame
         :type from_date: datetime.datetime
@@ -65,7 +65,7 @@ class Guide(BaseAPIObject):
 
     def _create_channels_and_programs(self) -> List[GuideChannel]:
         """
-        Make a list of channels and programs
+        Make a list of channels and programs.
 
         :return: List of GuideChannel objects
         :rtype: List[GuideChannel]
@@ -86,7 +86,7 @@ class Guide(BaseAPIObject):
     @property
     def last_update(self) -> Union[datetime, None]:
         """
-        Get the last update time for the guide
+        Get the last update time for the guide.
 
         :return: datetime.datetime object
         :rtype: datetime.datetime

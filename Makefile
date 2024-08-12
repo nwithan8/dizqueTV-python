@@ -29,11 +29,19 @@ black:
 black-check:
 	$(VIRTUAL_BIN)/black $(PROJECT_NAME)/ $(TEST_DIR)/ --check
 
+## build-docs - Build the project documentation
+build-docs:
+	$(VIRTUAL_BIN)/sphinx-build -b html -d docs/doctrees docs/source docs/html
+
 ## format - Runs all formatting tools against the project
 format: black isort
 
 ## format-check - Checks if the project is formatted correctly against all formatting rules
 format-check: black-check isort-check lint mypy
+
+## hooks - Run pre-commit hooks against the project
+hooks:
+	$(VIRTUAL_BIN)/pre-commit run --all-files
 
 ## install - Install the project locally
 install:

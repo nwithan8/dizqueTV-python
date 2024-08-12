@@ -24,7 +24,7 @@ class CustomShowItem(Program):
     @property
     def _data(self):
         """
-        Override default self._data to ignore durationStr and commercials
+        Override default self._data to ignore durationStr and commercials.
 
         :return: Data dict
         :rtype: dict
@@ -37,7 +37,7 @@ class CustomShowItem(Program):
     @property
     def commercials(self) -> List:
         """
-        Get the show's commercials
+        Get the show's commercials.
 
         :return: List of commercials
         :rtype: list
@@ -60,7 +60,7 @@ class CustomShowDetails(BaseAPIObject):
     @property
     def content(self) -> List[CustomShowItem]:
         """
-        Get the custom show's content (the actual programs)
+        Get the custom show's content (the actual programs).
 
         :return: list of CustomShowItem objects
         :rtype: list
@@ -95,7 +95,7 @@ class CustomShow(BaseAPIObject):
     @property
     def details(self) -> Union[CustomShowDetails, None]:
         """
-        Get the custom show's details
+        Get the custom show's details.
 
         :return: CustomShowDetails object
         :rtype: CustomShowDetails
@@ -109,7 +109,7 @@ class CustomShow(BaseAPIObject):
     @property
     def content(self) -> List[CustomShowItem]:
         """
-        Get the custom show's content (the actual programs)
+        Get the custom show's content (the actual programs).
 
         :return: list of CustomShowItem objects
         :rtype: list
@@ -123,8 +123,9 @@ class CustomShow(BaseAPIObject):
     @decorators.check_for_dizque_instance
     def refresh(self):
         """
-        Reload current CustomShow object
-        Use to update program data
+        Reload current CustomShow object.
+
+        Use to update program data.
 
         :return: None
         """
@@ -137,8 +138,9 @@ class CustomShow(BaseAPIObject):
     @decorators.check_for_dizque_instance
     def update(self, **kwargs) -> bool:
         """
-        Edit this CustomShow on dizqueTV
-        Automatically refreshes current CustomShow object
+        Edit this CustomShow on dizqueTV.
+
+        Automatically refreshes current CustomShow object.
 
         :param kwargs: keyword arguments of CustomShow settings names and values
         :return: True if successful, False if unsuccessful (CustomShow reloads in-place)
@@ -152,7 +154,7 @@ class CustomShow(BaseAPIObject):
     @decorators.check_for_dizque_instance
     def edit(self, **kwargs) -> bool:
         """
-        Alias for custom_show.update()
+        Alias for custom_show.update().
 
         :param kwargs: keyword arguments of CustomShow settings names and values
         :return: True if successful, False if unsuccessful (Channel reloads in-place)
@@ -168,7 +170,7 @@ class CustomShow(BaseAPIObject):
         program: Union[Program, CustomShowItem] = None,
     ):
         """
-        Add a program to this custom show
+        Add a program to this custom show.
 
         :param plex_item: plexapi.video.Video, plexapi.video.Moviem plexapi.video.Episode or plexapi.audio.Track object (optional)
         :type plex_item: Union[plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode, plexapi.audio.Track], optional
@@ -222,7 +224,7 @@ class CustomShow(BaseAPIObject):
         plex_server: PServer = None,
     ):
         """
-        Add multiple programs to this custom show
+        Add multiple programs to this custom show.
 
         :param programs: List of Program, CustomShowItem, plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode or plexapi.audio.Track objects
         :type programs: List[Union[Program, CustomShowItem, plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode, plexapi.audio.Track]]
@@ -266,7 +268,7 @@ class CustomShow(BaseAPIObject):
     @decorators.check_for_dizque_instance
     def delete_program(self, program: Union[Program, CustomShowItem]) -> bool:
         """
-        Delete a custom show item from this custom show
+        Delete a custom show item from this custom show.
 
         :param program: CustomShowItem or Program object to delete
         :type program: CustomShowItem or Program
@@ -285,7 +287,7 @@ class CustomShow(BaseAPIObject):
     @decorators.check_for_dizque_instance
     def delete_all_programs(self) -> bool:
         """
-        Delete all custom show items from this custom show
+        Delete all custom show items from this custom show.
 
         :return: True if successful, False if unsuccessful (CustomShow reloads in-place)
         :rtype: bool
@@ -302,7 +304,7 @@ class CustomShow(BaseAPIObject):
     @decorators.check_for_dizque_instance
     def sort_filler_by_duration(self) -> bool:
         """
-        Sort all custom show items on this custom show by duration
+        Sort all custom show items on this custom show by duration.
 
         :return: True if successful, False if unsuccessful (CustomShow reloads in-place)
         :rtype: bool
@@ -315,7 +317,7 @@ class CustomShow(BaseAPIObject):
     @decorators.check_for_dizque_instance
     def sort_filler_randomly(self) -> bool:
         """
-        Sort all custom show items on this custom show randomly
+        Sort all custom show items on this custom show randomly.
 
         :return: True if successful, False if unsuccessful (CustomShow reloads in-place)
         :rtype: bool
@@ -328,7 +330,7 @@ class CustomShow(BaseAPIObject):
     @decorators.check_for_dizque_instance
     def remove_duplicate_fillers(self) -> bool:
         """
-        Delete duplicate custom show items on this custom show
+        Delete duplicate custom show items on this custom show.
 
         :return: True if successful, False if unsuccessful (CustomShow reloads in-place)
         :rtype: bool
@@ -342,7 +344,7 @@ class CustomShow(BaseAPIObject):
     @decorators.check_for_dizque_instance
     def delete(self) -> bool:
         """
-        Delete this custom show
+        Delete this custom show.
 
         :return: True if successful, False if unsuccessful
         :rtype: bool

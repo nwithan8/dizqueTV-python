@@ -80,8 +80,9 @@ class Program(MediaItem, Redirect):
         redirect_channel_number: int = None,
     ):
         """
-        Reload current Program object
-        Use to update data
+        Reload current Program object.
+
+        Use to update data.
 
         :return: None
         """
@@ -110,7 +111,7 @@ class Program(MediaItem, Redirect):
     @decorators.check_for_dizque_instance
     def update(self, **kwargs) -> bool:
         """
-        Update this program
+        Update this program.
 
         :return: True if successful, False if unsuccessful
         :rtype: bool
@@ -120,7 +121,7 @@ class Program(MediaItem, Redirect):
     @decorators.check_for_dizque_instance
     def delete(self) -> bool:
         """
-        Delete this program
+        Delete this program.
 
         :return: True if successful, False if unsuccessful
         :rtype: bool
@@ -139,8 +140,9 @@ class FillerItem(MediaItem):
     @decorators.check_for_dizque_instance
     def refresh(self, data: dict = None, filler_item_title: str = None):
         """
-        Reload current FillerItem object
-        Use to update data
+        Reload current FillerItem object.
+
+        Use to update data.
 
         :return: None
         """
@@ -168,7 +170,7 @@ class FillerItem(MediaItem):
     @decorators.check_for_dizque_instance
     def update(self, **kwargs) -> bool:
         """
-        Update this filler
+        Update this filler.
 
         :return: True if successful, False if unsuccessful
         :rtype: bool
@@ -178,7 +180,7 @@ class FillerItem(MediaItem):
     @decorators.check_for_dizque_instance
     def delete(self) -> bool:
         """
-        Delete this filler
+        Delete this filler.
 
         :return: True if successful, False if unsuccessful
         :rtype: bool

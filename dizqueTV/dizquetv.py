@@ -181,7 +181,7 @@ def convert_plex_item_to_filler_item(
 
 def convert_plex_server_to_dizque_plex_server(plex_server: PServer) -> PlexServer:
     """
-    Convert a plexapi.PlexServer object to a dizqueTV PlexServer object
+    Convert a plexapi.PlexServer object to a dizqueTV PlexServer object.
 
     :param plex_server: plexapi.PlexServer object to convert
     :type plex_server: plexapi.server.PlexServer
@@ -195,6 +195,7 @@ def convert_plex_server_to_dizque_plex_server(plex_server: PServer) -> PlexServe
 def repeat_list(items: List, how_many_times: int) -> List:
     """
     Repeat items in a list x number of times.
+
     Items will remain in the same order.
     Ex. [A, B, C] x3 -> [A, B, C, A, B, C, A, B, C]
 
@@ -215,6 +216,7 @@ def repeat_list(items: List, how_many_times: int) -> List:
 def repeat_and_shuffle_list(items: List, how_many_times: int) -> List:
     """
     Repeat items in a list, shuffled, x number of times.
+
     Items will be shuffled in each repeat group.
     Ex. [A, B, C] x3 -> [A, B, C, B, A, C, C, A, B]
 
@@ -238,7 +240,7 @@ def expand_custom_show_items(
         programs: List[Union[Program, Redirect, FillerItem, CustomShow, Video, Movie, Episode, Track]], dizque_instance) \
         -> List[Union[Program, Redirect, FillerItem, Video, Movie, Episode, Track]]:
     """
-    Expand all custom shows in a list out to their individual programs
+    Expand all custom shows in a list out to their individual programs.
 
     :param programs: List of programs (i.e. Program, Movie, Video, Track, CustomShow)
     :type programs: list
@@ -263,7 +265,7 @@ def expand_custom_show_items(
 
 def fill_in_watermark_settings(handle_errors: bool = True, **kwargs) -> dict:
     """
-    Create complete watermark settings
+    Create complete watermark settings.
 
     :param handle_errors: whether to handle errors or not
     :type handle_errors: bool
@@ -303,7 +305,7 @@ class API:
             anonymous_analytics: bool = True,
     ):
         """
-        Interact with dizqueTV's API
+        Interact with dizqueTV's API.
 
         :param url: dizqueTV URL
         :type url: str
@@ -405,7 +407,7 @@ class API:
     @property
     def dizquetv_server_details(self) -> ServerDetails:
         """
-        Get dizqueTV server details
+        Get dizqueTV server details.
 
         :return: ServerDetails object
         :rtype: ServerDetails
@@ -417,7 +419,7 @@ class API:
     @property
     def dizquetv_version(self) -> str:
         """
-        Get dizqueTV version number
+        Get dizqueTV version number.
 
         :return: dizqueTV version number
         :rtype: str
@@ -427,7 +429,7 @@ class API:
     @property
     def ffmpeg_version(self) -> str:
         """
-        Get FFmpeg version number
+        Get FFmpeg version number.
 
         :return: FFmpeg version number
         :rtype: str
@@ -437,7 +439,7 @@ class API:
     @property
     def nodejs_version(self) -> str:
         """
-        Get Node.js version number
+        Get Node.js version number.
 
         :return: Node.js version number
         :rtype: str
@@ -448,7 +450,7 @@ class API:
     @property
     def plex_servers(self) -> List[PlexServer]:
         """
-        Get the Plex Media Servers connected to dizqueTV
+        Get the Plex Media Servers connected to dizqueTV.
 
         :return: List of PlexServer objects
         :rtype: List[PlexServer]
@@ -458,7 +460,7 @@ class API:
 
     def plex_server_status(self, server_name: str) -> bool:
         """
-        Check if a Plex Media Server is accessible
+        Check if a Plex Media Server is accessible.
 
         :param server_name: Name of Plex Server
         :type server_name: str
@@ -485,7 +487,7 @@ class API:
 
     def get_plex_server(self, server_name: str) -> Union[PlexServer, None]:
         """
-        Get a specific Plex Media Server
+        Get a specific Plex Media Server.
 
         :param server_name: Name of Plex Server
         :type server_name: str
@@ -499,7 +501,7 @@ class API:
 
     def add_plex_server(self, **kwargs) -> Union[PlexServer, None]:
         """
-        Add a Plex Media Server to dizqueTV
+        Add a Plex Media Server to dizqueTV.
 
         :param kwargs: keyword arguments of setting names and values
         :return: PlexServer object or None
@@ -517,7 +519,7 @@ class API:
             self, plex_server: PServer
     ) -> Union[PlexServer, None]:
         """
-        Convert and add a plexapi.PlexServer as a Plex Media Server to dizqueTV
+        Convert and add a plexapi.PlexServer as a Plex Media Server to dizqueTV.
 
         :param plex_server: plexapi.PlexServer object to add to dizqueTV
         :type plex_server: plexapi.server.PlexServer
@@ -544,7 +546,7 @@ class API:
 
     def update_plex_server(self, server_name: str, **kwargs) -> bool:
         """
-        Edit a Plex Media Server on dizqueTV
+        Edit a Plex Media Server on dizqueTV.
 
         :param server_name: name of Plex Media Server to update
         :type server_name: str
@@ -563,7 +565,7 @@ class API:
 
     def delete_plex_server(self, server_name: str) -> bool:
         """
-        Remove a Plex Media Server from dizqueTV
+        Remove a Plex Media Server from dizqueTV.
 
         :param server_name: Name of Plex Server
         :type server_name: str
@@ -583,7 +585,7 @@ class API:
     @property
     def channels(self) -> List[Channel]:
         """
-        Get all dizqueTV channels
+        Get all dizqueTV channels.
 
         :return: List of Channel objects
         :rtype: List[Channel]
@@ -608,7 +610,7 @@ class API:
             self, channel_number: int = None, channel_name: str = None
     ) -> Union[Channel, None]:
         """
-        Get a specific dizqueTV channel by number or name
+        Get a specific dizqueTV channel by number or name.
 
         :param channel_number: Number of channel
         :type channel_number: int, optional
@@ -631,9 +633,9 @@ class API:
                     return channel
         return None
 
-    def get_channel_info(self, channel_number: int) -> json:
+    def get_channel_info(self, channel_number: int) -> dict:
         """
-        Get the name, number and icon for a dizqueTV channel
+        Get the name, number and icon for a dizqueTV channel.
 
         :param channel_number: Number of channel
         :type channel_number: int
@@ -659,7 +661,7 @@ class API:
     @property
     def channel_numbers(self) -> List[int]:
         """
-        Get all dizqueTV channel numbers
+        Get all dizqueTV channel numbers.
 
         :return: List of channel numbers
         :rtype: List[int]
@@ -672,7 +674,7 @@ class API:
     @property
     def channel_count(self) -> int:
         """
-        Get the number of dizqueTV channels
+        Get the number of dizqueTV channels.
 
         :return: Int number of channels
         :rtype: int
@@ -682,7 +684,7 @@ class API:
     @property
     def highest_channel_number(self) -> int:
         """
-        Get the highest active channel number
+        Get the highest active channel number.
 
         :return: Int number of the highest active channel
         :rtype: int
@@ -695,7 +697,7 @@ class API:
     @property
     def lowest_channel_number(self) -> int:
         """
-        Get the lowest active channel number
+        Get the lowest active channel number.
 
         :return: Int number of the lowest active channel
         :rtype: int
@@ -705,7 +707,7 @@ class API:
     @property
     def lowest_available_channel_number(self) -> int:
         """
-        Get the lowest channel number that doesn't currently exist
+        Get the lowest channel number that doesn't currently exist.
 
         :return: Int number of the lowest available channel
         :rtype: int
@@ -720,7 +722,7 @@ class API:
             self, settings_dict: dict, handle_errors: bool = False
     ) -> dict:
         """
-        Set some dynamic default values, such as channel number, start time and image URLs
+        Set some dynamic default values, such as channel number, start time and image URLs.
 
         :param settings_dict: Dictionary of new settings for channel
         :type settings_dict: dict
@@ -774,7 +776,7 @@ class API:
             **kwargs,
     ) -> Union[Channel, None]:
         """
-        Add a channel to dizqueTV
+        Add a channel to dizqueTV.
 
         :param programs: Program, Redirect or PlexAPI Video, Movie, Episode or Track objects to add to the new channel
         :type programs: List[Union[Program, Redirect, plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode, plexapi.audio.Track]], optional
@@ -819,7 +821,7 @@ class API:
 
     def update_channel(self, channel_number: int, **kwargs) -> bool:
         """
-        Edit a dizqueTV channel
+        Edit a dizqueTV channel.
 
         :param channel_number: Number of channel to update
         :type channel_number: int
@@ -842,7 +844,7 @@ class API:
 
     def delete_channel(self, channel_number: int) -> bool:
         """
-        Delete a dizqueTV channel
+        Delete a dizqueTV channel.
 
         :param channel_number: Number of channel to delete
         :type channel_number: int
@@ -860,7 +862,7 @@ class API:
             schedule_settings: dict = None,
     ) -> bool:
         """
-        Add or update a schedule to a Channel
+        Add or update a schedule to a Channel.
 
         :param channel: Channel object to add schedule to
         :type channel: Channel
@@ -900,7 +902,7 @@ class API:
             schedule_settings: dict = None,
     ) -> bool:
         """
-        Add or update a random schedule to a Channel
+        Add or update a random schedule to a Channel.
 
         :param channel: Channel object to add schedule to
         :type channel: Channel
@@ -937,7 +939,7 @@ class API:
     @property
     def filler_lists(self) -> List[FillerList]:
         """
-        Get all dizqueTV filler lists
+        Get all dizqueTV filler lists.
 
         :return: List of FillerList objects
         :rtype: List[FillerList]
@@ -952,7 +954,7 @@ class API:
 
     def get_filler_list(self, filler_list_id: str) -> Union[FillerList, None]:
         """
-        Get a specific dizqueTV filler list
+        Get a specific dizqueTV filler list.
 
         :param filler_list_id: id of filler list
         :type filler_list_id: str
@@ -966,7 +968,7 @@ class API:
 
     def get_filler_list_by_name(self, filler_list_name: str) -> Union[FillerList, None]:
         """
-        Get a specific dizqueTV filler list
+        Get a specific dizqueTV filler list.
 
         :param filler_list_name: name of filler list
         :type filler_list_name: str
@@ -978,9 +980,9 @@ class API:
                 return filler_list
         return None
 
-    def get_filler_list_info(self, filler_list_id: str) -> json:
+    def get_filler_list_info(self, filler_list_id: str) -> dict:
         """
-        Get the name, content and id for a dizqueTV filler list
+        Get the name, content and id for a dizqueTV filler list.
 
         :param filler_list_id: id of filler list
         :type filler_list_id: str
@@ -991,7 +993,7 @@ class API:
 
     def get_filler_list_channels(self, filler_list_id: str) -> List[Channel]:
         """
-        Get the channels that a dizqueTV filler list belongs to
+        Get the channels that a dizqueTV filler list belongs to.
 
         :param filler_list_id: ID of filler list
         :type filler_list_id: str
@@ -1008,7 +1010,7 @@ class API:
             self, settings_dict: dict, handle_errors: bool = False
     ) -> dict:
         """
-        Set some dynamic default values, such as filler list name
+        Set some dynamic default values, such as filler list name.
 
         :param settings_dict: Dictionary of new settings for filler list
         :type settings_dict: dict
@@ -1038,8 +1040,9 @@ class API:
             **kwargs,
     ) -> Union[FillerList, None]:
         """
-        Add a filler list to dizqueTV
-        Must include at least one program to create
+        Add a filler list to dizqueTV.
+
+        Must include at least one program to create.
 
         :param content: At least one Program or PlexAPI Video, Movie, Episode or Track to add to the new filler list
         :type content: List[Union[Program, Video, Movie, Episode, Track]]
@@ -1081,7 +1084,7 @@ class API:
 
     def update_filler_list(self, filler_list_id: str, **kwargs) -> bool:
         """
-        Edit a dizqueTV filler list
+        Edit a dizqueTV filler list.
 
         :param filler_list_id: ID of FillerList to update
         :type filler_list_id: str
@@ -1100,7 +1103,7 @@ class API:
 
     def delete_filler_list(self, filler_list_id: str) -> bool:
         """
-        Delete a dizqueTV filler list
+        Delete a dizqueTV filler list.
 
         :param filler_list_id: ID of FillerList to delete
         :type filler_list_id: str
@@ -1115,7 +1118,7 @@ class API:
     @property
     def custom_shows(self) -> List[CustomShow]:
         """
-        Get a list of all custom shows
+        Get a list of all custom shows.
 
         :return: List of CustomShow objects
         :rtype: List[CustomShow]
@@ -1127,7 +1130,7 @@ class API:
 
     def get_custom_show(self, custom_show_id: str) -> Union[CustomShow, None]:
         """
-        Get a CustomShow object by its ID
+        Get a CustomShow object by its ID.
 
         :param custom_show_id: ID of custom show
         :type custom_show_id: str
@@ -1143,7 +1146,7 @@ class API:
             self, custom_show_id: str
     ) -> Union[CustomShowDetails, None]:
         """
-        Get the details of a custom show
+        Get the details of a custom show.
 
         :param custom_show_id: ID of custom show
         :type custom_show_id: str
@@ -1162,7 +1165,7 @@ class API:
             plex_server: PServer = None,
     ) -> Union[CustomShow, None]:
         """
-        Add a dizqueTV custom show
+        Add a dizqueTV custom show.
 
         :param name: Name of custom show to add
         :type name: str
@@ -1202,7 +1205,7 @@ class API:
 
     def update_custom_show(self, custom_show_id: str, **kwargs) -> bool:
         """
-        Edit a dizqueTV custom show
+        Edit a dizqueTV custom show.
 
         :param custom_show_id: ID of CustomShow to update
         :type custom_show_id: str
@@ -1221,7 +1224,7 @@ class API:
 
     def delete_custom_show(self, custom_show_id: str) -> bool:
         """
-        Delete a dizqueTV custom show
+        Delete a dizqueTV custom show.
 
         :param custom_show_id: ID of CustomShow to delete
         :type custom_show_id: str
@@ -1235,7 +1238,7 @@ class API:
     # Images
     def upload_image(self, image_file_path: str) -> Union[UploadImageResponse, None]:
         """
-        Upload an image to dizqueTV
+        Upload an image to dizqueTV.
 
         :param image_file_path: path of image to upload
         :type image_file_path: str
@@ -1254,7 +1257,7 @@ class API:
     @property
     def ffmpeg_settings(self) -> Union[FFMPEGSettings, None]:
         """
-        Get dizqueTV's FFMPEG settings
+        Get dizqueTV's FFMPEG settings.
 
         :return: FFMPEGSettings object or None
         :rtype: FFMPEGSettings
@@ -1266,7 +1269,7 @@ class API:
 
     def update_ffmpeg_settings(self, **kwargs) -> bool:
         """
-        Edit dizqueTV's FFMPEG settings
+        Edit dizqueTV's FFMPEG settings.
 
         :param kwargs: keyword arguments of setting names and values
         :return: True if successful, False if unsuccessful
@@ -1281,7 +1284,7 @@ class API:
 
     def reset_ffmpeg_settings(self) -> bool:
         """
-        Reset dizqueTV's FFMPEG settings to default
+        Reset dizqueTV's FFMPEG settings to default.
 
         :return: True if successful, False if unsuccessful
         :rtype: bool
@@ -1295,7 +1298,7 @@ class API:
     @property
     def plex_settings(self) -> Union[PlexSettings, None]:
         """
-        Get dizqueTV's Plex settings
+        Get dizqueTV's Plex settings.
 
         :return: PlexSettings object or None
         :rtype: PlexSettings
@@ -1307,7 +1310,7 @@ class API:
 
     def update_plex_settings(self, **kwargs) -> bool:
         """
-        Edit dizqueTV's Plex settings
+        Edit dizqueTV's Plex settings.
 
         :param kwargs: keyword arguments of setting names and values
         :return: True if successful, False if unsuccessful
@@ -1322,7 +1325,7 @@ class API:
 
     def reset_plex_settings(self) -> bool:
         """
-        Reset dizqueTV's Plex settings to default
+        Reset dizqueTV's Plex settings to default.
 
         :return: True if successful, False if unsuccessful
         :rtype: bool
@@ -1336,7 +1339,7 @@ class API:
     @property
     def last_xmltv_refresh(self) -> str:
         """
-        Get the last time the XMLTV file was refreshed
+        Get the last time the XMLTV file was refreshed.
 
         :return: Timestamp of last refresh
         :rtype: str
@@ -1347,7 +1350,7 @@ class API:
     @property
     def xmltv_settings(self) -> Union[XMLTVSettings, None]:
         """
-        Get dizqueTV's XMLTV settings
+        Get dizqueTV's XMLTV settings.
 
         :return: XMLTVSettings object or None
         :rtype: XMLTVSettings
@@ -1359,7 +1362,7 @@ class API:
 
     def update_xmltv_settings(self, **kwargs) -> bool:
         """
-        Edit dizqueTV's XMLTV settings
+        Edit dizqueTV's XMLTV settings.
 
         :param kwargs: keyword arguments of setting names and values
         :return: True if successful, False if unsuccessful
@@ -1374,7 +1377,7 @@ class API:
 
     def reset_xmltv_settings(self) -> bool:
         """
-        Reset dizqueTV's XMLTV settings to default
+        Reset dizqueTV's XMLTV settings to default.
 
         :return: True if successful, False if unsuccessful
         :rtype: bool
@@ -1388,7 +1391,7 @@ class API:
     @property
     def hdhr_settings(self) -> Union[HDHomeRunSettings, None]:
         """
-        Get dizqueTV's HDHomeRun settings
+        Get dizqueTV's HDHomeRun settings.
 
         :return: HDHomeRunSettings object or None
         :rtype: HDHomeRunSettings
@@ -1400,7 +1403,7 @@ class API:
 
     def update_hdhr_settings(self, **kwargs) -> bool:
         """
-        Edit dizqueTV's HDHomeRun settings
+        Edit dizqueTV's HDHomeRun settings.
 
         :param kwargs: keyword arguments of setting names and values
         :return: True if successful, False if unsuccessful
@@ -1415,7 +1418,7 @@ class API:
 
     def reset_hdhr_settings(self) -> bool:
         """
-        Reset dizqueTV's HDHomeRun settings to default
+        Reset dizqueTV's HDHomeRun settings to default.
 
         :return: True if successful, False if unsuccessful
         :rtype: bool
@@ -1428,7 +1431,7 @@ class API:
     # XMLTV.XML
     def refresh_xml(self) -> bool:
         """
-        Force the server to update the xmltv.xml file
+        Force the server to update the xmltv.xml file.
 
         :return: True if successful, False if unsuccessful
         :rtype: bool
@@ -1439,7 +1442,7 @@ class API:
     @property
     def xmltv_xml(self) -> Union[ElementTree.Element, None]:
         """
-        Get dizqueTV's XMLTV data
+        Get dizqueTV's XMLTV data.
 
         :return: xml.etree.ElementTree.Element object or None
         :rtype: ElementTree.Element
@@ -1453,7 +1456,8 @@ class API:
     @property
     def m3u(self) -> m3u8.model.M3U8:
         """
-        Get dizqueTV's m3u playlist
+        Get dizqueTV's m3u playlist.
+
         Without m3u8, this method currently produces an error.
 
         :return: m3u8 object
@@ -1464,7 +1468,8 @@ class API:
     @property
     def hls_m3u(self) -> m3u8.model.M3U8:
         """
-        Get dizqueTV's hls.m3u playlist
+        Get dizqueTV's hls.m3u playlist.
+
         Without m3u8, this method currently produces an error.
 
         :return: m3u8 object
@@ -1474,7 +1479,7 @@ class API:
 
     def get_channel_m3u(self, channel_number: int) -> m3u8.model.M3U8:
         """
-        Get a channel-specific m3u playlist
+        Get a channel-specific m3u playlist.
 
         :param channel_number: Number of channel to get M3U playlist
         :type channel_number: int
@@ -1487,7 +1492,7 @@ class API:
 
     def get_stream_url(self, channel_number: int, audio_only: bool = False) -> str:
         """
-        Get URL for stream (to use for network stream in players like VLC)
+        Get URL for stream (to use for network stream in players like VLC).
 
         :param channel_number: Number of channel to stream
         :type channel_number: int
@@ -1505,7 +1510,7 @@ class API:
 
     def get_video_url(self, channel_number: int) -> str:
         """
-        Get URL for video (to use for network stream in players like VLC)
+        Get URL for video (to use for network stream in players like VLC).
 
         :param channel_number: Number of channel to stream
         :type channel_number: int
@@ -1518,7 +1523,7 @@ class API:
 
     def get_radio_url(self, channel_number: int) -> str:
         """
-        Get URL for only audio (to use for network stream in players like VLC)
+        Get URL for only audio (to use for network stream in players like VLC).
 
         :param channel_number: Number of channel to stream
         :type channel_number: int
@@ -1533,7 +1538,7 @@ class API:
     @property
     def guide(self) -> Guide:
         """
-        Get the dizqueTV guide
+        Get the dizqueTV guide.
 
         :return: dizqueTV.Guide object
         :rtype: Guide
@@ -1544,7 +1549,7 @@ class API:
     @property
     def last_guide_update(self) -> Union[datetime, None]:
         """
-        Get the last update time for the guide
+        Get the last update time for the guide.
 
         :return: datetime.datetime object
         :rtype: datetime
@@ -1557,7 +1562,7 @@ class API:
     @property
     def guide_channel_numbers(self) -> List[str]:
         """
-        Get the list of channel numbers from the guide
+        Get the list of channel numbers from the guide.
 
         :return: List of strings (not ints)
         :rtype: List[str]
@@ -1568,9 +1573,9 @@ class API:
         return []
 
     @property
-    def guide_lineup_json(self) -> json:
+    def guide_lineup_json(self) -> dict:
         """
-        Get the raw guide JSON data
+        Get the raw guide JSON data.
 
         :return: JSON data
         :rtype: dict
@@ -1582,7 +1587,7 @@ class API:
             self, plex_item: Union[Video, Movie, Episode, Track], plex_server: PServer
     ) -> Program:
         """
-        Convert a PlexAPI Video, Movie, Episode or Track object into a Program
+        Convert a PlexAPI Video, Movie, Episode or Track object into a Program.
 
         :param plex_item: plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode or plexapi.audio.Track object
         :type plex_item: Union[plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode, plexapi.audio.Track]
@@ -1597,7 +1602,7 @@ class API:
 
     def extract_episodes(self, plex_item: Union[Show, Season]) -> List[Episode]:
         """
-        Extract all PlexAPI Episodes from a PlexAPI Show or Season
+        Extract all PlexAPI Episodes from a PlexAPI Show or Season.
 
         :param plex_item: plexapi.video.Show or plexapi.video.Season object
         :type plex_item: Union[plexapi.video.Show, plexapi.video.Season]
@@ -1608,7 +1613,7 @@ class API:
 
     def extract_tracks(self, plex_item: Union[Album, Artist]) -> List[Track]:
         """
-        Extract all PlexAPI Tracks from a PlexAPI Album or Artist
+        Extract all PlexAPI Tracks from a PlexAPI Album or Artist.
 
         :param plex_item: plexapi.audio.Album or plexapi.audio.Artist object
         :type plex_item: Union[plexapi.audio.Album, plexapi.audio.Artist]
@@ -1621,7 +1626,7 @@ class API:
             self, plex_item: Union[Video, Movie, Episode, Track], plex_server: PServer
     ) -> FillerItem:
         """
-        Convert a PlexAPI Video, Movie, Episode or Track object into a FillerItem
+        Convert a PlexAPI Video, Movie, Episode or Track object into a FillerItem.
 
         :param plex_item: plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode or plexapi.audio.Track object
         :type plex_item: Union[plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode, plexapi.audio.Track]
@@ -1636,7 +1641,7 @@ class API:
 
     def convert_program_to_custom_show_item(self, program: Program) -> CustomShowItem:
         """
-        Convert a dizqueTV Program to a dizqueTV CustomShowItem (add durationStr and commercials)
+        Convert a dizqueTV Program to a dizqueTV CustomShowItem (add durationStr and commercials).
 
         :param program: Program to convert
         :type program: Program
@@ -1651,7 +1656,7 @@ class API:
                                  programs: List[Union[Program, FillerItem, CustomShow, Video, Movie, Episode, Track]]) \
             -> List[Union[Program, FillerItem, Redirect, Video, Movie, Episode, Track]]:
         """
-        Expand all custom shows in a list out to their individual programs
+        Expand all custom shows in a list out to their individual programs.
 
         :param programs: List of programs (i.e. Program, Movie, Video, Track, CustomShow)
         :type programs: list
@@ -1727,7 +1732,7 @@ class API:
             plex_server: PServer = None,
     ) -> bool:
         """
-        Add multiple programs to multiple channels
+        Add multiple programs to multiple channels.
 
         :param programs: List of Program, CustomShow plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode or plexapi.audio.Track objects
         :type programs: List[Union[Program, CustomShow, plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode, plexapi.audio.Track]]
@@ -1760,7 +1765,7 @@ class API:
             channel_numbers: List[int] = None,
     ) -> bool:
         """
-        Add multiple filler lists to multiple channels
+        Add multiple filler lists to multiple channels.
 
         :param filler_lists: List of FillerList objects
         :type filler_lists: List[FillerList]

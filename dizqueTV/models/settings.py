@@ -15,7 +15,7 @@ class ServerDetails(BaseAPIObject):
     @decorators.check_for_dizque_instance
     def reload(self):
         """
-        Reload current ServerDetails object
+        Reload current ServerDetails object.
 
         :return: None
         :rtype: None
@@ -41,7 +41,7 @@ class XMLTVSettings(BaseAPIObject):
     @decorators.check_for_dizque_instance
     def reload(self):
         """
-        Reload current XMLTVSettings object
+        Reload current XMLTVSettings object.
 
         :return: None
         :rtype: None
@@ -55,8 +55,9 @@ class XMLTVSettings(BaseAPIObject):
     @decorators.check_for_dizque_instance
     def update(self, **kwargs) -> bool:
         """
-        Edit these XMLTV settings
-        Automatically refreshes current XMLTVSettings object
+        Edit these XMLTV settings.
+
+        Automatically refreshes current XMLTVSettings object.
 
         :param kwargs: keyword arguments of setting names and values
         :return: True if successful, False if unsuccessful
@@ -70,8 +71,9 @@ class XMLTVSettings(BaseAPIObject):
     @decorators.check_for_dizque_instance
     def reset(self) -> bool:
         """
-        Reset these XMLTV settings
-        Automatically refreshes current XMLTVSettings object
+        Reset these XMLTV settings.
+
+        Automatically refreshes current XMLTVSettings object.
 
         :return: True if successful, False if unsuccessful
         :rtype: bool
@@ -95,7 +97,7 @@ class HDHomeRunSettings(BaseAPIObject):
     @decorators.check_for_dizque_instance
     def refresh(self):
         """
-        Reload current HDHomeRunSettings object
+        Reload current HDHomeRunSettings object.
 
         :return: None
         :rtype: None
@@ -109,8 +111,9 @@ class HDHomeRunSettings(BaseAPIObject):
     @decorators.check_for_dizque_instance
     def update(self, **kwargs) -> bool:
         """
-        Edit these HDHomeRun settings
-        Automatically refreshes current HDHomeRunSettings object
+        Edit these HDHomeRun settings.
+
+        Automatically refreshes current HDHomeRunSettings object.
 
         :param kwargs: keyword arguments of setting names and values
         :return: True if successful, False if unsuccessful
@@ -124,8 +127,9 @@ class HDHomeRunSettings(BaseAPIObject):
     @decorators.check_for_dizque_instance
     def reset(self) -> bool:
         """
-        Reset these HDHomeRun settings
-        Automatically refreshes current HDHomeRunSettings object
+        Reset these HDHomeRun settings.
+
+        Automatically refreshes current HDHomeRunSettings object.
 
         :return: True if successful, False if unsuccessful
         :rtype: bool
@@ -172,7 +176,7 @@ class FFMPEGSettings(BaseAPIObject):
     @decorators.check_for_dizque_instance
     def refresh(self):
         """
-        Reload current FFMPEGSettings object
+        Reload current FFMPEGSettings object.
 
         :return: None
         :rtype: None
@@ -186,8 +190,9 @@ class FFMPEGSettings(BaseAPIObject):
     @decorators.check_for_dizque_instance
     def update(self, **kwargs) -> bool:
         """
-        Edit these FFMPEG settings
-        Automatically refreshes current FFMPEGSettings object
+        Edit these FFMPEG settings.
+
+        Automatically refreshes current FFMPEGSettings object.
 
         :param kwargs: keyword arguments of setting names and values
         :return: True if successful, False if unsuccessful
@@ -201,8 +206,9 @@ class FFMPEGSettings(BaseAPIObject):
     @decorators.check_for_dizque_instance
     def reset(self) -> bool:
         """
-        Reset these FFMPEG settings
-        Automatically refreshes current FFMPEGSettings object
+        Reset these FFMPEG settings.
+
+        Automatically refreshes current FFMPEGSettings object.
 
         :return: True if successful, False if unsuccessful
         :rtype: bool
@@ -243,7 +249,7 @@ class PlexSettings(BaseAPIObject):
     @decorators.check_for_dizque_instance
     def refresh(self):
         """
-        Reload current PlexSettings object
+        Reload current PlexSettings object.
 
         :return: None
         :rtype: None
@@ -257,8 +263,9 @@ class PlexSettings(BaseAPIObject):
     @decorators.check_for_dizque_instance
     def update(self, **kwargs) -> bool:
         """
-        Edit these Plex settings
-        Automatically refreshes current PlexSettings object
+        Edit these Plex settings.
+
+        Automatically refreshes current PlexSettings object.
 
         :param kwargs: keyword arguments of setting names and values
         :return: True if successful, False if unsuccessful
@@ -272,8 +279,9 @@ class PlexSettings(BaseAPIObject):
     @decorators.check_for_dizque_instance
     def reset(self) -> bool:
         """
-        Reset these Plex settings
-        Automatically refreshes current PlexSettings object
+        Reset these Plex settings.
+
+        Automatically refreshes current PlexSettings object.
 
         :return: True if successful, False if unsuccessful
         :rtype: bool
