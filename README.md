@@ -34,8 +34,8 @@ from dizqueTV import API
 dtv = API(url="http://localhost:8000")
 ```
 Enable verbose logging by passing ``verbose=True`` into the ``API`` object declaration
- 
- 
+
+
 ## Usage
 
 Documentation available on [ReadTheDocs](https://dizquetv.readthedocs.io/en/latest/)

@@ -27,4 +27,3 @@ My Discord username is nwithan8#8438
 Follow me on Twitter: @nwithan8
 
 Also feel free to check out my other projects on GitHub or join the ``#developer`` channel in my own Discord server (https://discord.gg/ygRDVE9)
-

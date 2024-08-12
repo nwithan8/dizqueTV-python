@@ -9,3 +9,4 @@ python-dotenv
 setuptools
 wheel
 twine
+pre-commit
