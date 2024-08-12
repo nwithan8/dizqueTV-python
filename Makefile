@@ -31,7 +31,7 @@ black-check:
 
 ## build-docs - Build the project documentation
 build-docs:
-	$(VIRTUAL_BIN)/sphinx-build -b html -d docs/doctrees docs/source docs/html
+	$(VIRTUAL_BIN)/sphinx-build -b html -d docs/build/doctrees docs/source docs/build/html
 
 ## format - Runs all formatting tools against the project
 format: black isort
