@@ -1,5 +1,3 @@
-from typing import List
-
 PLEX_SERVER_SETTINGS_TEMPLATE = {
     "name": str,
     "uri": str,
@@ -62,13 +60,17 @@ CHANNEL_ON_DEMAND_SETTINGS_DEFAULT = {
     "playedOffset": 0,
 }
 
-TIME_SLOT_SETTINGS_TEMPLATE = {"time": int, "showId": str, "order": str}
+TIME_SLOT_SETTINGS_TEMPLATE = {
+    "time": int,
+    "showId": str,
+    "order": str
+}
 
 SCHEDULE_SETTINGS_TEMPLATE = {
     "lateness": int,
     "maxDays": int,
     "flexPreference": ["end", "distribute"],
-    "slots": [],
+    "slots": list,
     "pad": int,
     "timeZoneOffset": int,
     "fake": dict,
@@ -88,7 +90,7 @@ RANDOM_SCHEDULE_SETTINGS_TEMPLATE = {
     "lateness": int,
     "maxDays": int,
     "flexPreference": ["end", "distribute"],
-    "slots": [],
+    "slots": list,
     "pad": int,
     "padStyle": str,
     "randomDistribution": str,
@@ -109,9 +111,9 @@ RANDOM_SCHEDULE_SETTINGS_DEFAULT = {
 }
 
 CHANNEL_SETTINGS_TEMPLATE = {
-    "programs": List,
+    "programs": list,
     "fillerRepeatCooldown": int,
-    "fallback": [],
+    "fallback": list,
     "icon": str,
     "disableFillerOverlay": bool,
     "startTime": str,
@@ -122,9 +124,9 @@ CHANNEL_SETTINGS_TEMPLATE = {
     "name": str,
     "duration": int,
     "_id": str,
-    "fillerCollections": List,
-    "watermark": {},
-    "transcoding": {},
+    "fillerCollections": list,
+    "watermark": dict,
+    "transcoding": dict,
     "guideMinimumDurationSeconds": int,
     "guideFlexPlaceholder": str,
     "stealth": bool,
@@ -148,13 +150,27 @@ CHANNEL_SETTINGS_DEFAULT = {
     "groupTitle": "dizqueTV",
 }
 
-FILLER_LIST_SETTINGS_TEMPLATE = {"name": str, "content": List, "id": str}
+FILLER_LIST_SETTINGS_TEMPLATE = {
+    "name": str,
+    "content": list,
+    "id": str
+}
 
-FILLER_LIST_SETTINGS_DEFAULT = {"name": "New List", "content": []}
+FILLER_LIST_SETTINGS_DEFAULT = {
+    "name": "New List",
+    "content": []
+}
 
-FILLER_LIST_CHANNEL_TEMPLATE = {"id": str, "weight": int, "cooldown": int}
+FILLER_LIST_CHANNEL_TEMPLATE = {
+    "id": str,
+    "weight": int,
+    "cooldown": int
+}
 
-FILLER_LIST_CHANNEL_DEFAULT = {"weight": 300, "cooldown": 0}
+FILLER_LIST_CHANNEL_DEFAULT = {
+    "weight": 300,
+    "cooldown": 0
+}
 
 REDIRECT_PROGRAM_TEMPLATE = {
     "isOffline": bool,
@@ -163,7 +179,10 @@ REDIRECT_PROGRAM_TEMPLATE = {
     "channel": int,
 }
 
-CUSTOM_SHOW_TEMPLATE = {"name": str, "content": List}
+CUSTOM_SHOW_TEMPLATE = {
+    "name": str,
+    "content": list
+}
 
 MOVIE_PROGRAM_TEMPLATE = {
     "title": str,

@@ -21,7 +21,7 @@ _uris = {}
 
 # Internal Helpers
 def _multithread(
-    func, elements: List, element_param_name: str, thread_count: int = None, **kwargs
+        func, elements: List, element_param_name: str, thread_count: int = None, **kwargs
 ) -> List:
     """
     Multithread a function for elements in a list.
@@ -57,7 +57,7 @@ def _multithread(
 
 
 def _combine_settings_add_new(
-    new_settings_dict: dict, default_dict: dict, ignore_keys: List = None
+        new_settings_dict: dict, default_dict: dict, ignore_keys: List = None
 ) -> dict:
     """
     Build a complete dictionary for new settings, using old settings as a base.
@@ -85,7 +85,7 @@ def _combine_settings_add_new(
 
 
 def _combine_settings(
-    new_settings_dict: dict, default_dict: dict, ignore_keys: List = None
+        new_settings_dict: dict, default_dict: dict, ignore_keys: List = None
 ) -> dict:
     """
     Build a complete dictionary for new settings, using old settings as a base.
@@ -115,10 +115,10 @@ def _combine_settings(
 
 
 def _combine_settings_enforce_types(
-    new_settings_dict: dict,
-    default_dict: dict,
-    template_dict: dict,
-    ignore_keys: List = None,
+        new_settings_dict: dict,
+        default_dict: dict,
+        template_dict: dict[str, object],
+        ignore_keys: List = None,
 ) -> dict:
     """
     Build a complete dictionary for new settings, using old settings as a base.
@@ -138,15 +138,26 @@ def _combine_settings_enforce_types(
     :return: Dictionary of new settings
     :rtype: dict
     """
+    # Template dictionary example:
+    # {
+    #     "name": str,
+    #     "age": int,
+    #     "is_alive": bool,
+    #     "height": float,
+    #     "tags: List[str],
+    #     "enum": ["value1", "value2", "value3"],
+    # }
+
     if not ignore_keys:
         ignore_keys = []
     for k, v in new_settings_dict.items():
-        # add key as long as it's not ignored, in the template and a valid type/option
-        if k in ignore_keys:
+        if k in ignore_keys:  # Skip ignored keys
             pass
-        elif k not in template_dict.keys():
+        elif k not in template_dict.keys():  # Skip keys not in template
             pass
-        elif not (type(v) == template_dict[k] or v in template_dict[k]):
+        elif isinstance(template_dict[k], type) and not isinstance(v, template_dict[k]): # Value is not the provided type
+            pass
+        elif isinstance(template_dict[k], list) and v not in template_dict[k]:  # Value is not in the list of accepted values
             pass
         else:
             default_dict[k] = v
@@ -172,7 +183,7 @@ def _filter_dictionary(new_dictionary: dict, template_dict: dict) -> dict:
 
 
 def _settings_are_complete(
-    new_settings_dict: dict, template_settings_dict: json, ignore_keys: List = None
+        new_settings_dict: dict, template_settings_dict: json, ignore_keys: List = None
 ) -> bool:
     """
     Check that all elements from the settings template are present in the new settings.
@@ -263,7 +274,7 @@ def _object_has_attribute(obj: object, attribute_name: str) -> bool:
 
 
 def _make_program_dict_from_plex_item(
-    plex_item: Union[Video, Movie, Episode, Track], plex_server: PServer
+        plex_item: Union[Video, Movie, Episode, Track], plex_server: PServer
 ) -> dict:
     """
     Build a dictionary for a Program using a PlexAPI Video, Movie, Episode or Track object.
@@ -295,16 +306,16 @@ def _make_program_dict_from_plex_item(
         "date": (
             remove_time_from_date(plex_item.originallyAvailableAt)
             if (
-                hasattr(plex_item, "originallyAvailableAt")
-                and plex_item.originallyAvailableAt
+                    hasattr(plex_item, "originallyAvailableAt")
+                    and plex_item.originallyAvailableAt
             )
             else "1900-01-01"
         ),
         "year": (
             get_year_from_date(plex_item.originallyAvailableAt)
             if (
-                hasattr(plex_item, "originallyAvailableAt")
-                and plex_item.originallyAvailableAt
+                    hasattr(plex_item, "originallyAvailableAt")
+                    and plex_item.originallyAvailableAt
             )
             else "1900"
         ),
@@ -330,7 +341,7 @@ def _make_program_dict_from_plex_item(
 
 
 def _make_filler_dict_from_plex_item(
-    plex_item: Union[Video, Movie, Episode, Track], plex_server: PServer
+        plex_item: Union[Video, Movie, Episode, Track], plex_server: PServer
 ) -> dict:
     """
     Build a dictionary for a FillerItem using a PlexAPI Video, Movie, Episode or Track object.
@@ -359,16 +370,16 @@ def _make_filler_dict_from_plex_item(
         "date": (
             remove_time_from_date(plex_item.originallyAvailableAt)
             if (
-                hasattr(plex_item, "originallyAvailableAt")
-                and plex_item.originallyAvailableAt
+                    hasattr(plex_item, "originallyAvailableAt")
+                    and plex_item.originallyAvailableAt
             )
             else "1900-01-01"
         ),
         "year": (
             get_year_from_date(plex_item.originallyAvailableAt)
             if (
-                hasattr(plex_item, "originallyAvailableAt")
-                and plex_item.originallyAvailableAt
+                    hasattr(plex_item, "originallyAvailableAt")
+                    and plex_item.originallyAvailableAt
             )
             else "1900-01-01"
         ),
@@ -389,9 +400,9 @@ def _make_filler_dict_from_plex_item(
 
 
 def _make_server_dict_from_plex_server(
-    plex_server: PServer,
-    auto_reload_channels: bool = False,
-    auto_reload_guide: bool = True,
+        plex_server: PServer,
+        auto_reload_channels: bool = False,
+        auto_reload_guide: bool = True,
 ) -> dict:
     """
     Build a dictionary for a PlexServer using a PlexAPI server.
@@ -451,8 +462,8 @@ def get_items_of_type(item_type: str, items: List) -> List:
         item
         for item in items
         if (
-            _object_has_attribute(obj=item, attribute_name="type")
-            and item.type == item_type
+                _object_has_attribute(obj=item, attribute_name="type")
+                and item.type == item_type
         )
     ]
 
@@ -472,8 +483,8 @@ def get_items_of_not_type(item_type: str, items: List) -> List:
         item
         for item in items
         if (
-            _object_has_attribute(obj=item, attribute_name="type")
-            and item.type != item_type
+                _object_has_attribute(obj=item, attribute_name="type")
+                and item.type != item_type
         )
     ]
 
@@ -491,14 +502,14 @@ def get_non_shows(media_items: List) -> List:
         item
         for item in media_items
         if (
-            (
-                _object_has_attribute(obj=item, attribute_name="type")
-                and item.type != "episode"
-            )
-            or (
-                _object_has_attribute(obj=item, attribute_name="season")
-                and not item.season
-            )
+                (
+                        _object_has_attribute(obj=item, attribute_name="type")
+                        and item.type != "episode"
+                )
+                or (
+                        _object_has_attribute(obj=item, attribute_name="season")
+                        and not item.season
+                )
         )
     ]
 
@@ -517,9 +528,9 @@ def make_show_dict(media_items: List) -> dict:
     show_dict = {}
     for item in media_items:
         if (
-            _object_has_attribute(obj=item, attribute_name="type")
-            and item.type == "episode"
-            and item.episode
+                _object_has_attribute(obj=item, attribute_name="type")
+                and item.type == "episode"
+                and item.episode
         ):
             if item.showTitle in show_dict.keys():
                 if item.season in show_dict[item.showTitle].keys():
@@ -646,7 +657,7 @@ def get_year_from_date(date_string: Union[datetime, str]) -> int:
 
 
 def string_to_datetime(
-    date_string: str, template: str = "%Y-%m-%dT%H:%M:%S"
+        date_string: str, template: str = "%Y-%m-%dT%H:%M:%S"
 ) -> datetime:
     """
     Convert a datetime string to a datetime.datetime object.
@@ -664,7 +675,7 @@ def string_to_datetime(
 
 
 def datetime_to_string(
-    datetime_object: datetime, template: str = "%Y-%m-%dT%H:%M:%S.000Z"
+        datetime_object: datetime, template: str = "%Y-%m-%dT%H:%M:%S.000Z"
 ) -> str:
     """
     Convert a datetime.datetime object to a string.
@@ -748,13 +759,13 @@ def hours_difference_in_timezone() -> int:
 
 
 def shift_time(
-    starting_time: datetime,
-    seconds: int = 0,
-    minutes: int = 0,
-    hours: int = 0,
-    days: int = 0,
-    months: int = 0,
-    years: int = 0,
+        starting_time: datetime,
+        seconds: int = 0,
+        minutes: int = 0,
+        hours: int = 0,
+        days: int = 0,
+        months: int = 0,
+        years: int = 0,
 ) -> datetime:
     """
     Shift a time forward or backwards.
@@ -838,7 +849,7 @@ def get_milliseconds_between_two_hours(start_hour: int, end_hour: int) -> int:
 
 
 def get_milliseconds_between_two_datetimes(
-    start_datetime: datetime, end_datetime: datetime
+        start_datetime: datetime, end_datetime: datetime
 ) -> int:
     """
     Get how many milliseconds between two datetime.datetime objects.
@@ -854,7 +865,7 @@ def get_milliseconds_between_two_datetimes(
 
 
 def get_needed_flex_time(
-    item_time_milliseconds: int, allowed_minutes_time_frame: int
+        item_time_milliseconds: int, allowed_minutes_time_frame: int
 ) -> int:
     """
     Get how many milliseconds needed to stretch an item's runtime to a specific interval length.
@@ -869,12 +880,12 @@ def get_needed_flex_time(
     minute_start = 30 if datetime.utcnow().minute >= 30 else 0
 
     allowed_milliseconds_time_frame = (
-        (allowed_minutes_time_frame + (minute_start % allowed_minutes_time_frame))
-        * 60
-        * 1000
+            (allowed_minutes_time_frame + (minute_start % allowed_minutes_time_frame))
+            * 60
+            * 1000
     )
     remainder = allowed_milliseconds_time_frame - (
-        item_time_milliseconds % allowed_milliseconds_time_frame
+            item_time_milliseconds % allowed_milliseconds_time_frame
     )
     if remainder == allowed_milliseconds_time_frame:
         return 0
@@ -882,7 +893,7 @@ def get_needed_flex_time(
 
 
 def get_plex_indirect_uri(
-    plex_server: PServer, force_update: bool = False
+        plex_server: PServer, force_update: bool = False
 ) -> Union[str, None]:
     """
     Get the indirect URI (ex. http://192.168.1.1-xxxxxxxxxxxxxxxx.plex.direct) for a Plex server.
@@ -917,7 +928,7 @@ def get_plex_indirect_uri(
 
 
 def get_plex_access_token(
-    plex_server: PServer, force_update: bool = False
+        plex_server: PServer, force_update: bool = False
 ) -> Union[str, None]:
     """
     Get the access token for a Plex server.
@@ -1099,7 +1110,7 @@ def remove_duplicates_by_attribute(items: List, attribute_name: str) -> List:
 
 
 def sort_media_alphabetically(
-    media_items: List[Union[Program, FillerItem]]
+        media_items: List[Union[Program, FillerItem]]
 ) -> List[Union[Program, FillerItem]]:
     """
     Sort media items alphabetically.
@@ -1124,7 +1135,7 @@ def sort_media_alphabetically(
 
 
 def sort_media_by_release_date(
-    media_items: List[Union[Program, FillerItem]]
+        media_items: List[Union[Program, FillerItem]]
 ) -> List[Union[Program, FillerItem]]:
     """
     Sort media items by release date.
@@ -1173,7 +1184,7 @@ def _sort_shows_by_season_order(shows_dict: dict) -> List[Union[Program, FillerI
 
 
 def sort_media_by_season_order(
-    media_items: List[Union[Program, FillerItem]]
+        media_items: List[Union[Program, FillerItem]]
 ) -> List[Union[Program, FillerItem]]:
     """
     Sort media items by season order.
@@ -1194,7 +1205,7 @@ def sort_media_by_season_order(
 
 
 def sort_media_by_duration(
-    media_items: List[Union[Program, FillerItem]]
+        media_items: List[Union[Program, FillerItem]]
 ) -> List[Union[Program, FillerItem]]:
     """
     Sort media by duration.
@@ -1210,9 +1221,9 @@ def sort_media_by_duration(
         item
         for item in media_items
         if (
-            _object_has_attribute(obj=item, attribute_name="duration")
-            and _object_has_attribute(obj=item, attribute_name="type")
-            and item.type != "redirect"
+                _object_has_attribute(obj=item, attribute_name="duration")
+                and _object_has_attribute(obj=item, attribute_name="type")
+                and item.type != "redirect"
         )
     ]
     sorted_media = sorted(non_redirects, key=lambda x: x.duration)
@@ -1220,7 +1231,7 @@ def sort_media_by_duration(
 
 
 def sort_media_randomly(
-    media_items: List[Union[Program, FillerItem]]
+        media_items: List[Union[Program, FillerItem]]
 ) -> List[Union[Program, FillerItem]]:
     """
     Sort media randomly.
@@ -1235,7 +1246,7 @@ def sort_media_randomly(
 
 
 def sort_media_cyclical_shuffle(
-    media_items: List[Union[Program, FillerItem]]
+        media_items: List[Union[Program, FillerItem]]
 ) -> List[Union[Program, FillerItem]]:
     """
     Sort media cyclically.
@@ -1276,8 +1287,8 @@ def sort_media_cyclical_shuffle(
         if "non_show" in categories_and_sizes.keys() and len(non_shows) == 0:
             del categories_and_sizes["non_show"]
         if (
-            "show" in categories_and_sizes.keys()
-            and show_list["remaining_episode_count"] == 0
+                "show" in categories_and_sizes.keys()
+                and show_list["remaining_episode_count"] == 0
         ):
             del categories_and_sizes["show"]
         if not categories_and_sizes:
@@ -1299,9 +1310,9 @@ def sort_media_cyclical_shuffle(
 
 
 def sort_media_block_shuffle(
-    media_items: List[Union[Program, FillerItem]],
-    block_length: int = 1,
-    randomize: bool = False,
+        media_items: List[Union[Program, FillerItem]],
+        block_length: int = 1,
+        randomize: bool = False,
 ) -> List[Union[Program, FillerItem]]:
     """
     Sort media with block shuffle.
@@ -1351,7 +1362,7 @@ def sort_media_block_shuffle(
 
 
 def balance_shows(
-    media_items: List[Union[Program, FillerItem]], margin_of_correction: float = 0.1
+        media_items: List[Union[Program, FillerItem]], margin_of_correction: float = 0.1
 ) -> List[Union[Program, FillerItem]]:
     """
     Balance weights of the shows. Movies are untouched.
@@ -1385,10 +1396,10 @@ def balance_shows(
                 if not continue_with_show:
                     break
                 potential_show_duration = (
-                    show_running_duration + episode_data["duration"]
+                        show_running_duration + episode_data["duration"]
                 )
                 if (
-                    float(potential_show_duration) / float(shortest_show_length)
+                        float(potential_show_duration) / float(shortest_show_length)
                 ) <= margin:
                     final_shows.append(episode_data["episode"])
                     show_running_duration += episode_data["duration"]
@@ -1400,7 +1411,7 @@ def balance_shows(
 
 
 def remove_non_programs(
-    media_items: List[Union[Program, Redirect, FillerItem]]
+        media_items: List[Union[Program, Redirect, FillerItem]]
 ) -> List[Union[Program, FillerItem]]:
     """
     Remove all non-programs from list of media items.
@@ -1414,14 +1425,14 @@ def remove_non_programs(
         item
         for item in media_items
         if (
-            _object_has_attribute(obj=item, attribute_name="type")
-            and item.type != "redirect"
+                _object_has_attribute(obj=item, attribute_name="type")
+                and item.type != "redirect"
         )
     ]
 
 
 def remove_duplicate_media_items(
-    media_items: List[Union[Program, Redirect, FillerItem]]
+        media_items: List[Union[Program, Redirect, FillerItem]]
 ) -> List[Union[Program, FillerItem]]:
     """
     Remove duplicate items from list of media items.
@@ -1442,7 +1453,7 @@ def remove_duplicate_media_items(
 
 
 def _get_first_x_minutes_of_programs(
-    programs: List[Union[Program, Redirect, FillerItem]], minutes: int
+        programs: List[Union[Program, Redirect, FillerItem]], minutes: int
 ) -> Tuple[List[Union[Program, Redirect, FillerItem]], int]:
     """
     Keep building a list of programs in order until a duration limit is met.
@@ -1467,7 +1478,7 @@ def _get_first_x_minutes_of_programs(
 
 
 def _get_first_x_minutes_of_programs_return_unused(
-    programs: List[Union[Program, Redirect, FillerItem]], minutes: int
+        programs: List[Union[Program, Redirect, FillerItem]], minutes: int
 ) -> Tuple[
     List[Union[Program, Redirect, FillerItem]],
     int,

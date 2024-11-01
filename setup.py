@@ -79,7 +79,10 @@ classifiers.extend(python_versions())
 try:
     _ = setuptools._vendor.packaging.version.Version(__version__)
 except Exception:
-    __version__ = '0.0.0'
+    if "." in __version__:  # If __version__ was replaced by GitHub Actions, but could not be converted to a version
+        __version__ = 'VERSIONADDEDBYGITHUB'  # Will be replaced by GitHub Actions with actual version number
+    else:
+        __version__ = "0.0.0"  # If __version__ was not replaced by GitHub Actions, set to 0.0.0
 
 setuptools.setup(
     name=__title__,
