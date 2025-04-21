@@ -201,6 +201,8 @@ MOVIE_PROGRAM_TEMPLATE = {
     "episode": int,
     "season": int,
     "serverKey": str,
+    "seekPosition": int,
+    "endPosition": int,
 }
 
 EPISODE_PROGRAM_TEMPLATE = {
@@ -223,6 +225,8 @@ EPISODE_PROGRAM_TEMPLATE = {
     "showIcon": str,
     "episodeIcon": str,
     "seasonIcon": str,
+    "seekPosition": int,
+    "endPosition": int,
 }
 
 TRACK_PROGRAM_TEMPLATE = {
