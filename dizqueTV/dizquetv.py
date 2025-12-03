@@ -114,7 +114,8 @@ def convert_custom_show_to_programs(
 
 
 def convert_plex_item_to_program(
-        plex_item: Union[Video, Movie, Episode, Track], plex_server: PServer
+        plex_item: Union[Video, Movie, Episode, Track], plex_server: PServer,
+        seek_position: int = None, end_position: int = None
 ) -> Program:
     """
     Convert a PlexAPI Video, Movie, Episode or Track object into a Program
@@ -123,12 +124,18 @@ def convert_plex_item_to_program(
     :type plex_item: Union[plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode, plexapi.audio.Track]
     :param plex_server: plexapi.server.PlexServer object
     :type plex_server: plexapi.server.PlexServer
+    :param seek_position: Position in milliseconds to start playback from (optional)
+    :type seek_position: int, optional
+    :param end_position: Position in milliseconds to end playback at (optional)
+    :type end_position: int, optional
     :return: Program object
     :rtype: Program
     """
     data = helpers._make_program_dict_from_plex_item(
-        plex_item=plex_item, plex_server=plex_server
+        plex_item=plex_item, plex_server=plex_server,
+        seek_position=seek_position, end_position=end_position
     )
+    
     return Program(data=data, dizque_instance=None, channel_instance=None)
 
 
@@ -1584,7 +1591,8 @@ class API:
 
     # Other Functions
     def convert_plex_item_to_program(
-            self, plex_item: Union[Video, Movie, Episode, Track], plex_server: PServer
+            self, plex_item: Union[Video, Movie, Episode, Track], plex_server: PServer,
+            seek_position: int = None, end_position: int = None
     ) -> Program:
         """
         Convert a PlexAPI Video, Movie, Episode or Track object into a Program.
@@ -1593,11 +1601,16 @@ class API:
         :type plex_item: Union[plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode, plexapi.audio.Track]
         :param plex_server: plexapi.server.PlexServer object
         :type plex_server: plexapi.server.PlexServer
+        :param seek_position: Position in milliseconds to start playback from (optional)
+        :type seek_position: int, optional
+        :param end_position: Position in milliseconds to end playback at (optional)
+        :type end_position: int, optional
         :return: Program object
         :rtype: Program
         """
         return convert_plex_item_to_program(
-            plex_item=plex_item, plex_server=plex_server
+            plex_item=plex_item, plex_server=plex_server,
+            seek_position=seek_position, end_position=end_position
         )
 
     def extract_episodes(self, plex_item: Union[Show, Season]) -> List[Episode]:

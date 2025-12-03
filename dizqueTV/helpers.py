@@ -274,7 +274,8 @@ def _object_has_attribute(obj: object, attribute_name: str) -> bool:
 
 
 def _make_program_dict_from_plex_item(
-        plex_item: Union[Video, Movie, Episode, Track], plex_server: PServer
+        plex_item: Union[Video, Movie, Episode, Track], plex_server: PServer,
+        seek_position: int = None, end_position: int = None
 ) -> dict:
     """
     Build a dictionary for a Program using a PlexAPI Video, Movie, Episode or Track object.
@@ -283,6 +284,10 @@ def _make_program_dict_from_plex_item(
     :type plex_item: Union[plexapi.video.Video, plexapi.video.Movie, plexapi.video.Episode, plexapi.audio.Track]
     :param plex_server: plexapi.server.PlexServer object
     :type plex_server: plexapi.server.PlexServer
+    :param seek_position: Position in milliseconds to start playback from (optional)
+    :type seek_position: int, optional
+    :param end_position: Position in milliseconds to end playback at (optional)
+    :type end_position: int, optional
     :return: dict of Plex item information
     :rtype: dict
     """
@@ -337,6 +342,12 @@ def _make_program_dict_from_plex_item(
             "showIcon"
         ] = f"{plex_uri}{plex_item.grandparentThumb}?X-Plex-Token={plex_token}"
         data["icon"] = data["showIcon"]
+        
+    if seek_position is not None:
+        data["seekPosition"] = seek_position
+    if end_position is not None:
+        data["endPosition"] = end_position
+        
     return data
 
 

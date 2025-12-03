@@ -68,6 +68,8 @@ class Program(MediaItem, Redirect):
             channel_instance=channel_instance,
         )
         self.rating = data.get("rating")
+        self.seekPosition = data.get("seekPosition")
+        self.endPosition = data.get("endPosition")
 
     def __repr__(self):
         return f"{self.__class__.__name__}({self.title})"
