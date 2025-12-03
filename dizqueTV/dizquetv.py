@@ -13,8 +13,6 @@ from plexapi.video import Episode, Movie, Video, Show, Season, Clip
 
 import dizqueTV.dizquetv_requests as requests
 import dizqueTV.helpers as helpers
-from dizqueTV._analytics import GoogleAnalytics
-from dizqueTV._info import __analytics_id__ as analytics_id
 from dizqueTV.advanced import Advanced
 from dizqueTV.exceptions import (ChannelCreationError, GeneralException,
                                  ItemCreationError, MissingParametersError)
@@ -308,7 +306,7 @@ class API:
             self,
             url: str,
             verbose: bool = False,
-            allow_analytics: bool = True,
+            allow_analytics: bool = False,
             anonymous_analytics: bool = True,
     ):
         """
@@ -320,17 +318,12 @@ class API:
         :type verbose: bool
         :param allow_analytics: Allow Google Analytics (see disclaimer)
         :type allow_analytics: bool
-        :param anonymous_analytics: Make Google Analytics anonymous (see disclaimer)
-        :type anonymous_analytics: bool
+        :param anonymous_analytics: Make Google Analytics anonymous (see disclaimer) (DEPRECATED)
+        :type anonymous_analytics: bool (DEPRECATED)
         """
         self.url = url.rstrip("/")
         self.verbose = verbose
         self.advanced = Advanced(dizque_instance=self)
-        self.analytics = GoogleAnalytics(
-            analytics_id=analytics_id,
-            anonymous_ip=anonymous_analytics,
-            do_not_track=not allow_analytics,
-        )
         logging.basicConfig(
             format="%(asctime)s %(levelname)s:%(message)s",
             level=(logging.INFO if verbose else logging.ERROR),

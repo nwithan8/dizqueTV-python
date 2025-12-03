@@ -1,7 +1,6 @@
 import inspect
 import platform
 
-import dizqueTV._analytics as GA
 from dizqueTV._info import __version__ as version
 
 
@@ -12,17 +11,6 @@ def _errored_func():
 
 def _platform_info(dtv_api):
     return f"os:{platform.system()}|pyv:{platform.python_version()}|libv:{version}|softv:{dtv_api.dizquetv_version}"
-
-
-def _send_error_to_analytics(
-    dtv_api, analytics: GA.GoogleAnalytics, function_name: str, random_uuid: bool = True
-):
-    analytics.exception(
-        exception_description=f"{function_name}|{_platform_info(dtv_api=dtv_api)}",
-        is_fatal=False,
-        anonymize_ip=analytics.anonymize_ip,
-        random_uuid_if_needed=(random_uuid if random_uuid else analytics.anonymize_ip),
-    )
 
 
 class IncludeFunctionName(Exception):
@@ -36,17 +24,8 @@ class ReportedException(IncludeFunctionName):
     def __init__(
         self,
         message: str,
-        send_analytics: bool = True,
-        dtv_api_object=None,
-        analytics: GA.GoogleAnalytics = None,
     ):
         errored_function = str(_errored_func)
-        if send_analytics:
-            _send_error_to_analytics(
-                dtv_api=dtv_api_object,
-                analytics=analytics,
-                function_name=errored_function,
-            )
         super().__init__(message, errored_function=errored_function)
 
 
