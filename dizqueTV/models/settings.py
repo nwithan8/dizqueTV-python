@@ -139,6 +139,14 @@ class HDHomeRunSettings(BaseAPIObject):
             return True
         return False
 
+class FFMPEGInfo(BaseAPIObject):
+    def __init__(self, data: dict, dizque_instance):
+        super().__init__(data, dizque_instance)
+        self.ffmpegPath = data.get("ffmpegPath")
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}({self.ffmpegPath})"
+
 
 class FFMPEGSettings(BaseAPIObject):
     def __init__(self, data: dict, dizque_instance):

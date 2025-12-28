@@ -9,7 +9,7 @@ import plexapi.server
 from objectrest import Response
 from plexapi.audio import Track, Artist, Album
 from plexapi.server import PlexServer as PServer
-from plexapi.video import Episode, Movie, Video, Show, Season, Clip
+from plexapi.video import Episode, Movie, Video, Show, Season
 
 import dizqueTV.dizquetv_requests as requests
 import dizqueTV.helpers as helpers
@@ -17,7 +17,7 @@ from dizqueTV.advanced import Advanced
 from dizqueTV.exceptions import (ChannelCreationError, GeneralException,
                                  ItemCreationError, MissingParametersError)
 from dizqueTV.models import (Channel, CustomShow, CustomShowDetails,
-                             CustomShowItem, FFMPEGSettings, FillerItem,
+                             CustomShowItem, FFMPEGInfo, FFMPEGSettings, FillerItem,
                              FillerList, Guide, HDHomeRunSettings, PlexServer,
                              PlexSettings, Program, Redirect, Schedule,
                              ServerDetails, TimeSlot, TimeSlotItem,
@@ -133,7 +133,7 @@ def convert_plex_item_to_program(
         plex_item=plex_item, plex_server=plex_server,
         seek_position=seek_position, end_position=end_position
     )
-    
+
     return Program(data=data, dizque_instance=None, channel_instance=None)
 
 
@@ -575,6 +575,21 @@ class API:
         if self._delete(endpoint="/plex-servers", data={"name": server_name}):
             return True
         return False
+
+    def get_plex_path_media_container(self, server_key_base64: str, path: str) -> dict:
+        """
+        Get a Plex Media Server MediaContainer object for a specific Plex path.
+
+        :param server_key_base64: Base64-encoded server key of Plex Media Server
+        :type server_key_base64: str
+        :param path: Path to item on Plex Media Server
+        :type path: str
+        :return: MediaContainer JSON data
+        :rtype: dict
+        """
+        endpoint: str = f"/plex-server/{server_key_base64}/{path.lstrip('/')}"
+        data: dict = self._get_json(endpoint=endpoint)
+        return data.get("MediaContainer", {})
 
     # Channels
 
@@ -1254,6 +1269,19 @@ class API:
         return UploadImageResponse(data=res.json())
 
     # FFMPEG Settings
+    @property
+    def ffmpeg_info(self) -> Union[FFMPEGInfo, None]:
+        """
+        Get dizqueTV's FFMPEG info.
+
+        :return: FFMPEGInfo object or None
+        :rtype: FFMPEGInfo
+        """
+        json_data = self._get_json(endpoint="/ffmpeg-info")
+        if json_data:
+            return FFMPEGInfo(data=json_data, dizque_instance=self)
+        return None
+
     @property
     def ffmpeg_settings(self) -> Union[FFMPEGSettings, None]:
         """

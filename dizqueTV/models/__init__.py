@@ -6,6 +6,6 @@ from dizqueTV.models.general import UploadImageResponse
 from dizqueTV.models.guide import Guide
 from dizqueTV.models.media import FillerItem, Program, Redirect
 from dizqueTV.models.plex_server import PlexServer
-from dizqueTV.models.settings import (FFMPEGSettings, HDHomeRunSettings,
+from dizqueTV.models.settings import (FFMPEGInfo, FFMPEGSettings, HDHomeRunSettings,
                                       PlexSettings, ServerDetails,
                                       XMLTVSettings)
